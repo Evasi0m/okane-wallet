@@ -56,6 +56,8 @@ var PRESET_CATS=[
     {id:'sub',name:'\u0E04\u0E48\u0E32\u0E2A\u0E21\u0E31\u0E04\u0E23\u0E2A\u0E21\u0E32\u0E0A\u0E34\u0E01',icon:'netflix'},
     {id:'invest',name:'\u0E40\u0E07\u0E34\u0E19\u0E40\u0E01\u0E47\u0E1A\u0E25\u0E07\u0E17\u0E38\u0E19',icon:'piggy'}
 ];
+var PRESET_CAT_COLORS={pet:'#F59E0B',game:'#6366F1',travel:'#06B6D4',health:'#EC4899',sub:'#10B981',invest:'#84CC16'};
+var CAT_PALETTE=['#F59E0B','#6366F1','#06B6D4','#EC4899','#10B981','#84CC16','#F97316','#A855F7','#14B8A6','#FB7185','#0EA5E9','#A3E635'];
 var THEMES=[
     {id:'light',name:'Light',dots:['#FAF4EE','#e33900','#FFF'],free:true},
     {id:'dark',name:'Dark',dots:['#141110','#F08030','#221C17'],free:true},
@@ -244,7 +246,7 @@ if(editExp&&!p){var sg=gSet().savGoal||50000;h+='<div class="sec"><div class="se
 
 // Chart
 var gl=isGuest?' guest-lock':'';
-h+='<div class="sec glass-chart'+gl+'" style="animation-delay:.12s"'+(isGuest?' onclick="showPrem()"':'')+'><div class="sec-t">สัดส่วนรายจ่ายแบ่งตามหมวดหมู่</div><div class="sc" style="padding:14px 10px"><div class="cw"><canvas id="mC"></canvas></div></div>';
+h+='<div class="sec glass-chart'+gl+'" style="animation-delay:.12s"'+(isGuest?' onclick="showPrem()"':'')+'><div class="sec-t">สัดส่วนรายจ่ายแบ่งตามหมวดหมู่</div><div class="sc" style="padding:14px 10px"><div class="cw"><canvas id="mC"></canvas><div id="mC-center" class="chart-center"></div></div><div id="mC-legend" class="chart-legend"></div></div>';
 if(isGuest)h+='<div class="guest-lock-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>\u0E2A\u0E21\u0E31\u0E04\u0E23\u0E2A\u0E21\u0E32\u0E0A\u0E34\u0E01</div>';
 h+='</div>';
 if(!p)h+='<div class="reset-area"><button class="reset-btn" onclick="resetMonth()">\u0E25\u0E49\u0E32\u0E07\u0E40\u0E14\u0E37\u0E2D\u0E19 '+TM[m]+'</button><div class="credit">Credit : Opus 4.6 & Jarasrawee</div></div>';
@@ -557,7 +559,7 @@ function resetYear(){if(!confirm('\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E35 '+cY+'?')
 var tipTimer;function showTip(e){var t=e.currentTarget.dataset.tip;if(!t)return;var tip=document.getElementById('tip');tip.textContent=t;var r=e.currentTarget.getBoundingClientRect();tip.style.left=Math.min(r.left,window.innerWidth-210)+'px';tip.style.top=(r.top-40)+'px';tipTimer=setTimeout(function(){tip.classList.add('show')},300)}function hideTip(){clearTimeout(tipTimer);document.getElementById('tip').classList.remove('show')}
 
 /* ===== CHARTS ===== */
-function cCl(){var dk=['dark','basics'].indexOf(document.documentElement.getAttribute('data-theme'))>=0;return{t:dk?'rgba(255,255,255,.5)':'rgba(0,0,0,.4)',g:dk?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)'}}
+function cCl(){var dk=['dark','basics','ocean','cyber'].indexOf(document.documentElement.getAttribute('data-theme')||'light')>=0;return{t:dk?'rgba(255,255,255,.75)':'rgba(0,0,0,.65)',g:dk?'rgba(255,255,255,.07)':'rgba(0,0,0,.07)'}}
 function drawMC(d,y,m){
     if(ch){ch.destroy();ch=null}
     var cv=document.getElementById('mC');
@@ -566,34 +568,34 @@ function drawMC(d,y,m){
     var lb=['ค่ากิน','เงินออม','Shopee','ค่าน้ำมัน'],
         vl=[d.food,d.sav,d.shopee,d.gas],
         cl=['#FF8000','#1EA05A','#EE4D2D','#2E7DC8'];
-    
+
+    var usedColors=['#FF8000','#1EA05A','#EE4D2D','#2E7DC8','#D63E3E'];
+    var customColorIdx=0;
     gCats().forEach(function(cat){
         lb.push(cat.name);
         vl.push(Number(d[cat.id]||0));
-        cl.push('#8B5CF6');
-    });
-    
-    var ot=getDailyOtherTotal(y,m);
-    if(ot > 0) {
-        lb.push('อื่นๆ');
-        vl.push(ot);
-        cl.push('#D63E3E');
-    }
-
-    // Filter out zero values for the breakdown chart
-    var finalLb = [], finalVl = [], finalCl = [];
-    for(var i=0; i<vl.length; i++) {
-        if(vl[i] > 0) {
-            finalLb.push(lb[i]);
-            finalVl.push(vl[i]);
-            finalCl.push(cl[i]);
+        var color=PRESET_CAT_COLORS[cat.id];
+        if(!color){
+            while(customColorIdx<CAT_PALETTE.length&&usedColors.indexOf(CAT_PALETTE[customColorIdx])>=0)customColorIdx++;
+            color=CAT_PALETTE[customColorIdx%CAT_PALETTE.length];
+            customColorIdx++;
         }
-    }
+        usedColors.push(color);
+        cl.push(color);
+    });
 
-    if(finalVl.length === 0) {
-        cv.parentElement.innerHTML = '<div class="dl-empty" style="padding:20px 0">ไม่มีข้อมูลการใช้จ่าย</div>';
+    var ot=getDailyOtherTotal(y,m);
+    if(ot>0){lb.push('อื่นๆ');vl.push(ot);cl.push('#D63E3E')}
+
+    var finalLb=[],finalVl=[],finalCl=[];
+    for(var i=0;i<vl.length;i++){if(vl[i]>0){finalLb.push(lb[i]);finalVl.push(vl[i]);finalCl.push(cl[i])}}
+
+    if(finalVl.length===0){
+        cv.parentElement.innerHTML='<div class="dl-empty" style="padding:20px 0">ไม่มีข้อมูลการใช้จ่าย</div>';
         return;
     }
+
+    var total=finalVl.reduce(function(a,b){return a+b},0);
 
     ch=new Chart(cv,{
         type:'doughnut',
@@ -602,43 +604,46 @@ function drawMC(d,y,m){
             datasets:[{
                 data:finalVl,
                 backgroundColor:finalCl,
-                borderWidth: 0,
-                hoverOffset: 10,
-                borderRadius: 4
+                borderWidth:2,
+                borderColor:'transparent',
+                hoverOffset:8,
+                borderRadius:6
             }]
         },
         options:{
             responsive:true,
             maintainAspectRatio:false,
-            cutout: '70%',
+            cutout:'68%',
             plugins:{
-                legend:{
-                    display:true,
-                    position: 'bottom',
-                    labels: {
-                        color: c.t,
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                        padding: 15,
-                        font: { size: 11, family: 'Sarabun' }
-                    }
-                },
+                legend:{display:false},
                 tooltip:{
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    padding: 12,
-                    titleFont: { size: 13, family: 'Sarabun' },
-                    bodyFont: { size: 13, family: 'JetBrains Mono' },
+                    backgroundColor:'rgba(0,0,0,0.82)',
+                    padding:12,
+                    titleFont:{size:13,family:'Sarabun'},
+                    bodyFont:{size:13,family:'JetBrains Mono'},
                     callbacks:{
                         label:function(ctx){
-                            var sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                            var pct = ((ctx.raw / sum) * 100).toFixed(1);
-                            return ' ' + ctx.label + ': ' + fmt(ctx.raw) + '.- (' + pct + '%)';
+                            var pct=((ctx.raw/total)*100).toFixed(1);
+                            return ' '+ctx.label+': '+fmt(ctx.raw)+'.- ('+pct+'%)';
                         }
                     }
                 }
             }
         }
     });
+
+    var ce=document.getElementById('mC-center');
+    if(ce){ce.innerHTML='<span class="cc-val">'+fmt(total)+'</span><span class="cc-lb">รายจ่ายรวม</span>'}
+
+    var le=document.getElementById('mC-legend');
+    if(le){
+        var lh='';
+        for(var j=0;j<finalLb.length;j++){
+            var pct=((finalVl[j]/total)*100).toFixed(1);
+            lh+='<div class="cl-item"><span class="cl-dot" style="background:'+finalCl[j]+'"></span><span class="cl-name">'+finalLb[j]+'</span><span class="cl-val">'+fmt(finalVl[j])+'.-</span><span class="cl-pct">'+pct+'%</span></div>';
+        }
+        le.innerHTML=lh;
+    }
 }
 function drawYC(rows){if(ch){ch.destroy();ch=null}var cv=document.getElementById('yC');if(!cv)return;var c=cCl();ch=new Chart(cv,{type:'bar',data:{labels:TM,datasets:[{label:'\u0E23\u0E31\u0E1A',data:rows.map(function(r){return r.tI}),backgroundColor:'#1EA05A',borderRadius:4,barPercentage:.7},{label:'\u0E08\u0E48\u0E32\u0E22',data:rows.map(function(r){return r.tE}),backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--ac').trim()||'#E0712B',borderRadius:4,barPercentage:.7}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{ticks:{color:c.t,font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:c.t,font:{size:9,family:'JetBrains Mono'},callback:function(v){return fmt(v)}},grid:{color:c.g},border:{display:false}}},plugins:{legend:{labels:{color:c.t,font:{family:'Sarabun',size:10,weight:'bold'},usePointStyle:true,pointStyle:'circle',padding:10}},tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+fmt(ctx.raw)+'.-'}}}}}})}
 
