@@ -1,16 +1,16 @@
 /* ===== ICON LIST (30 minimal SVG for custom categories) ===== */
 var _s='width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"';
 var ICON_LIST={
-shopee:'https://thesvg.org/icons/shopee/default.svg',
-grab:'https://thesvg.org/icons/grab/default.svg',
-netflix:'https://thesvg.org/icons/netflix/default.svg',
-youtube:'https://thesvg.org/icons/youtube/default.svg',
-lineman:'https://thesvg.org/icons/lineman/default.svg',
-starbucks:'https://thesvg.org/icons/starbucks/default.svg',
-truemoney:'https://thesvg.org/icons/truemoney/default.svg',
-kasikornbank:'https://thesvg.org/icons/kasikornbank/default.svg',
-scb:'https://thesvg.org/icons/scb/default.svg',
-visa:'https://thesvg.org/icons/visa/default.svg',
+shopee:'<svg '+_s+'><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>',
+grab:'<svg '+_s+'><path d="M12 2L4 8l2 2 4-1v5l-3 2v2l5-1 5 1v-2l-3-2V9l4 1 2-2-8-6z"/></svg>',
+netflix:'<svg '+_s+'><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M12 2l-5 5M12 2l5 5"/></svg>',
+youtube:'<svg '+_s+'><path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.42a2.78 2.78 0 00-1.94 2C1 8.14 1 12 1 12s0 3.86.46 5.58a2.78 2.78 0 001.94 2c1.72.42 8.6.42 8.6.42s6.88 0 8.6-.42a2.78 2.78 0 001.94-2C23 15.86 23 12 23 12s0-3.86-.46-5.58z"/><path d="M9.75 15.02l5.75-3.02-5.75-3.02v6.04z" fill="currentColor"/></svg>',
+lineman:'<svg '+_s+'><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+starbucks:'<svg '+_s+'><path d="M17 8h1a4 4 0 010 8h-1M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/><path d="M7 2v3M10 2v3M13 2v3"/></svg>',
+truemoney:'<svg '+_s+'><path d="M20 7H5a2 2 0 00-2 2v10a2 2 0 002 2h15V7z"/><path d="M20 7V5a2 2 0 00-2-2H7"/><circle cx="17" cy="14" r="1.5"/></svg>',
+kasikornbank:'<svg '+_s+'><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>',
+scb:'<svg '+_s+'><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h3"/></svg>',
+visa:'<svg '+_s+'><path d="M10 9h4L12 15h-4zM18 9h4l-2 6h-4zM2 9h4l2 6h-4z"/></svg>',
 coffee:'<svg '+_s+'><path d="M17 8h1a4 4 0 010 8h-1M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/><path d="M7 2v3M10 2v3M13 2v3"/></svg>',
 house:'<svg '+_s+'><path d="M3 10l9-7 9 7v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10z"/><path d="M9 21v-7h6v7"/></svg>',
 phone:'<svg '+_s+'><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M12 18h.01"/></svg>',
@@ -56,7 +56,17 @@ var PRESET_CATS=[
     {id:'sub',name:'\u0E04\u0E48\u0E32\u0E2A\u0E21\u0E31\u0E04\u0E23\u0E2A\u0E21\u0E32\u0E0A\u0E34\u0E01',icon:'netflix'},
     {id:'invest',name:'\u0E40\u0E07\u0E34\u0E19\u0E40\u0E01\u0E47\u0E1A\u0E25\u0E07\u0E17\u0E38\u0E19',icon:'piggy'}
 ];
-var THEMES=[{id:'light',name:'Light',dots:['#FAF4EE','#e33900','#FFF'],free:true},{id:'dark',name:'Dark',dots:['#141110','#F08030','#221C17'],free:true},{id:'basics',name:'The Basics',dots:['#1A1A1A','#A1A1A1','#4A4A4A'],free:true},{id:'forest',name:'Forest',dots:['#F1EDEA','#4CB572','#135E4B'],free:false},{id:'emerald',name:'Emerald',dots:['#F1EDEA','#05B084','#015A84'],free:false}];
+var THEMES=[
+    {id:'light',name:'Light',dots:['#FAF4EE','#e33900','#FFF'],free:true},
+    {id:'dark',name:'Dark',dots:['#141110','#F08030','#221C17'],free:true},
+    {id:'basics',name:'The Basics',dots:['#1A1A1A','#A1A1A1','#4A4A4A'],free:true},
+    {id:'rose',name:'Rose Quartz',dots:['#FFF5F7','#F472B6','#FFFFFF'],free:true},
+    {id:'forest',name:'Forest',dots:['#F1EDEA','#4CB572','#135E4B'],free:false},
+    {id:'emerald',name:'Emerald',dots:['#F1EDEA','#05B084','#015A84'],free:false},
+    {id:'ocean',name:'Midnight Ocean',dots:['#0A1118','#38BDF8','#1E293B'],free:false},
+    {id:'cyber',name:'Cyber Neon',dots:['#050505','#A855F7','#121212'],free:false},
+    {id:'slate',name:'Minimal Slate',dots:['#F8FAFC','#475569','#FFFFFF'],free:false}
+];
 var CLIENT_ID='933620688457-nqv6qs8381m46t8dn8sqv0qecbcuav82.apps.googleusercontent.com';
 var NOW=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));
 var cY=NOW.getFullYear(),sM_=NOW.getMonth(),vw='m',ch=null,shY,tokenClient=null,accessToken=null,isGuest=true,userInfo={name:'',email:'',picture:''},driveFileId=null,sq='';
@@ -91,14 +101,7 @@ function getCatIcon(catId){
     var c=cats.find(function(x){return x.id===catId});
     var iconKey = (c && c.icon) ? c.icon : (PRESET_CATS.find(function(x){return x.id===catId}) ? PRESET_CATS.find(function(x){return x.id===catId}).icon : catId);
     
-    // Check if iconKey is a URL (thesvg CDN)
-    if(ICON_LIST[iconKey] && ICON_LIST[iconKey].startsWith('http')){
-        return '<img src="'+ICON_LIST[iconKey]+'" style="width:20px;height:20px;object-fit:contain">';
-    }
-    
-    if(c&&c.icon&&ICON_LIST[c.icon])return ICON_LIST[c.icon];
-    var p=PRESET_CATS.find(function(x){return x.id===catId});
-    if(p&&ICON_LIST[p.icon])return ICON_LIST[p.icon];
+    if(ICON_LIST[iconKey]) return ICON_LIST[iconKey];
     if(IC[catId]) return IC[catId];
     return IC.other;
 }
@@ -182,9 +185,12 @@ function getSavHidden(){var s=gs();return!!s.savHidden}
 function toggleSavHide(v){var s=gs();s.savHidden=v;syncNow(s);render()}
 
 function progBar(spent,budget){
-if(!budget||budget<=0)return'';
-var pct=Math.min((spent/budget)*100,100);var cls=pct<70?'pf-gn':pct<90?'pf-or':'pf-rd';
-return '<div class="prog-wrap"><div class="prog-bar"><div class="prog-fill '+cls+'" style="width:'+pct+'%"></div></div></div>'}
+    if(!budget||budget<=0)return'';
+    var pct=Math.min((spent/budget)*100,100);
+    // Color logic: Green (<70% spent), Orange (70-90%), Red (>90%)
+    var cls=pct<70?'pf-gn':pct<90?'pf-or':'pf-rd';
+    return '<div class="prog-wrap"><div class="prog-bar"><div class="prog-fill '+cls+'" style="width:'+pct+'%"></div></div></div>';
+}
 
 function getAllExpCats(d){
 var exps=[{k:'food',n:'\u0E04\u0E48\u0E32\u0E01\u0E34\u0E19',c:'food',ic:'food'},{k:'sav',n:'\u0E40\u0E07\u0E34\u0E19\u0E2D\u0E2D\u0E21',c:'save',ic:'save'},{k:'shopee',n:'Shopee',c:'shopee',ic:'shopee',hasCal:true},{k:'gas',n:'\u0E04\u0E48\u0E32\u0E19\u0E49\u0E33\u0E21\u0E31\u0E19',c:'gas',ic:'gas'}];
@@ -324,7 +330,7 @@ function rDailyList(){
 function rYear(el){var h='',ti=0,te=0,ts=0,rows=[];for(var m=0;m<12;m++){var c=calc(cY,m);ti+=c.tI;te+=c.tE;ts+=Number(c.d.sav||0);rows.push(c)}var tr=ti-te,goal=gSet().savGoal||50000,prog=goal>0?Math.min((ts/goal)*100,100):0;
 h+=heroH('\u0E2A\u0E23\u0E38\u0E1B\u0E23\u0E32\u0E22\u0E1B\u0E35 '+cY,tr,ti,te);
 h+=savTabH(getSavings().balance);
-h+='<div class="sec"><div class="sec-t">\u0E40\u0E1B\u0E49\u0E32\u0E2B\u0E21\u0E32\u0E22\u0E2D\u0E2D\u0E21\u0E23\u0E32\u0E22\u0E1B\u0E35</div><div class="sc" style="padding:14px"><div class="prog-wrap"><div class="prog-info"><span class="pi-l">\u0E2D\u0E2D\u0E21\u0E41\u0E25\u0E49\u0E27 '+fmt(ts)+' / '+fmt(goal)+'.-</span><span class="pi-r">'+prog.toFixed(0)+'%</span></div><div class="prog-bar"><div class="prog-fill '+(prog>100?'pf-rd':'pf-gn')+'" style="width:'+Math.min(prog,100)+'%"></div></div></div></div></div>';
+h+='<div class="sec"><div class="sec-t"><span>\u0E40\u0E1B\u0E49\u0E32\u0E2B\u0E21\u0E32\u0E22\u0E2D\u0E2D\u0E21\u0E23\u0E32\u0E22\u0E1B\u0E35</span> <span class="rv pos" style="font-size:12px">'+prog.toFixed(0)+'%</span></div><div class="sc"><div style="padding:4px 16px 0;font-size:11px;color:var(--tx3)">\u0E2D\u0E2D\u0E21\u0E41\u0E25\u0E49\u0E27 '+fmt(ts)+' / '+fmt(goal)+'.-</div><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill pf-gn" style="width:'+Math.min(prog,100)+'%"></div></div></div></div></div>';
 h+='<div class="sec"><div class="sec-t">\u0E15\u0E32\u0E23\u0E32\u0E07</div><div class="sc" style="padding:0;overflow-x:auto"><table class="yt"><thead><tr><th>\u0E40\u0E14\u0E37\u0E2D\u0E19</th><th>\u0E23\u0E31\u0E1A</th><th>\u0E08\u0E48\u0E32\u0E22</th><th>\u0E40\u0E2B\u0E25\u0E37\u0E2D</th></tr></thead><tbody>';
 rows.forEach(function(c,i){h+='<tr><td>'+TM[i]+'</td><td>'+fmt(c.tI)+'</td><td>'+fmt(c.tE)+'</td><td style="'+(c.r>=0?'color:var(--gn)':'color:var(--rd)')+'">'+(c.r>=0?'+':'')+fmt(c.r)+'</td></tr>'});
 h+='</tbody><tfoot><tr><td>\u0E23\u0E27\u0E21</td><td style="text-align:right;color:var(--gn)">'+fmt(ti)+'</td><td style="text-align:right;color:var(--rd)">'+fmt(te)+'</td><td style="text-align:right;'+(tr>=0?'color:var(--gn)':'color:var(--rd)')+'">'+(tr>=0?'+':'')+fmt(tr)+'</td></tr></tfoot></table></div></div>';
@@ -370,24 +376,33 @@ function renderQA(){
     h += '<div class="qa-presets"><button onclick="quickAmt(20)">+20</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(500)">+500</button><button onclick="document.getElementById(\'qaAmt\').value=\'\'">C</button></div></div>';
     
     h += '<div class="sub-lb">เลือกหมวดหมู่</div>';
-    h += '<div class="qa-cats">';
+    h += '<div class="qa-cats" style="grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0">';
     cats.forEach(function(c){
-        h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">'+(c.ic?getCatIcon(c.id):(IC[c.id]||IC.other))+'<span>'+c.name+'</span></div>';
+        h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 4px;border-radius:12px;border:1.5px solid var(--cb);cursor:pointer;min-height:70px">';
+        h += '<div style="margin-bottom:6px;display:flex;align-items:center;justify-content:center">'+getCatIcon(c.id)+'</div>';
+        h += '<span style="font-size:10px;font-weight:700;text-align:center">'+c.name+'</span>';
+        h += '</div>';
     });
     h += '</div>';
 
     if(qaCat==='other'){
-        h += '<div class="sub-lb">หมวดหมู่เพิ่มเติม</div><div class="cat-grid" style="grid-template-columns:1fr 1fr">';
+        h += '<div class="sub-lb">หมวดหมู่เพิ่มเติม</div><div class="cat-grid" style="grid-template-columns:1fr 1fr;gap:8px">';
         PRESET_CATS.forEach(function(p){
             var exists = gCats().find(function(c){return c.id===p.id});
-            h += '<div class="cat-item'+(exists?' on':'')+'" onclick="qaAddPreset(\''+p.id+'\')">'+ICON_LIST[p.icon]+' '+p.name+(exists?' \u2713':'')+'</div>';
+            h += '<div class="cat-item'+(exists?' on':'')+'" onclick="qaAddPreset(\''+p.id+'\')" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;border:1.5px solid var(--cb);cursor:pointer">';
+            h += '<div style="display:flex;align-items:center;justify-content:center;width:20px;height:20px">'+getCatIcon(p.id)+'</div>';
+            h += '<span style="font-size:12px;font-weight:600">'+p.name+(exists?' \u2713':'')+'</span>';
+            h += '</div>';
         });
         var customs = gCats().filter(function(c){return !PRESET_CATS.find(function(p){return p.id===c.id})});
         customs.forEach(function(c){
-            h += '<div class="cat-item on" onclick="pickQA(\''+c.id+'\')">'+getCatIcon(c.id)+' '+c.name+'</div>';
+            h += '<div class="cat-item on" onclick="pickQA(\''+c.id+'\')" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;border:1.5px solid var(--cb);cursor:pointer">';
+            h += '<div style="display:flex;align-items:center;justify-content:center;width:20px;height:20px">'+getCatIcon(c.id)+'</div>';
+            h += '<span style="font-size:12px;font-weight:600">'+c.name+'</span>';
+            h += '</div>';
         });
         h += '</div>';
-        h += '<button class="add-cat-btn" style="margin:8px 0" onclick="closeQA();openCreateCat()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>สร้างหมวดใหม่</button>';
+        h += '<button class="add-cat-btn" style="margin:12px 0;width:100%;padding:12px;border-radius:12px;border:1.5px dashed var(--cb);background:transparent;color:var(--tx3);font-weight:700" onclick="closeQA();openCreateCat()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>สร้างหมวดใหม่</button>';
     }
     
     h += '<div class="sub-lb">บันทึกช่วยจำ</div>';
@@ -453,12 +468,24 @@ s.customCats=existing;syncNow(s);closeCat();render()}
 var ccIcon='coffee';
 function openCreateCat(){ccIcon='coffee';renderCreateCat();document.getElementById('ccPopup').classList.add('open')}
 function closeCreateCat(){document.getElementById('ccPopup').classList.remove('open')}
-function renderCreateCat(){var h='<input class="inp" id="ccName" placeholder="\u0E0A\u0E37\u0E48\u0E2D\u0E2B\u0E21\u0E27\u0E14" style="margin-bottom:8px;width:100%"><input class="inp" type="number" id="ccBudget" placeholder="\u0E07\u0E1A/\u0E40\u0E14\u0E37\u0E2D\u0E19 (\u0E40\u0E0A\u0E48\u0E19 800)" min="0" style="margin-bottom:8px;width:100%">';
-h+='<div style="font-size:12px;font-weight:700;margin:8px 0 4px">\u0E40\u0E25\u0E37\u0E2D\u0E01 icon:</div><div class="icon-grid">';
-Object.keys(ICON_LIST).forEach(function(k){h+='<div class="icon-item'+(ccIcon===k?' on':'')+'" onclick="ccIcon=\''+k+'\';renderCreateCat()" title="'+k+'">'+ICON_LIST[k]+'</div>'});
-h+='</div>';
-h+='<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-gh btn-full" onclick="closeCreateCat()">\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01</button><button class="btn btn-ac btn-full" onclick="doCreateCat()">\u0E2A\u0E23\u0E49\u0E32\u0E07</button></div>';
-document.getElementById('ccBody').innerHTML=h}
+function renderCreateCat(){
+    var h = '<div class="mbd">';
+    h += '<input class="inp" id="ccName" placeholder="ชื่อหมวด" style="margin-bottom:12px;width:100%">';
+    h += '<input class="inp" type="number" id="ccBudget" placeholder="งบ/เดือน (เช่น 800)" min="0" style="margin-bottom:12px;width:100%">';
+    h += '<div style="font-size:12px;font-weight:700;margin:12px 0 8px">เลือก icon:</div>';
+    h += '<div class="icon-grid" style="grid-template-columns:repeat(5,1fr);max-height:300px;overflow-y:auto;padding:4px;background:var(--bg2);border-radius:12px;border:1px solid var(--cb)">';
+    Object.keys(ICON_LIST).forEach(function(k){
+        h += '<div class="icon-item'+(ccIcon===k?' on':'')+'" onclick="ccIcon=\''+k+'\';renderCreateCat()" style="padding:10px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer">';
+        h += ICON_LIST[k];
+        h += '</div>';
+    });
+    h += '</div></div>';
+    h += '<div class="mft" style="padding:16px 18px 0;display:flex;gap:10px">';
+    h += '<button class="btn btn-gh btn-full" onclick="closeCreateCat()">ยกเลิก</button>';
+    h += '<button class="btn btn-ac btn-full" onclick="doCreateCat()">สร้าง</button>';
+    h += '</div>';
+    document.getElementById('ccBody').innerHTML = h;
+}
 function doCreateCat(){var name=document.getElementById('ccName').value.trim();if(!name){document.getElementById('ccName').style.borderColor='var(--rd)';return}var budget=Number(document.getElementById('ccBudget').value)||0;var id='cc_'+Date.now();var s=gs();if(!s.customCats)s.customCats=[];s.customCats.push({id:id,name:name,icon:ccIcon,budget:budget});syncNow(s);closeCreateCat();render()}
 
 /* ===== SHOPEE MODAL ===== */
