@@ -566,26 +566,26 @@ function openUser(){
     h+='</div>';
     // Name
     h+='<div class="prof-sec-t">ข้อมูลส่วนตัว</div>';
-    h+='<div class="sec" style="margin:0 0 16px"><div class="sc"><div class="sr"><div class="sl">ชื่อที่แสดง</div><input class="si" style="width:160px" id="uName" value="'+esc(un)+'"></div></div></div>';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px"><div class="sr"><div class="sl">ชื่อที่แสดง</div><input class="si" style="width:160px" id="uName" value="'+esc(un)+'"></div></div></div>';
     // Stats
     h+='<div class="prof-sec-t">สถิติ</div>';
-    h+='<div class="sec" style="margin:0 0 16px"><div class="sc">';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px">';
     h+='<div class="sr"><div class="sl">รายจ่ายเดือนนี้</div><span class="rv neg" style="font-size:13px">-'+fmt(monthExp)+'.-</span></div>';
     h+='<div class="sr"><div class="sl">รายการที่บันทึกทั้งหมด</div><span style="font-size:13px;font-weight:700;font-family:\'JetBrains Mono\',monospace">'+totalEntries+' รายการ</span></div>';
     h+='<div class="sr" style="border-bottom:none"><div class="sl">ใช้งานตั้งแต่</div><span style="font-size:13px;font-weight:700">'+firstDate+'</span></div>';
     h+='</div></div>';
     // Theme
     h+='<div class="prof-sec-t">การแสดงผล</div>';
-    h+='<div class="sec" style="margin:0 0 16px"><div class="sc"><div class="sr" style="border-bottom:none;cursor:pointer" onclick="closeUser();setTimeout(toggleThemeDD,200)">';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px"><div class="sr" style="border-bottom:none;cursor:pointer" onclick="closeUser();setTimeout(toggleThemeDD,200)">';
     h+='<div class="sl">ธีม</div><div style="display:flex;align-items:center;gap:8px"><div class="theme-dots">';
     curTheme.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});
     h+='</div><span style="font-size:13px;font-weight:600;color:var(--tx2)">'+curTheme.name+'</span>';
     h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div></div></div></div>';
     // Reset
     h+='<div class="prof-sec-t prof-sec-danger">จัดการข้อมูล</div>';
-    h+='<div class="sec" style="margin:0 0 16px"><div class="sc">';
-    h+='<div class="sr"><div class="sl"><div>ล้างข้อมูลเดือนนี้</div><div class="sl small" style="font-size:11px;color:var(--tx3)">ลบรายการเดือน '+TMF[sM_]+' '+cY+'</div></div><button class="btn btn-rd" onclick="resetMonth()">ล้าง</button></div>';
-    h+='<div class="sr" style="border-bottom:none"><div class="sl"><div>ล้างข้อมูลทั้งหมด</div><div style="font-size:11px;color:var(--tx3)">ลบข้อมูลทุกอย่างถาวร</div></div><button class="btn btn-rd" onclick="resetAll()">ล้างทั้งหมด</button></div>';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px">';
+    h+='<div class="sr"><div class="sl"><div>ล้างข้อมูลเดือนนี้</div><div style="font-size:11px;color:var(--tx3);margin-top:2px">ลบรายการเดือน '+TMF[sM_]+' '+cY+'</div></div><button class="btn btn-rd" onclick="resetMonth()">ล้าง</button></div>';
+    h+='<div class="sr" style="border-bottom:none"><div class="sl"><div>ล้างข้อมูลทั้งหมด</div><div style="font-size:11px;color:var(--tx3);margin-top:2px">ลบข้อมูลทุกอย่างถาวร</div></div><button class="btn btn-rd" onclick="resetAll()">ล้างทั้งหมด</button></div>';
     h+='</div></div>';
     // Version
     h+='<div class="prof-ver">Okane Wallet v'+APP_VER+'<br><span>Credit : Claude Opus 4.6 & Jarasrawee</span></div>';
