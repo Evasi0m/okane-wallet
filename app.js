@@ -70,6 +70,7 @@ var THEMES=[
     {id:'slate',name:'Minimal Slate',dots:['#F8FAFC','#475569','#FFFFFF'],free:false}
 ];
 var CLIENT_ID='933620688457-nqv6qs8381m46t8dn8sqv0qecbcuav82.apps.googleusercontent.com';
+var APP_VER='30.03.26 (beta)';
 var NOW=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));
 var cY=NOW.getFullYear(),sM_=NOW.getMonth(),vw='m',ch=null,shY,tokenClient=null,accessToken=null,isGuest=true,userInfo={name:'',email:'',picture:''},driveFileId=null,sq='';
 var editInc=false,editExp=false,viewDate=new Date(NOW);
@@ -127,7 +128,7 @@ function pickTheme(id,lk){if(lk){showPrem();return}applyTheme(id);renderThemeDD(
 function showPrem(){document.getElementById('premPopup').classList.add('open')}
 function closePrem(){document.getElementById('premPopup').classList.remove('open')}
 function navClick(v){if(isGuest){showPrem();return}setV(v)}
-function updateUserBtn(){var b=document.getElementById('userBtn');if(!isGuest&&userInfo.picture)b.innerHTML='<img src="'+userInfo.picture+'" alt="">'}
+function updateUserBtn(){var b=document.getElementById('userBtn');var s=gs();var pic=s.customPicture||((!isGuest&&userInfo.picture)?userInfo.picture:null);if(!isGuest&&pic)b.innerHTML='<img src="'+pic+'" alt="">'}
 
 /* ===== NAV ===== */
 function setV(v){vw=v;document.getElementById('n0').classList.toggle('on',v==='d');document.getElementById('n1').classList.toggle('on',v==='m');document.getElementById('n2').classList.toggle('on',v==='y');document.getElementById('n3').classList.toggle('on',v==='sim');
@@ -538,10 +539,89 @@ function saveShopee(){var s=gs();if(!s.shM)s.shM={};for(var m=0;m<12;m++){if(isP
 document.getElementById('shM').addEventListener('click',function(e){if(e.target===this)closeShopee()});
 
 /* ===== USER MODAL ===== */
-function openUser(){var s=gs(),un=s.userName||userInfo.name||'Guest';var h='<div style="text-align:center;padding:20px 0 10px">';if(!isGuest&&userInfo.picture)h+='<img src="'+userInfo.picture+'" style="width:60px;height:60px;border-radius:50%;margin-bottom:10px;border:2px solid var(--ac)">';else h+='<div style="width:60px;height:60px;border-radius:50%;background:var(--bg2);margin:0 auto 10px;display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>';h+='<div style="font-size:11px;color:var(--tx3)">'+(isGuest?'Guest':userInfo.email)+'</div></div><div class="sr"><div class="sl">\u0E0A\u0E37\u0E48\u0E2D</div><input class="si" style="width:140px" id="uName" value="'+esc(un)+'"></div>';if(!isGuest)h+='<div style="margin-top:16px;text-align:center"><button class="btn btn-rd" onclick="logout()">\u0E2D\u0E2D\u0E01\u0E08\u0E32\u0E01\u0E23\u0E30\u0E1A\u0E1A</button></div>';else h+='<div style="margin-top:16px;text-align:center"><button class="btn btn-ac" onclick="closeUser();googleLogin()">\u0E2A\u0E21\u0E31\u0E04\u0E23 Google</button></div>';document.getElementById('uB').innerHTML=h;document.getElementById('uM').classList.add('open')}
+function openUser(){
+    var s=gs(),un=s.userName||userInfo.name||'Guest';
+    var pic=s.customPicture||((!isGuest&&userInfo.picture)?userInfo.picture:null);
+    var curTheme=THEMES.find(function(t){return t.id===(s.theme||'light')})||THEMES[0];
+    // Stats
+    var d=gm(cY,sM_);
+    var monthExp=Number(d.food||0)+Number(d.shopee||0)+Number(d.gas||0);
+    gCats().forEach(function(c){monthExp+=Number(d[c.id]||0)});
+    monthExp+=getDailyOtherTotal(cY,sM_);
+    var totalEntries=0;
+    if(s.dLog)Object.keys(s.dLog).forEach(function(dk){totalEntries+=(s.dLog[dk]||[]).length});
+    if(s.mo)Object.keys(s.mo).forEach(function(mk2){var mo=s.mo[mk2];if(mo&&mo.oI)totalEntries+=mo.oI.length});
+    var allDates=s.dLog?Object.keys(s.dLog).sort():[];
+    var firstDate=allDates.length>0?(function(){var fd=new Date(allDates[0]);return TMF[fd.getMonth()]+' '+fd.getFullYear()})():(TMF[sM_]+' '+cY);
+    // Avatar
+    var h='<div class="prof-hero">';
+    h+='<div class="prof-av-wrap" onclick="triggerPicUpload()">';
+    h+=pic?'<img src="'+pic+'" class="prof-av">':'<div class="prof-av prof-av-empty"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>';
+    h+='<div class="prof-cam"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>';
+    h+='</div>';
+    h+='<input type="file" id="picFile" accept="image/*" style="display:none" onchange="handlePicUpload()">';
+    h+='<div class="prof-name">'+esc(un)+'</div>';
+    h+='<div class="prof-email">'+(isGuest?'ผู้ใช้ทั่วไป':userInfo.email)+'</div>';
+    if(!isGuest)h+='<div class="prof-badge">Google</div>';
+    h+='</div>';
+    // Name
+    h+='<div class="prof-sec-t">ข้อมูลส่วนตัว</div>';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc"><div class="sr"><div class="sl">ชื่อที่แสดง</div><input class="si" style="width:160px" id="uName" value="'+esc(un)+'"></div></div></div>';
+    // Stats
+    h+='<div class="prof-sec-t">สถิติ</div>';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc">';
+    h+='<div class="sr"><div class="sl">รายจ่ายเดือนนี้</div><span class="rv neg" style="font-size:13px">-'+fmt(monthExp)+'.-</span></div>';
+    h+='<div class="sr"><div class="sl">รายการที่บันทึกทั้งหมด</div><span style="font-size:13px;font-weight:700;font-family:\'JetBrains Mono\',monospace">'+totalEntries+' รายการ</span></div>';
+    h+='<div class="sr" style="border-bottom:none"><div class="sl">ใช้งานตั้งแต่</div><span style="font-size:13px;font-weight:700">'+firstDate+'</span></div>';
+    h+='</div></div>';
+    // Theme
+    h+='<div class="prof-sec-t">การแสดงผล</div>';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc"><div class="sr" style="border-bottom:none;cursor:pointer" onclick="closeUser();setTimeout(toggleThemeDD,200)">';
+    h+='<div class="sl">ธีม</div><div style="display:flex;align-items:center;gap:8px"><div class="theme-dots">';
+    curTheme.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});
+    h+='</div><span style="font-size:13px;font-weight:600;color:var(--tx2)">'+curTheme.name+'</span>';
+    h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div></div></div></div>';
+    // Reset
+    h+='<div class="prof-sec-t prof-sec-danger">จัดการข้อมูล</div>';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc">';
+    h+='<div class="sr"><div class="sl"><div>ล้างข้อมูลเดือนนี้</div><div class="sl small" style="font-size:11px;color:var(--tx3)">ลบรายการเดือน '+TMF[sM_]+' '+cY+'</div></div><button class="btn btn-rd" onclick="resetMonth()">ล้าง</button></div>';
+    h+='<div class="sr" style="border-bottom:none"><div class="sl"><div>ล้างข้อมูลทั้งหมด</div><div style="font-size:11px;color:var(--tx3)">ลบข้อมูลทุกอย่างถาวร</div></div><button class="btn btn-rd" onclick="resetAll()">ล้างทั้งหมด</button></div>';
+    h+='</div></div>';
+    // Version
+    h+='<div class="prof-ver">Okane Wallet v'+APP_VER+'<br><span>Credit : Claude Opus 4.6 & Jarasrawee</span></div>';
+    // Logout
+    if(!isGuest)h+='<div style="margin-top:16px"><button class="btn btn-rd btn-full" onclick="logout()">ออกจากระบบ</button></div>';
+    else h+='<div style="margin-top:16px"><button class="btn btn-ac btn-full" onclick="closeUser();googleLogin()">เชื่อมต่อ Google Account</button></div>';
+    document.getElementById('uB').innerHTML=h;
+    document.getElementById('uM').classList.add('open');
+}
 function closeUser(){document.getElementById('uM').classList.remove('open')}
-function saveUser(){var s=gs();s.userName=document.getElementById('uName').value;syncNow(s);closeUser()}
+function saveUser(){var s=gs();s.userName=(document.getElementById('uName')||{}).value||'';syncNow(s);render();closeUser()}
 function logout(){localStorage.removeItem('okane_v3');accessToken=null;isGuest=true;location.reload()}
+function resetAll(){if(!confirm('ล้างข้อมูลทั้งหมด?\n\nการกระทำนี้ไม่สามารถยกเลิกได้ ข้อมูลทุกอย่างจะหายไปถาวร'))return;localStorage.removeItem('okane_v3');accessToken=null;isGuest=true;location.reload()}
+function triggerPicUpload(){var f=document.getElementById('picFile');if(f)f.click()}
+function handlePicUpload(){
+    var file=(document.getElementById('picFile')||{}).files;
+    if(!file||!file[0])return;
+    var reader=new FileReader();
+    reader.onload=function(e){
+        var img=new Image();
+        img.onload=function(){
+            var canvas=document.createElement('canvas');
+            canvas.width=200;canvas.height=200;
+            var ctx=canvas.getContext('2d');
+            var s2=Math.min(img.width,img.height);
+            ctx.drawImage(img,(img.width-s2)/2,(img.height-s2)/2,s2,s2,0,0,200,200);
+            var dataUrl=canvas.toDataURL('image/jpeg',0.82);
+            var st=gs();st.customPicture=dataUrl;syncNow(st);
+            var wrap=document.querySelector('.prof-av-wrap');
+            if(wrap){var old=wrap.querySelector('img,.prof-av-empty');if(old)wrap.removeChild(old);var ni=document.createElement('img');ni.src=dataUrl;ni.className='prof-av';wrap.insertBefore(ni,wrap.firstChild)}
+            updateUserBtn();
+        };
+        img.src=e.target.result;
+    };
+    reader.readAsDataURL(file[0]);
+}
 document.getElementById('uM').addEventListener('click',function(e){if(e.target===this)closeUser()});
 
 /* ===== ACTIONS ===== */
