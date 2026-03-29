@@ -339,10 +339,50 @@ h+='<div class="reset-area"><button class="reset-btn" onclick="resetYear()">\u0E
 el.innerHTML=h;drawYC(rows)}
 
 /* ===== RENDER SIMULATOR ===== */
-function rSim(el){var st=gs(),sims=st.sims||[];var h='<div class="sec"><div class="sec-t">\u0E08\u0E33\u0E25\u0E2D\u0E07 Shopee</div><div class="sim-card"><div class="sim-head">'+IC.shopee+' Shopee Simulator</div><div class="sim-body"><div class="sim-row"><label>\u0E0A\u0E37\u0E48\u0E2D</label><input id="simName" placeholder="iPhone 16"></div><div class="sim-row"><label>\u0E15\u0E48\u0E2D\u0E40\u0E14\u0E37\u0E2D\u0E19</label><input type="number" id="simPer" min="0"></div><div class="sim-row"><label>\u0E07\u0E27\u0E14</label><input type="number" id="simMonths" min="1" max="60"></div><button class="btn btn-ac btn-full" style="margin-top:8px" onclick="runSim()">\u0E04\u0E33\u0E19\u0E27\u0E13</button><div id="simResult"></div></div></div></div>';
-if(sims.length>0){h+='<div class="sec"><div class="sec-t">\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01</div><div class="sc">';sims.forEach(function(s,i){h+='<div class="row"><div class="ri shopee">'+IC.shopee+'</div><div class="rn"><div class="rn-t">'+esc(s.name)+'</div><div class="rn-s">'+s.months+' \u0E07\u0E27\u0E14 x '+fmt(s.per)+'.-</div></div><button class="btn btn-ac" style="padding:5px 10px;font-size:11px;margin-right:4px" onclick="applySim('+i+')">\u0E43\u0E0A\u0E49\u0E08\u0E23\u0E34\u0E07</button><button class="cd" onclick="delSim('+i+')">'+IC.dl+'</button></div>'});h+='</div></div>'}
-h+='<div class="credit" style="margin-top:16px">Credit : Opus 4.6 & Jarasrawee</div>';el.innerHTML=h}
-function runSim(){var nm=document.getElementById('simName').value||'-',per=Number(document.getElementById('simPer').value)||0,mos=Number(document.getElementById('simMonths').value)||0;if(per<=0||mos<=0)return;var h='<div class="sim-result"><div style="font-size:12px;font-weight:800;color:var(--sh)">\u0E1C\u0E25: '+esc(nm)+'</div><div style="font-size:11px;color:var(--tx2);margin:6px 0 8px">'+fmt(per)+'.- x '+mos+' = '+fmt(per*mos)+'.-</div><table class="yt" style="font-size:11px"><thead><tr><th style="font-size:9px">\u0E40\u0E14\u0E37\u0E2D\u0E19</th><th style="font-size:9px">\u0E1B\u0E01\u0E15\u0E34</th><th style="font-size:9px">\u0E2B\u0E25\u0E31\u0E07\u0E1C\u0E48\u0E2D\u0E19</th></tr></thead><tbody>';var sM=NOW.getMonth();for(var i=0;i<mos;i++){var mI=(sM+i)%12,yr=cY+Math.floor((sM+i)/12),cc=calc(yr,mI),aR=cc.r-per;h+='<tr><td>'+TM[mI]+(yr!==cY?' '+yr:'')+'</td><td style="text-align:right;font-family:JetBrains Mono,monospace">'+fmt(cc.r)+'</td><td style="text-align:right;font-family:JetBrains Mono,monospace;font-weight:800;'+(aR>=0?'color:var(--gn)':'color:var(--rd)')+'">'+(aR>=0?'+':'')+fmt(aR)+'</td></tr>'}h+='</tbody></table><div class="sim-actions"><button class="sim-save-btn" onclick="saveSim()">\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01</button></div></div>';document.getElementById('simResult').innerHTML=h}
+function rSim(el){
+    var st=gs(),sims=st.sims||[];
+    var h = '<div class="sec-t" style="margin-top:10px">จำลองการผ่อนชำระ</div>';
+    h += '<div class="sim-card">';
+    h += '<div class="sim-head">'+IC.shopee+' <span>Shopee Simulator</span></div>';
+    h += '<div class="sim-body">';
+    h += '<div class="sim-row"><label>ชื่อสินค้า / เป้าหมาย</label><input id="simName" placeholder="เช่น iPhone 16, PS5..."></div>';
+    h += '<div class="sim-row"><label>ยอดผ่อนต่อเดือน (บาท)</label><input type="number" id="simPer" placeholder="0" min="0"></div>';
+    h += '<div class="sim-row"><label>จำนวนงวด (เดือน)</label><input type="number" id="simMonths" placeholder="1" min="1" max="60"></div>';
+    h += '<button class="sim-save-btn" style="margin-top:8px;background:linear-gradient(135deg, #EE4D2D, #FF7337)" onclick="runSim()">คำนวณผลกระทบรายเดือน</button>';
+    h += '<div id="simResult"></div>';
+    h += '</div></div>';
+    
+    if(sims.length > 0){
+        h += '<div class="sec-t">รายการที่บันทึกไว้</div>';
+        h += '<div class="sec"><div class="sc">';
+        sims.forEach(function(s, i){
+            h += '<div class="row"><div class="ri shopee">'+IC.shopee+'</div>';
+            h += '<div class="rn"><div class="rn-t">'+esc(s.name)+'</div><div class="rn-s">'+s.months+' งวด x '+fmt(s.per)+'.-</div></div>';
+            h += '<div style="display:flex;gap:6px"><button class="btn btn-ac" style="padding:6px 10px;font-size:11px" onclick="applySim('+i+')">ใช้จริง</button>';
+            h += '<button class="cd" onclick="delSim('+i+')">'+IC.dl+'</button></div></div>';
+        });
+        h += '</div></div>';
+    }
+    h += '<div class="credit" style="margin-top:16px">Credit : Opus 4.6 & Jarasrawee</div>';
+    el.innerHTML = h;
+}
+
+function runSim(){
+    var nm=document.getElementById('simName').value||'-',per=Number(document.getElementById('simPer').value)||0,mos=Number(document.getElementById('simMonths').value)||0;
+    if(per<=0||mos<=0)return;
+    var h = '<div class="sim-result">';
+    h += '<div class="sim-res-title"><span>ผลการจำลอง: '+esc(nm)+'</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>';
+    h += '<div class="sim-res-sub">ยอดผ่อน '+fmt(per)+'.- ทั้งหมด '+mos+' เดือน (รวม '+fmt(per*mos)+'.-)</div>';
+    h += '<div style="max-height:240px;overflow-y:auto;margin:0 -4px;padding:0 4px"><table class="yt" style="font-size:11px"><thead><tr><th>เดือน</th><th>ปกติ</th><th>หลังผ่อน</th></tr></thead><tbody>';
+    var sM=NOW.getMonth();
+    for(var i=0; i<mos; i++){
+        var mI=(sM+i)%12,yr=cY+Math.floor((sM+i)/12),cc=calc(yr,mI),aR=cc.r-per;
+        h += '<tr><td>'+TM[mI]+(yr!==cY?' '+yr:'')+'</td><td style="text-align:right">'+fmt(cc.r)+'</td><td style="text-align:right;font-weight:800;'+(aR>=0?'color:var(--gn)':'color:var(--rd)')+'">'+(aR>=0?'+':'')+fmt(aR)+'</td></tr>';
+    }
+    h += '</tbody></table></div>';
+    h += '<div class="sim-actions"><button class="sim-save-btn" onclick="saveSim()">บันทึกแผนการผ่อนนี้</button></div></div>';
+    document.getElementById('simResult').innerHTML = h;
+}
 function saveSim(){var s=gs();if(!s.sims)s.sims=[];s.sims.push({name:document.getElementById('simName').value||'-',per:Number(document.getElementById('simPer').value)||0,months:Number(document.getElementById('simMonths').value)||0,startM:NOW.getMonth(),startY:cY});syncNow(s);render()}
 function delSim(i){var s=gs();if(s.sims)s.sims.splice(i,1);syncNow(s);render()}
 function applySim(i){if(!confirm('\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19?'))return;var s=gs(),sm=s.sims[i];if(!sm)return;if(!s.shM)s.shM={};for(var j=0;j<sm.months;j++){var mI=(sm.startM+j)%12,yr=sm.startY+Math.floor((sm.startM+j)/12),k=mk(yr,mI);s.shM[k]=(Number(s.shM[k])||0)+sm.per;if(s.mo&&s.mo[k])s.mo[k].shopee=Number(s.shM[k])||0}s.sims.splice(i,1);syncNow(s);render()}
