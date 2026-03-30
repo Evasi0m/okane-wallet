@@ -73,11 +73,13 @@ var cY=NOW.getFullYear(),sM_=NOW.getMonth(),vw='m',ch=null,shY,tokenClient=null,
 var editInc=false,editExp=false,viewDate=new Date(NOW);
 var DF={salary:15000,food:3000,saving:2000,gas:1500,savGoal:50000};
 var _syncing=false,_syncTimer=null;
+var _mCalcCache={};
 
 /* ===== STORAGE ===== */
 function gs(){try{return JSON.parse(localStorage.getItem('okane_v3')||'{}')}catch(e){return{}}}
-function ss(d){localStorage.setItem('okane_v3',JSON.stringify(d));if(!isGuest&&accessToken&&!_syncing){clearTimeout(_syncTimer);_syncTimer=setTimeout(driveSync,1500)}}
-function syncNow(d){localStorage.setItem('okane_v3',JSON.stringify(d));if(!isGuest&&accessToken&&!_syncing)driveSync()}
+function clearCalcCache(){_mCalcCache={}}
+function ss(d){localStorage.setItem('okane_v3',JSON.stringify(d));clearCalcCache();if(!isGuest&&accessToken&&!_syncing){clearTimeout(_syncTimer);_syncTimer=setTimeout(driveSync,1500)}}
+function syncNow(d){localStorage.setItem('okane_v3',JSON.stringify(d));clearCalcCache();if(!isGuest&&accessToken&&!_syncing)driveSync()}
 function gSet(){var s=gs();return s.settings||Object.assign({},DF)}
 function mk(y,m){return y+'-'+String(m+1).padStart(2,'0')}
 function gSh(y,m){var s=gs();return(s.shM&&s.shM[mk(y,m)]!==undefined)?Number(s.shM[mk(y,m)]):0}
@@ -160,7 +162,30 @@ function mpNav(d){_mpY+=d;renderMP()}
 function renderMP(){document.getElementById('mpTitle').textContent=String(_mpY);var h='';for(var m=0;m<12;m++){var cls='mp-item';if(_mpY===cY&&m===sM_)cls+=' sel';if(isP(_mpY,m))cls+=' off';h+='<div class="'+cls+'" onclick="pickMonth('+_mpY+','+m+')">'+TMF[m]+'</div>'}document.getElementById('mpGrid').innerHTML=h}
 function pickMonth(y,m){cY=y;sM_=m;closeMP();render()}
 /* ===== CALC ===== */
-function calc(y,m){
+function prevYM(y,m){return m===0?{y:y-1,m:11}:{y:y,m:m-1}}
+function sumMap(o){return Object.keys(o||{}).reduce(function(s,k){return s+Number(o[k]||0)},0)}
+function getSpentMap(y,m){
+var s=gs(),map={},prefix=mk(y,m);
+if(!s.dLog)return map;
+Object.keys(s.dLog).forEach(function(dk){
+if(!dk.startsWith(prefix))return;
+s.dLog[dk].forEach(function(x){
+var cat=x.cat||'other';
+map[cat]=(map[cat]||0)+Number(x.a||0)
+})
+});
+return map
+}
+function computeMonth(y,m){
+var k=mk(y,m);
+if(_mCalcCache[k])return _mCalcCache[k];
+var prev=prevYM(y,m);
+var carryIn={cat:{},rem:0,from:null};
+if(prev.y>=1970){
+var prevData=computeMonth(prev.y,prev.m);
+carryIn={cat:Object.assign({},prevData.carryOut.cat),rem:Number(prevData.carryOut.rem||0),from:{y:prev.y,m:prev.m}}
+}
+
 var d=gm(y,m),iB=Number(d.sal||0);
 var iO=d.oI.filter(function(x){return x.ck}).reduce(function(s,x){return s+Number(x.a||0)},0);
 var tI=iB+iO;
@@ -168,8 +193,44 @@ var fE=Number(d.food||0)+Number(d.sav||0)+Number(d.shopee||0)+Number(d.gas||0);
 gCats().forEach(function(c){fE+=Number(d[c.id]||0)});
 var otherTotal=getDailyOtherTotal(y,m);
 var savTransfer=getSavingsTransferFromRemaining(y,m);
-var tE=fE+otherTotal+savTransfer;
-return{tI:tI,tE:tE,r:tI-tE,d:d,otherTotal:otherTotal,savTransfer:savTransfer}
+
+var carryInCatTotal=sumMap(carryIn.cat);
+var baseTE=fE+otherTotal+savTransfer+carryInCatTotal+Number(carryIn.rem||0);
+var baseR=tI-baseTE;
+
+var spentMap=getSpentMap(y,m);
+var unbudgetedSpent=0;
+Object.keys(spentMap).forEach(function(catId){
+if(catId==='other')return;
+var bud=Number(d[catId]||0);
+if(bud>0)return;
+unbudgetedSpent+=Number(spentMap[catId]||0)
+});
+var unbudgetedApplied=Math.min(Math.max(baseR,0),unbudgetedSpent);
+var tE=baseTE+unbudgetedApplied;
+var r=tI-tE;
+
+var catCarryOut={};
+Object.keys(spentMap).forEach(function(catId){
+if(catId==='other')return;
+var bud=Number(d[catId]||0);
+if(bud<=0)return;
+var spent=Number(spentMap[catId]||0);
+var over=Math.max(0,spent-bud);
+if(over>0)catCarryOut[catId]=over
+});
+
+var unbudgetedCarry=unbudgetedSpent-unbudgetedApplied;
+var deficitCarry=Math.max(0,-r);
+var carryOut={cat:catCarryOut,rem:unbudgetedCarry+deficitCarry};
+
+var res={tI:tI,tE:tE,r:r,d:d,otherTotal:otherTotal,savTransfer:savTransfer,carryIn:carryIn,unbudgetedApplied:unbudgetedApplied,carryOut:carryOut};
+_mCalcCache[k]=res;
+return res
+}
+function calc(y,m){
+var c=computeMonth(y,m);
+return{tI:c.tI,tE:c.tE,r:c.r,d:c.d,otherTotal:c.otherTotal,savTransfer:c.savTransfer,carryIn:c.carryIn,unbudgetedApplied:c.unbudgetedApplied}
 }
 
 function render(){var el=document.getElementById('M');renderThemeDD();if(vw==='d')rDaily(el);else if(vw==='y')rYear(el);else if(vw==='sim')rSim(el);else rMonth(el)}
@@ -204,6 +265,8 @@ var savBal=getSavings().balance;
 var h=pillMonthH();
 h+=heroH('\u0E40\u0E07\u0E34\u0E19\u0E04\u0E07\u0E40\u0E2B\u0E25\u0E37\u0E2D '+TMF[m]+' '+cY,c.r,c.tI,c.tE);
 h+=savTabH(savBal);
+var carryTotal=(c.carryIn?Number(c.carryIn.rem||0)+sumMap(c.carryIn.cat):0);
+if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:JetBrains Mono,monospace">-'+fmt(carryTotal)+'.-</span></div>';
 
 if(!p)h+='<div class="abar"><span>\u0E04\u0E31\u0E14\u0E25\u0E2D\u0E01\u0E04\u0E48\u0E32\u0E19\u0E35\u0E49\u0E44\u0E1B\u0E17\u0E38\u0E01\u0E40\u0E14\u0E37\u0E2D\u0E19</span><button class="btn btn-ac" style="padding:5px 11px;font-size:11px" onclick="apAll()">\u0E43\u0E0A\u0E49\u0E01\u0E31\u0E1A\u0E17\u0E38\u0E01\u0E40\u0E14\u0E37\u0E2D\u0E19</button></div>';
 
@@ -263,13 +326,15 @@ var h=pillDateH();
 // Hero
 h+=heroH('\u0E40\u0E07\u0E34\u0E19\u0E04\u0E07\u0E40\u0E2B\u0E25\u0E37\u0E2D '+TMF[vm]+' '+vy,c.r,c.tI,c.tE);
 h+=savTabH(savBal);
+var carryTotal=(c.carryIn?Number(c.carryIn.rem||0)+sumMap(c.carryIn.cat):0);
+if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:JetBrains Mono,monospace">-'+fmt(carryTotal)+'.-</span></div>';
 
 // Budget overview with progress
 h+='<div class="sec"><div class="sec-t">\u0E07\u0E1A\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19</div><div class="sc">';
 var exps=getAllExpCats(d);
-exps.forEach(function(e){var budget=Number(d[e.k]||0);if(budget<=0)return;var spent=getDailySpent(vy,vm,e.k);var left=budget-spent;var isShopee=e.k==='shopee';
-h+='<div class="row'+((!isShopee)?' has-prog':'')+'"><div class="ri '+e.c+'" style="width:30px;height:30px">'+(e.isCustom?getCatIcon(e.k):(IC[e.ic]||IC.food))+'</div><div class="rn"><div class="rn-t" style="font-size:12px">'+e.n+'</div>'+((!isShopee)?'<div class="rn-s">\u0E40\u0E2B\u0E25\u0E37\u0E2D '+fmt(left)+' / '+fmt(budget)+'</div>':'')+'</div><div class="rv '+(left>=0?'':'neg')+'" style="font-size:13px">'+fmt(left)+'.-</div></div>';
-if(!isShopee)h+=progBar(spent,budget)});
+exps.forEach(function(e){var budget=Number(d[e.k]||0);if(budget<=0)return;var spent=getDailySpent(vy,vm,e.k);var carryCat=(c.carryIn&&c.carryIn.cat&&c.carryIn.cat[e.k])?Number(c.carryIn.cat[e.k]||0):0;var effSpent=spent+carryCat;var left=budget-effSpent;var isShopee=e.k==='shopee';
+h+='<div class="row'+((!isShopee)?' has-prog':'')+'"><div class="ri '+e.c+'" style="width:30px;height:30px">'+(e.isCustom?getCatIcon(e.k):(IC[e.ic]||IC.food))+'</div><div class="rn"><div class="rn-t" style="font-size:12px">'+e.n+'</div>'+((!isShopee)?'<div class="rn-s">\u0E40\u0E2B\u0E25\u0E37\u0E2D '+fmt(left)+' / '+fmt(budget)+(carryCat>0?' \u2022 \u0E04\u0E49\u0E32\u0E07 '+fmt(carryCat)+'.-':'')+'</div>':'')+'</div><div class="rv '+(left>=0?'':'neg')+'" style="font-size:13px">'+fmt(left)+'.-</div></div>';
+if(!isShopee)h+=progBar(effSpent,budget)});
 h+='</div></div>';
 
 // Today's entries
