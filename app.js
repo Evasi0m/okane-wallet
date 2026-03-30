@@ -1,5 +1,5 @@
 /* ===== ICON LIST (30 minimal SVG for custom categories) ===== */
-var _s='width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"';
+var _s='width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 var ICON_LIST={
 shopee:'<svg '+_s+'><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>',
 grab:'<svg '+_s+'><path d="M12 2L4 8l2 2 4-1v5l-3 2v2l5-1 5 1v-2l-3-2V9l4 1 2-2-8-6z"/></svg>',
@@ -42,7 +42,7 @@ camera:'<svg '+_s+'><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l
 broom:'<svg '+_s+'><path d="M12 2v9M5 14h14l-2 8H7z"/></svg>',
 wallet:'<svg '+_s+'><path d="M20 7H5a2 2 0 00-2 2v10a2 2 0 002 2h15V7z"/><path d="M20 7V5a2 2 0 00-2-2H7"/><circle cx="17" cy="14" r="1.5"/></svg>'
 };
-var IC={food:ICON_LIST.coffee,save:'<svg '+_s+'><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>',shopee:ICON_LIST.shopee,gas:'<svg '+_s+'><path d="M3 22V6a2 2 0 012-2h8a2 2 0 012 2v16"/><path d="M3 22h12"/><path d="M15 10h2a2 2 0 012 2v2a2 2 0 002 2"/><path d="M5 8h8"/></svg>',ck:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>',dl:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',inc:'<svg '+_s+'><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',other:ICON_LIST.wallet,cal:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>'};
+var IC={food:ICON_LIST.coffee,save:'<svg '+_s+'><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>',shopee:ICON_LIST.shopee,gas:'<svg '+_s+'><path d="M3 22V6a2 2 0 012-2h8a2 2 0 012 2v16"/><path d="M3 22h12"/><path d="M15 10h2a2 2 0 012 2v2a2 2 0 002 2"/><path d="M5 8h8"/></svg>',ck:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',dl:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',inc:'<svg '+_s+'><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',other:ICON_LIST.wallet,cal:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>'};
 
 /* ===== CONSTANTS ===== */
 var TM=['\u0E21.\u0E04.','\u0E01.\u0E1E.','\u0E21\u0E35.\u0E04.','\u0E40\u0E21.\u0E22.','\u0E1E.\u0E04.','\u0E21\u0E34.\u0E22.','\u0E01.\u0E04.','\u0E2A.\u0E04.','\u0E01.\u0E22.','\u0E15.\u0E04.','\u0E1E.\u0E22.','\u0E18.\u0E04.'];
@@ -227,7 +227,7 @@ function openCal(){_calY=viewDate.getFullYear();_calM=viewDate.getMonth();render
 function closeCal(){document.getElementById('calPop').classList.remove('open')}
 document.getElementById('calPop').addEventListener('click',function(e){if(e.target===this)closeCal()});
 function calNav(d){_calM+=d;if(_calM>11){_calM=0;_calY++}else if(_calM<0){_calM=11;_calY--}renderCal()}
-function renderCal(){document.getElementById('calTitle').textContent=TMF[_calM]+' '+_calY;var first=new Date(_calY,_calM,1).getDay(),days=new Date(_calY,_calM+1,0).getDate();var h='';for(var i=0;i<first;i++)h+='<div class="cal-d empty"></div>';var todayK=dKey(NOW),selK=dKey(viewDate);for(var d=1;d<=days;d++){var dk=_calY+'-'+String(_calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');var cls='cal-d';if(dk===todayK)cls+=' today';if(dk===selK)cls+=' sel';h+='<div class="'+cls+'" onclick="pickDay('+_calY+','+_calM+','+d+')">'+d+'</div>'}document.getElementById('calDays').innerHTML=h}
+function renderCal(){document.getElementById('calTitle').textContent=TMF[_calM]+' '+_calY;var first=new Date(_calY,_calM,1).getDay(),days=new Date(_calY,_calM+1,0).getDate();var h='';for(var i=0;i<first;i++)h+='<div class="cal-d empty"></div>';var todayK=dKey(NOW),selK=dKey(viewDate);for(var d=1;d<=days;d++){var dk=_calY+'-'+String(_calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');var cls='cal-d';if(dk===todayK)cls+=' today';if(dk===selK)cls+=' sel';h+='<div class="'+cls+'" onclick="pickDay('+_calY+','+_calM+','+d+')" aria-label="'+d+' '+TMF[_calM]+' '+_calY+'">'+d+'</div>'}document.getElementById('calDays').innerHTML=h}
 function pickDay(y,m,d){viewDate=new Date(y,m,d);closeCal();render()}
 
 /* ===== PILL MONTH PICKER (Monthly) ===== */
@@ -237,7 +237,7 @@ function openMP(){_mpY=cY;renderMP();document.getElementById('mpPop').classList.
 function closeMP(){document.getElementById('mpPop').classList.remove('open')}
 document.getElementById('mpPop').addEventListener('click',function(e){if(e.target===this)closeMP()});
 function mpNav(d){_mpY+=d;renderMP()}
-function renderMP(){document.getElementById('mpTitle').textContent=String(_mpY);var h='';for(var m=0;m<12;m++){var cls='mp-item';if(_mpY===cY&&m===sM_)cls+=' sel';if(isP(_mpY,m))cls+=' off';h+='<div class="'+cls+'" onclick="pickMonth('+_mpY+','+m+')">'+TMF[m]+'</div>'}document.getElementById('mpGrid').innerHTML=h}
+function renderMP(){document.getElementById('mpTitle').textContent=String(_mpY);var h='';for(var m=0;m<12;m++){var cls='mp-item';if(_mpY===cY&&m===sM_)cls+=' sel';if(isP(_mpY,m))cls+=' off';h+='<div class="'+cls+'" onclick="pickMonth('+_mpY+','+m+')" aria-label="'+TMF[m]+' '+_mpY+'">'+TMF[m]+'</div>'}document.getElementById('mpGrid').innerHTML=h}
 function pickMonth(y,m){cY=y;sM_=m;closeMP();render()}
 /* ===== CALC ===== */
 function prevYM(y,m){return m===0?{y:y-1,m:11}:{y:y,m:m-1}}
@@ -423,10 +423,11 @@ topCats.sort(function(a,b){return b.v-a.v});
 var peak={d:'',v:0};
 var sLog=gs().dLog||{},prefix=mk(y,m);
 Object.keys(sLog).forEach(function(dk){if(!dk.startsWith(prefix))return;var v=sLog[dk].reduce(function(ss,x){return ss+Number(x.a||0)},0);if(v>peak.v){peak={d:dk,v:v}}});
-h+='<div class="sec" style="animation-delay:.115s"><div class="sec-t">Insights</div><div class="sc"><div class="row"><div class="ri inc">'+IC.inc+'</div><div class="rn"><div class="rn-t">เทียบเดือนก่อน</div><div class="rn-s">'+TMF[prev.m]+' '+prev.y+'</div></div><div class="rv '+(delta>=0?'pos':'neg')+'">'+(delta>=0?'+':'')+fmt(delta)+'.-</div></div>';
-if(topCats.length>0)h+='<div class="row"><div class="ri shopee">'+IC.cal+'</div><div class="rn"><div class="rn-t">Top หมวด</div><div class="rn-s">'+topCats.slice(0,3).map(function(x){return getCatName(x.k)+' '+fmt(x.v)+'.-'}).join(' • ')+'</div></div><div class="rv" style="color:var(--tx3)"> </div></div>';
-if(peak.v>0)h+='<div class="row"><div class="ri rd">'+IC.dl+'</div><div class="rn"><div class="rn-t">วันใช้เงินหนักสุด</div><div class="rn-s">'+peak.d+'</div></div><div class="rv neg">'+fmt(peak.v)+'.-</div></div>';
-h+='</div></div>';
+h+='<div class="sec ins-card insight-panel" style="animation-delay:.115s"><div class="ip-hd"><div class="ip-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/></svg><span>Insights</span></div></div><div class="sc"><div class="ip-grid">';
+h+='<div class="ip-item"><div class="ip-meta"><div class="ri inc">'+IC.inc+'</div><div class="ip-lb"><div class="ip-t">เทียบเดือนก่อน</div><div class="ip-s">'+TMF[prev.m]+' '+prev.y+'</div></div></div><div class="ip-val '+(delta>=0?'pos':'neg')+'">'+(delta>=0?'+':'')+fmt(delta)+'.-</div></div>';
+if(topCats.length>0)h+='<div class="ip-item"><div class="ip-meta"><div class="ri shopee">'+IC.cal+'</div><div class="ip-lb"><div class="ip-t">Top หมวด</div><div class="ip-s">'+topCats.slice(0,3).map(function(x){return getCatName(x.k)+' '+fmt(x.v)+'.-'}).join(' • ')+'</div></div></div><div class="ip-val ip-muted">•</div></div>';
+if(peak.v>0)h+='<div class="ip-item"><div class="ip-meta"><div class="ri rd">'+IC.dl+'</div><div class="ip-lb"><div class="ip-t">วันใช้เงินหนักสุด</div><div class="ip-s">'+peak.d+'</div></div></div><div class="ip-val neg">-'+fmt(peak.v)+'.-</div></div>';
+h+='</div></div></div>';
 
 // Savings goal
 if(editExp&&!p){var sg=gSet().savGoal||50000;h+='<div class="sec"><div class="sec-t">\u0E40\u0E1B\u0E49\u0E32\u0E2B\u0E21\u0E32\u0E22\u0E2D\u0E2D\u0E21\u0E23\u0E32\u0E22\u0E1B\u0E35</div><div class="sc" style="padding:10px 14px"><div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600">\u0E40\u0E1B\u0E49\u0E32\u0E2B\u0E21\u0E32\u0E22</span><input class="edit-val" type="number" id="ed_savGoal" value="'+sg+'" onchange="saveSavGoal()"></div></div></div>'}
@@ -471,7 +472,7 @@ var filteredLog = log.filter(function(x){
     return n.indexOf(sq.toLowerCase()) >= 0 || cat.indexOf(sq.toLowerCase()) >= 0;
 });
 
-h+='<div class="sec"><div class="sec-t"><span>\u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49</span> <span style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--rd)">-'+fmt(total)+'.-</span></div>';
+h+='<div class="sec day-hero"><div class="sec-t dh-head"><div class="dh-head-box"><span class="dh-title">\u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49</span><span class="dh-amt">-'+fmt(total)+'.-</span></div></div>';
 
 // Search Bar
 h+='<div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="ค้นหาบันทึกหรือหมวดหมู่..." oninput="sq=this.value;rDailyList()" id="sqI" value="'+sq+'"><button class="ib" style="width:32px;height:32px;border-radius:10px" onclick="openFilterPop()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg></button></div>';
@@ -503,7 +504,7 @@ el.innerHTML=h}
 function dailyListH(log, dk){
     var h = '';
     if(log.length > 0){
-        h += '<div class="sc">';
+        h += '<div class="sc dl-wrapper">';
         var allCats = getAllDailyCats();
         log.slice().reverse().forEach(function(x, ri){
             var i = log.length - 1 - ri;
@@ -513,7 +514,7 @@ function dailyListH(log, dk){
         });
         h += '</div>';
     } else {
-        h += '<div class="dl-empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="1.5" style="margin-bottom:8px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div>'+(sq?'ไม่พบผลลัพธ์ที่ค้นหา':'ยังไม่มีรายการ')+'</div></div>';
+        h += '<div class="dl-empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:8px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><div>'+(sq?'ไม่พบผลลัพธ์ที่ค้นหา':'ยังไม่มีรายการ')+'</div></div>';
     }
     return h;
 }
@@ -587,9 +588,9 @@ el.innerHTML=h;drawYC(rows)}
 /* ===== RENDER SIMULATOR ===== */
 var simOverlayOpen=false;
 function normalizeSimDraft(d){
-    if(!d)return{input:{name:'',per:0,months:12},result:null};
-    if(d.input)return{input:Object.assign({name:'',per:0,months:12},d.input||{}),result:d.result||null};
-    var input={name:(d.name||''),per:Number(d.per||0)||0,months:Number(d.months||12)||12};
+    if(!d)return{input:{name:'',per:0,months:12,startM:NOW.getMonth(),startY:cY},result:null};
+    if(d.input)return{input:Object.assign({name:'',per:0,months:12,startM:NOW.getMonth(),startY:cY},d.input||{}),result:d.result||null};
+    var input={name:(d.name||''),per:Number(d.per||0)||0,months:Number(d.months||12)||12,startM:Number(d.startM)||NOW.getMonth(),startY:Number(d.startY)||cY};
     var result=d.hasResult?{name:(d.name||'-'),per:Number(d.per||0)||0,months:Number(d.months||0)||0,startM:Number(d.startM)||NOW.getMonth(),startY:Number(d.startY)||cY}:null;
     return{input:input,result:result}
 }
@@ -627,12 +628,22 @@ function simDraftUpdate(){
     var name=((document.getElementById('simName')||{}).value||'').trim();
     var per=Number((document.getElementById('simPer')||{}).value)||0;
     var mos=getSimMonthsFromUI();
-    draft.input={name:name,per:per,months:mos};
+    var st=(document.getElementById('simStartSel')||{}).value||'';
+    var sy=cY, sm=NOW.getMonth();
+    if(st&&st.indexOf('-')>0){var sp=st.split('-');sy=Number(sp[0])||cY;sm=Number(sp[1])||NOW.getMonth()}
+    draft.input={name:name,per:per,months:mos,startM:sm,startY:sy};
     s.simDraft=draft;
     syncNow(s)
 }
 function openSimOverlay(){simOverlayOpen=true;render()}
-function closeSimOverlay(){simOverlayOpen=false;render()}
+var _simCloseT;
+function closeSimOverlay(){
+    var ov=document.getElementById('simOverlay');
+    if(!ov){simOverlayOpen=false;render();return}
+    ov.classList.remove('open');
+    clearTimeout(_simCloseT);
+    _simCloseT=setTimeout(function(){simOverlayOpen=false;render()},220)
+}
 function simResultTableH(res){
     var per=Number(res.per||0),mos=Number(res.months||0);
     var sM=Number(res.startM!==undefined?res.startM:NOW.getMonth());
@@ -663,6 +674,11 @@ function rSim(el){
     for(var i=1;i<=48;i++){h+='<option value="'+i+'"'+(selVal===String(i)?' selected':'')+'>'+i+' เดือน</option>'}
     h+='<option value="custom"'+(selVal==='custom'?' selected':'')+'>มากกว่า 48 เดือน…</option>';
     h+='</select><input type="number" id="simMonthsCustom" class="sim-inp sim-mono" placeholder="ใส่จำนวนเดือน (49+)" min="49" value="'+esc(customVal)+'" style="'+(selVal==='custom'?'':'display:none')+'" oninput="simDraftUpdate()"></div>';
+    var startDefY=input.startY||cY;var startDefM=(typeof input.startM==='number')?input.startM:NOW.getMonth();
+    h+='<div class="sim-field"><label>เริ่มผ่อนจากเดือน</label><select id="simStartSel" class="sim-inp" style="appearance:auto" onchange="simDraftUpdate()">';
+    for(var k=0;k<24;k++){var mI=(NOW.getMonth()+k)%12;var yI=cY+Math.floor((NOW.getMonth()+k)/12);var val=yI+'-'+String(mI).padStart(2,'0');var sel=(yI===startDefY&&mI===startDefM)?' selected':'';h+='<option value="'+val+'"'+sel+'>'+TM[mI]+' '+yI+'</option>'}
+    h+='</select></div>';
+    h+='<div class="sim-field"><button class="sim-save-btn" onclick="runSim()">คำนวณผลกระทบรายเดือน</button></div>';
     h+='</div>';
 
     if(res&&Number(res.per||0)>0&&Number(res.months||0)>0){
@@ -686,7 +702,6 @@ function rSim(el){
         h+='</div></div>'
     }
 
-    h+='<div class="sim-bottom"><button class="sim-save-btn sim-calc-btn" onclick="runSim()">คำนวณผลกระทบรายเดือน</button></div>';
     if(res&&Number(res.per||0)>0&&Number(res.months||0)>0){
         h+='<div class="sim-overlay'+(simOverlayOpen?' open':'')+'" id="simOverlay" onclick="if(event.target===this)closeSimOverlay()"><div class="sim-overlay-box"><div class="sim-overlay-hd"><div class="sim-overlay-ttl">ตารางจำลองการผ่อน</div><button class="mini-btn" onclick="closeSimOverlay()" title="ปิด"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="sim-overlay-sub">ยอดผ่อน '+fmt(res.per)+'.- • '+Number(res.months||0)+' เดือน • รวม '+fmt(Number(res.per||0)*Number(res.months||0))+'.-</div><div class="sim-table-wrap">'+simResultTableH(res)+'</div></div></div>'
     }
@@ -701,8 +716,11 @@ function runSim(){
     if(per<=0||mos<=0)return;
     var s=gs();
     var draft=normalizeSimDraft(s.simDraft);
-    draft.input={name:nm||'-',per:per,months:mos};
-    draft.result={name:nm||'-',per:per,months:mos,startM:NOW.getMonth(),startY:cY};
+    var st=(document.getElementById('simStartSel')||{}).value||'';
+    var sy=cY, sm=NOW.getMonth();
+    if(st&&st.indexOf('-')>0){var sp=st.split('-');sy=Number(sp[0])||cY;sm=Number(sp[1])||NOW.getMonth()}
+    draft.input={name:nm||'-',per:per,months:mos,startM:sm,startY:sy};
+    draft.result={name:nm||'-',per:per,months:mos,startM:sm,startY:sy};
     s.simDraft=draft;
     syncNow(s);
     simOverlayOpen=true;
@@ -750,7 +768,7 @@ function closeQA(){document.getElementById('qaM').classList.remove('open');windo
 function renderQA(){
     var cats = getAllDailyCats();
     var h = '<div class="qa-amt-wrap"><input class="qa-amt" type="number" id="qaAmt" placeholder="0" min="0"'+(window._qaA?' value="'+window._qaA+'"':'')+'>';
-    h += '<div class="qa-presets"><button onclick="quickAmt(20)">+20</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(500)">+500</button><button onclick="document.getElementById(\'qaAmt\').value=\'\'">C</button></div></div>';
+    h += '<div class="qa-presets"><button onclick="quickAmt(20)">+20</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(500)">+500</button></div></div>';
     var w=getWallets();
     h += '<div class="sub-lb">กระเป๋า</div><div class="qa-presets" style="margin:0 0 10px">';
     w.forEach(function(x){h+='<button onclick="qaWallet=\''+x.id+'\';setLastWallet(\''+x.id+'\');renderQA()" style="'+(qaWallet===x.id?'background:var(--acBg2);color:var(--ac);border-color:var(--ac)':'')+'">'+esc(x.name)+'</button>'});
@@ -820,10 +838,10 @@ if(preset){existing.push({id:preset.id,name:preset.name,icon:preset.icon,budget:
 var now2b=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));
 var key=dKey(now2b);var log=getDayLog(key);
 log.push({a:amt,cat:cat,n:note,w:qaWallet,t:String(now2b.getHours()).padStart(2,'0')+':'+String(now2b.getMinutes()).padStart(2,'0')});
-saveDayLog(key,log);closeQA();if(vw==='d')render();else setV('d')}
+saveDayLog(key,log);closeQA();showUndo('บันทึกสำเร็จ!',true);if(vw==='d')render();else setV('d')}
 function getCatName(id){var cats=getAllDailyCats();var c=cats.find(function(x){return x.id===id});return c?c.name:id}
 document.getElementById('qaM').addEventListener('click',function(e){if(e.target===this)closeQA()});
-function showUndo(msg){var t=document.getElementById('undoToast');if(!t)return;document.getElementById('undoMsg').textContent=msg||'ลบแล้ว';t.classList.add('show');clearTimeout(_undoTimer);_undoTimer=setTimeout(function(){t.classList.remove('show');_lastDelete=null},5000)}
+function showUndo(msg,isSuccess){var t=document.getElementById('undoToast');if(!t)return;document.getElementById('undoMsg').textContent=msg||'ลบแล้ว';t.classList.toggle('success',!!isSuccess);t.classList.add('show');clearTimeout(_undoTimer);_undoTimer=setTimeout(function(){t.classList.remove('show');if(!isSuccess)_lastDelete=null},isSuccess?3000:5000)}
 function hideUndo(){var t=document.getElementById('undoToast');if(t)t.classList.remove('show')}
 function delDayItem(ds,idx){
     var log=getDayLog(ds);
@@ -1040,7 +1058,11 @@ function resetYear(){if(!confirm('\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E35 '+cY+'?')
 var tipTimer;function showTip(e){var t=e.currentTarget.dataset.tip;if(!t)return;var tip=document.getElementById('tip');tip.textContent=t;var r=e.currentTarget.getBoundingClientRect();tip.style.left=Math.min(r.left,window.innerWidth-210)+'px';tip.style.top=(r.top-40)+'px';tipTimer=setTimeout(function(){tip.classList.add('show')},300)}function hideTip(){clearTimeout(tipTimer);document.getElementById('tip').classList.remove('show')}
 
 /* ===== CHARTS ===== */
-function cCl(){var dk=['dark','basics','ocean','cyber'].indexOf(document.documentElement.getAttribute('data-theme')||'light')>=0;return{t:dk?'rgba(255,255,255,.75)':'rgba(0,0,0,.65)',g:dk?'rgba(255,255,255,.07)':'rgba(0,0,0,.07)'}}
+function cCl(){
+    var theme=document.documentElement.getAttribute('data-theme')||'light';
+    var dk=['dark','basics','ocean','cyber'].indexOf(theme)>=0;
+    return{dk:dk,t:dk?'rgba(255,255,255,.75)':'rgba(0,0,0,.65)',g:dk?'rgba(255,255,255,.07)':'rgba(0,0,0,.07)'}
+}
 function drawMC(d,y,m){
     if(ch){ch.destroy();ch=null}
     var cv=document.getElementById('mC');
@@ -1068,11 +1090,32 @@ function drawMC(d,y,m){
     var ot=getDailyOtherTotal(y,m);
     if(ot>0){lb.push('อื่นๆ');vl.push(ot);cl.push('#D63E3E')}
 
-    var finalLb=[],finalVl=[],finalCl=[];
-    for(var i=0;i<vl.length;i++){if(vl[i]>0){finalLb.push(lb[i]);finalVl.push(vl[i]);finalCl.push(cl[i])}}
+    var finalLb=[],finalVl=[],finalCl=[],finalGr=[];
+    var ctx=cv.getContext('2d');
+    
+    for(var i=0;i<vl.length;i++){
+        if(vl[i]>0){
+            finalLb.push(lb[i]);
+            finalVl.push(vl[i]);
+            finalCl.push(cl[i]);
+            
+            // Create gradient
+            var grad=ctx.createLinearGradient(0,0,0,400);
+            grad.addColorStop(0,cl[i]);
+            // Generate darker shade for gradient
+            var c2=cl[i];
+            if(c2.startsWith('#')){
+                var r=parseInt(c2.slice(1,3),16),g=parseInt(c2.slice(3,5),16),b=parseInt(c2.slice(5,7),16);
+                grad.addColorStop(1,'rgba('+Math.max(0,r-40)+','+Math.max(0,g-40)+','+Math.max(0,b-40)+',1)');
+            } else {
+                grad.addColorStop(1,cl[i]);
+            }
+            finalGr.push(grad);
+        }
+    }
 
     if(finalVl.length===0){
-        cv.parentElement.innerHTML='<div class="dl-empty" style="padding:20px 0">ไม่มีข้อมูลการใช้จ่าย</div>';
+        cv.parentElement.innerHTML='<div class="dl-empty" style="padding:20px 0"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.21 15.89A10 10 0 118 2.83M22 12A10 10 0 0012 2v10z"/></svg><div>ไม่มีข้อมูลการใช้จ่าย</div></div>';
         return;
     }
 
@@ -1084,11 +1127,12 @@ function drawMC(d,y,m){
             labels:finalLb,
             datasets:[{
                 data:finalVl,
-                backgroundColor:finalCl,
-                borderWidth:2,
-                borderColor:'transparent',
-                hoverOffset:8,
-                borderRadius:6
+                backgroundColor:finalGr,
+                borderWidth:3,
+                borderColor:cCl().dk?'rgba(20,17,16,0.6)':'rgba(255,255,255,0.6)',
+                hoverOffset:12,
+                borderRadius:8,
+                spacing:4
             }]
         },
         options:{
@@ -1134,7 +1178,6 @@ function drawYC(rows){
     var cs=getComputedStyle(document.documentElement);
     var gn=(cs.getPropertyValue('--gn')||'').trim()||'#1EA05A';
     var rd=(cs.getPropertyValue('--rd')||'').trim()||'#D63E3E';
-    var isMobile=window.innerWidth<=420;
     ch=new Chart(cv,{
         type:'bar',
         data:{
@@ -1145,10 +1188,10 @@ function drawYC(rows){
             ]
         },
         options:{
-            indexAxis:isMobile?'y':'x',
+            indexAxis:'y',
             responsive:true,
             maintainAspectRatio:false,
-            scales:isMobile?{
+            scales:{
                 y:{
                     ticks:{color:c.t,font:{size:10,family:'Sarabun'},maxRotation:0,minRotation:0},
                     grid:{display:false},
@@ -1159,20 +1202,9 @@ function drawYC(rows){
                     grid:{color:c.g},
                     border:{display:false}
                 }
-            }:{
-                x:{
-                    ticks:{color:c.t,font:{size:9,family:'Sarabun'},maxRotation:0,minRotation:0},
-                    grid:{display:false},
-                    border:{display:false}
-                },
-                y:{
-                    ticks:{color:c.t,font:{size:9,family:'JetBrains Mono'},callback:function(v){return fmt(v)}},
-                    grid:{color:c.g},
-                    border:{display:false}
-                }
             },
             plugins:{
-                legend:{position:isMobile?'bottom':'top',labels:{color:c.t,font:{family:'Sarabun',size:isMobile?11:10,weight:'bold'},usePointStyle:true,pointStyle:'circle',padding:10}},
+                legend:{position:'bottom',labels:{color:c.t,font:{family:'Sarabun',size:11,weight:'bold'},usePointStyle:true,pointStyle:'circle',padding:10}},
                 tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+fmt(ctx.raw)+'.-'}}}
             }
         }
