@@ -1,0 +1,28 @@
+{
+  "name": "Okane Wallet",
+  "short_name": "Okane",
+  "description": "บันทึกรายรับ-รายจ่ายส่วนตัว",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAF4EE",
+  "theme_color": "#e33900",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='120' fill='%23e33900'/><text x='50%25' y='58%25' text-anchor='middle' dominant-baseline='middle' font-size='320' font-family='serif'>💰</text></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "บันทึกรายจ่าย",
+      "short_name": "บันทึก",
+      "description": "เปิด Quick Add ทันที",
+      "url": "/?quickadd=1",
+      "icons": [{"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect width='96' height='96' rx='20' fill='%23e33900'/><line x1='48' y1='24' x2='48' y2='72' stroke='white' stroke-width='8' stroke-linecap='round'/><line x1='24' y1='48' x2='72' y2='48' stroke='white' stroke-width='8' stroke-linecap='round'/></svg>", "sizes": "96x96"}]
+    }
+  ],
+  "categories": ["finance", "productivity"]
+}
