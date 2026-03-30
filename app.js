@@ -355,8 +355,6 @@ h+=savTabH(savBal);
 var carryTotal=(c.carryIn?Number(c.carryIn.rem||0)+sumMap(c.carryIn.cat):0);
 if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:JetBrains Mono,monospace">-'+fmt(carryTotal)+'.-</span></div>';
 
-if(!p)h+='<div class="abar"><span>\u0E04\u0E31\u0E14\u0E25\u0E2D\u0E01\u0E04\u0E48\u0E32\u0E19\u0E35\u0E49\u0E44\u0E1B\u0E17\u0E38\u0E01\u0E40\u0E14\u0E37\u0E2D\u0E19</span><button class="btn btn-ac" style="padding:5px 11px;font-size:11px" onclick="apAll()">\u0E43\u0E0A\u0E49\u0E01\u0E31\u0E1A\u0E17\u0E38\u0E01\u0E40\u0E14\u0E37\u0E2D\u0E19</button></div>';
-
 // INCOME
 h+='<div class="sec" style="animation-delay:.04s"><div class="sec-t"><span>\u0E23\u0E32\u0E22\u0E23\u0E31\u0E1A</span>'+(p?'':'<button class="tgl'+(editInc?' on':'')+'" onclick="editInc=!editInc;render()"></button>')+'</div><div class="sc">';
 h+='<div class="row"><div class="ri inc">'+IC.inc+'</div><div class="rn"><div class="rn-t">\u0E40\u0E07\u0E34\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19</div></div>';
@@ -368,13 +366,6 @@ if(!p)h+='<div class="ar"><input class="inp" type="number" id="iA" placeholder="
 h+='</div></div>';
 
 var st=ensureSettings();
-var split=st.incomeSplit||{needs:60,savings:20,invest:10,fun:10};
-var baseIncome=Number(d.sal||0)+d.oI.filter(function(x){return x.ck}).reduce(function(s2,x){return s2+Number(x.a||0)},0);
-var sNeeds=Math.max(0,Math.round(baseIncome*(Number(split.needs||0)/100)));
-var sSav=Math.max(0,Math.round(baseIncome*(Number(split.savings||0)/100)));
-var sInv=Math.max(0,Math.round(baseIncome*(Number(split.invest||0)/100)));
-var sFun=Math.max(0,Math.round(baseIncome*(Number(split.fun||0)/100)));
-h+='<div class="sec" style="animation-delay:.085s"><div class="sec-t">แนะนำแบ่งเงิน</div><div class="sc" style="padding:0 0 10px"><div class="row"><div class="ri save">'+IC.save+'</div><div class="rn"><div class="rn-t">จำเป็น</div><div class="rn-s">'+Number(split.needs||0)+'%</div></div><div class="rv neg">'+fmt(sNeeds)+'.-</div></div><div class="row"><div class="ri gn">'+IC.save+'</div><div class="rn"><div class="rn-t">ออม</div><div class="rn-s">'+Number(split.savings||0)+'%</div></div><div class="rv pos">'+fmt(sSav)+'.-</div></div><div class="row"><div class="ri pr">'+IC.save+'</div><div class="rn"><div class="rn-t">ลงทุน</div><div class="rn-s">'+Number(split.invest||0)+'%</div></div><div class="rv pos">'+fmt(sInv)+'.-</div></div><div class="row"><div class="ri shopee">'+IC.shopee+'</div><div class="rn"><div class="rn-t">ใช้จ่าย/ความสุข</div><div class="rn-s">'+Number(split.fun||0)+'%</div></div><div class="rv neg">'+fmt(sFun)+'.-</div></div></div></div>';
 
 // EXPENSES
 h+='<div class="sec" style="animation-delay:.08s"><div class="sec-t"><span>\u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22</span>'+(p?'':'<button class="tgl'+(editExp?' on':'')+'" onclick="editExp=!editExp;render()"></button>')+'</div><div class="sc">';
@@ -584,59 +575,151 @@ function rYear(el){var h='',ti=0,te=0,ts=0,rows=[];for(var m=0;m<12;m++){var c=c
 h+=heroH('\u0E2A\u0E23\u0E38\u0E1B\u0E23\u0E32\u0E22\u0E1B\u0E35 '+cY,tr,ti,te);
 h+=savTabH(getSavings().balance);
 h+='<div class="sec"><div class="sec-t"><span>\u0E40\u0E1B\u0E49\u0E32\u0E2B\u0E21\u0E32\u0E22\u0E2D\u0E2D\u0E21\u0E23\u0E32\u0E22\u0E1B\u0E35</span> <span class="rv pos" style="font-size:12px">'+prog.toFixed(0)+'%</span></div><div class="sc"><div style="padding:4px 16px 0;font-size:11px;color:var(--tx3)">\u0E2D\u0E2D\u0E21\u0E41\u0E25\u0E49\u0E27 '+fmt(ts)+' / '+fmt(goal)+'.-</div><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill pf-gn" style="width:'+Math.min(prog,100)+'%"></div></div></div></div></div>';
-h+='<div class="sec"><div class="sec-t">\u0E15\u0E32\u0E23\u0E32\u0E07</div><div class="sc" style="padding:0;overflow-x:auto"><table class="yt"><thead><tr><th>\u0E40\u0E14\u0E37\u0E2D\u0E19</th><th>\u0E23\u0E31\u0E1A</th><th>\u0E08\u0E48\u0E32\u0E22</th><th>\u0E40\u0E2B\u0E25\u0E37\u0E2D</th></tr></thead><tbody>';
-rows.forEach(function(c,i){h+='<tr><td>'+TM[i]+'</td><td>'+fmt(c.tI)+'</td><td>'+fmt(c.tE)+'</td><td style="'+(c.r>=0?'color:var(--gn)':'color:var(--rd)')+'">'+(c.r>=0?'+':'')+fmt(c.r)+'</td></tr>'});
-h+='</tbody><tfoot><tr><td>\u0E23\u0E27\u0E21</td><td style="text-align:right;color:var(--gn)">'+fmt(ti)+'</td><td style="text-align:right;color:var(--rd)">'+fmt(te)+'</td><td style="text-align:right;'+(tr>=0?'color:var(--gn)':'color:var(--rd)')+'">'+(tr>=0?'+':'')+fmt(tr)+'</td></tr></tfoot></table></div></div>';
-h+='<div class="sec"><div class="sec-t">\u0E01\u0E23\u0E32\u0E1F</div><div class="sc" style="padding:14px 10px"><div class="cw"><canvas id="yC"></canvas></div></div></div>';
+h+='<div class="sec"><div class="sec-t">\u0E15\u0E32\u0E23\u0E32\u0E07</div><div class="sc" style="padding:0"><table class="year-t"><thead><tr><th>\u0E40\u0E14\u0E37\u0E2D\u0E19</th><th>\u0E23\u0E31\u0E1A</th><th>\u0E08\u0E48\u0E32\u0E22</th><th>\u0E40\u0E2B\u0E25\u0E37\u0E2D</th></tr></thead><tbody>';
+rows.forEach(function(c,i){
+    h+='<tr><td data-l="\u0E40\u0E14\u0E37\u0E2D\u0E19">'+TM[i]+'</td><td data-l="\u0E23\u0E31\u0E1A" class="year-pos">'+fmt(c.tI)+'.-</td><td data-l="\u0E08\u0E48\u0E32\u0E22" class="year-neg">-'+fmt(c.tE)+'.-</td><td data-l="\u0E40\u0E2B\u0E25\u0E37\u0E2D" class="'+(c.r>=0?'year-pos':'year-neg')+'">'+(c.r>=0?'+':'-')+fmt(Math.abs(c.r))+'.-</td></tr>'
+});
+h+='</tbody><tfoot><tr><td data-l="\u0E23\u0E27\u0E21">\u0E23\u0E27\u0E21</td><td data-l="\u0E23\u0E31\u0E1A" class="year-pos">'+fmt(ti)+'.-</td><td data-l="\u0E08\u0E48\u0E32\u0E22" class="year-neg">-'+fmt(te)+'.-</td><td data-l="\u0E40\u0E2B\u0E25\u0E37\u0E2D" class="'+(tr>=0?'year-pos':'year-neg')+'">'+(tr>=0?'+':'-')+fmt(Math.abs(tr))+'.-</td></tr></tfoot></table></div></div>';
+h+='<div class="sec"><div class="sec-t">\u0E01\u0E23\u0E32\u0E1F</div><div class="sc" style="padding:14px 10px"><div class="cw year-cw"><canvas id="yC"></canvas></div></div></div>';
 h+='<div class="reset-area"><button class="reset-btn" onclick="resetYear()">\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E35 '+cY+'</button><div class="credit">Credit : Opus 4.6 & Jarasrawee</div></div>';
 el.innerHTML=h;drawYC(rows)}
 
 /* ===== RENDER SIMULATOR ===== */
-function rSim(el){
-    var st=gs(),sims=st.sims||[];
-    var h = '<div class="sec-t" style="margin-top:10px">จำลองการผ่อนชำระ</div>';
-    h += '<div class="sim-card">';
-    h += '<div class="sim-head">'+IC.shopee+' <span>Shopee Simulator</span></div>';
-    h += '<div class="sim-body">';
-    h += '<div class="sim-row"><label>ชื่อสินค้า / เป้าหมาย</label><input id="simName" placeholder="เช่น iPhone 16, PS5..."></div>';
-    h += '<div class="sim-row"><label>ยอดผ่อนต่อเดือน (บาท)</label><input type="number" id="simPer" placeholder="0" min="0"></div>';
-    h += '<div class="sim-row"><label>จำนวนงวด (เดือน)</label><input type="number" id="simMonths" placeholder="1" min="1" max="60"></div>';
-    h += '<button class="sim-save-btn" style="margin-top:8px;background:linear-gradient(135deg, #EE4D2D, #FF7337)" onclick="runSim()">คำนวณผลกระทบรายเดือน</button>';
-    h += '<div id="simResult"></div>';
-    h += '</div></div>';
-    
-    if(sims.length > 0){
-        h += '<div class="sec-t">รายการที่บันทึกไว้</div>';
-        h += '<div class="sec"><div class="sc">';
-        sims.forEach(function(s, i){
-            h += '<div class="row"><div class="ri shopee">'+IC.shopee+'</div>';
-            h += '<div class="rn"><div class="rn-t">'+esc(s.name)+'</div><div class="rn-s">'+s.months+' งวด x '+fmt(s.per)+'.-</div></div>';
-            h += '<div style="display:flex;gap:6px"><button class="btn btn-ac" style="padding:6px 10px;font-size:11px" onclick="applySim('+i+')">ใช้จริง</button>';
-            h += '<button class="cd" onclick="delSim('+i+')">'+IC.dl+'</button></div></div>';
-        });
-        h += '</div></div>';
+var simOverlayOpen=false;
+function normalizeSimDraft(d){
+    if(!d)return{input:{name:'',per:0,months:12},result:null};
+    if(d.input)return{input:Object.assign({name:'',per:0,months:12},d.input||{}),result:d.result||null};
+    var input={name:(d.name||''),per:Number(d.per||0)||0,months:Number(d.months||12)||12};
+    var result=d.hasResult?{name:(d.name||'-'),per:Number(d.per||0)||0,months:Number(d.months||0)||0,startM:Number(d.startM)||NOW.getMonth(),startY:Number(d.startY)||cY}:null;
+    return{input:input,result:result}
+}
+function getSimDraft(){var s=gs();return normalizeSimDraft(s.simDraft)}
+function setSimDraft(d){var s=gs();s.simDraft=d;syncNow(s)}
+function clearSimDraft(){var s=gs();delete s.simDraft;syncNow(s);simOverlayOpen=false;render()}
+function getSimMonthsFromUI(){
+    var sel=(document.getElementById('simMonthsSel')||{}).value||'';
+    if(sel==='custom')return Number((document.getElementById('simMonthsCustom')||{}).value)||0;
+    return Number(sel)||0
+}
+function setSimMonthsUI(months){
+    var mos=Number(months)||0;
+    var sel=document.getElementById('simMonthsSel');
+    var cus=document.getElementById('simMonthsCustom');
+    if(!sel||!cus)return;
+    if(mos>48){
+        sel.value='custom';
+        cus.style.display='';
+        cus.value=String(mos);
+    }else{
+        sel.value=String(Math.max(1,mos||12));
+        cus.style.display='none';
+        cus.value='';
     }
-    h += '<div class="credit" style="margin-top:16px">Credit : Opus 4.6 & Jarasrawee</div>';
-    el.innerHTML = h;
+}
+function onSimMonthsSelChange(v){
+    var cus=document.getElementById('simMonthsCustom');
+    if(cus)cus.style.display=(v==='custom')?'':'none';
+    simDraftUpdate()
+}
+function simDraftUpdate(){
+    var s=gs();
+    var draft=normalizeSimDraft(s.simDraft);
+    var name=((document.getElementById('simName')||{}).value||'').trim();
+    var per=Number((document.getElementById('simPer')||{}).value)||0;
+    var mos=getSimMonthsFromUI();
+    draft.input={name:name,per:per,months:mos};
+    s.simDraft=draft;
+    syncNow(s)
+}
+function openSimOverlay(){simOverlayOpen=true;render()}
+function closeSimOverlay(){simOverlayOpen=false;render()}
+function simResultTableH(res){
+    var per=Number(res.per||0),mos=Number(res.months||0);
+    var sM=Number(res.startM!==undefined?res.startM:NOW.getMonth());
+    var sY=Number(res.startY!==undefined?res.startY:cY);
+    var h='<table class="sim-t"><thead><tr><th>\u0E40\u0E14\u0E37\u0E2D\u0E19</th><th>\u0E1B\u0E01\u0E15\u0E34</th><th>\u0E1C\u0E48\u0E2D\u0E19</th><th>\u0E2B\u0E25\u0E31\u0E07\u0E1C\u0E48\u0E2D\u0E19</th></tr></thead><tbody>';
+    for(var i=0;i<mos;i++){
+        var mI=(sM+i)%12,yr=sY+Math.floor((sM+i)/12),cc=calc(yr,mI),aR=cc.r-per;
+        h+='<tr><td>'+TM[mI]+(yr!==sY?' '+yr:'')+'</td><td class="sim-mono">'+(cc.r>=0?'+':'-')+fmt(Math.abs(cc.r))+'.-</td><td class="sim-mono sim-muted">-'+fmt(per)+'.-</td><td class="sim-mono '+(aR>=0?'sim-pos':'sim-neg')+'">'+(aR>=0?'+':'-')+fmt(Math.abs(aR))+'.-</td></tr>'
+    }
+    h+='</tbody></table>';
+    return h
+}
+function rSim(el){
+    var st=gs(),sims=st.sims||[],draft=normalizeSimDraft(st.simDraft);
+    var input=draft.input||{name:'',per:0,months:12};
+    var res=draft.result;
+    var mos=Number(input.months||0);
+    var nameVal=esc(input.name||'');
+    var perVal=input.per?String(input.per):'';
+    var selVal=(mos>48)?'custom':String(Math.max(1,mos||12));
+    var customVal=(mos>48)?String(mos):'';
+
+    var h='<div class="sec sim-sec" style="margin-top:10px"><div class="sec-t"><span>จำลองการผ่อนชำระ</span><button class="mini-btn" onclick="clearSimDraft()" title="ล้างข้อมูล">'+IC.dl+'</button></div><div class="sc sim-form">';
+    h+='<div class="sim-grid">';
+    h+='<div class="sim-field"><label>ชื่อสินค้า / เป้าหมาย</label><input id="simName" class="sim-inp" placeholder="เช่น iPhone 16, PS5..." value="'+nameVal+'" oninput="simDraftUpdate()"></div>';
+    h+='<div class="sim-field"><label>ยอดผ่อนต่อเดือน (บาท)</label><input type="number" id="simPer" class="sim-inp sim-mono" placeholder="0" min="0" value="'+perVal+'" oninput="simDraftUpdate()"></div>';
+    h+='<div class="sim-field"><label>จำนวนงวด (เดือน)</label><select id="simMonthsSel" class="sim-inp" style="appearance:auto" onchange="onSimMonthsSelChange(this.value)">';
+    for(var i=1;i<=48;i++){h+='<option value="'+i+'"'+(selVal===String(i)?' selected':'')+'>'+i+' เดือน</option>'}
+    h+='<option value="custom"'+(selVal==='custom'?' selected':'')+'>มากกว่า 48 เดือน…</option>';
+    h+='</select><input type="number" id="simMonthsCustom" class="sim-inp sim-mono" placeholder="ใส่จำนวนเดือน (49+)" min="49" value="'+esc(customVal)+'" style="'+(selVal==='custom'?'':'display:none')+'" oninput="simDraftUpdate()"></div>';
+    h+='</div>';
+
+    if(res&&Number(res.per||0)>0&&Number(res.months||0)>0){
+        h+='<div class="sim-result" style="margin-top:14px">';
+        h+='<div class="sim-res-title"><span>ผลการจำลอง: '+esc(res.name||'-')+'</span><button class="btn btn-gh" style="padding:6px 10px;font-size:11px" onclick="openSimOverlay()">ดูตาราง</button></div>';
+        h+='<div class="sim-res-sub">ยอดผ่อน '+fmt(res.per)+'.- ทั้งหมด '+Number(res.months||0)+' เดือน (รวม '+fmt(Number(res.per||0)*Number(res.months||0))+'.-)</div>';
+        h+='<div class="sim-actions"><button class="btn btn-ac btn-full" onclick="saveSim()">บันทึกแผนการผ่อนนี้</button><button class="btn btn-gh btn-full" onclick="clearSimDraft()">ล้างข้อมูล</button></div>';
+        h+='</div>';
+    }
+
+    h+='</div></div>';
+
+    if(sims.length>0){
+        h+='<div class="sec-t" style="margin-top:14px">รายการที่บันทึกไว้</div>';
+        h+='<div class="sec"><div class="sc">';
+        sims.forEach(function(s, i){
+            h+='<div class="row"><div class="ri shopee">'+IC.shopee+'</div>';
+            h+='<div class="rn"><div class="rn-t">'+esc(s.name)+'</div><div class="rn-s">'+s.months+' งวด x '+fmt(s.per)+'.-</div></div>';
+            h+='<div style="display:flex;gap:6px"><button class="btn btn-ac" style="padding:6px 10px;font-size:11px" onclick="applySim('+i+')">ใช้จริง</button><button class="cd" onclick="delSim('+i+')">'+IC.dl+'</button></div></div>'
+        });
+        h+='</div></div>'
+    }
+
+    h+='<div class="sim-bottom"><button class="sim-save-btn sim-calc-btn" onclick="runSim()">คำนวณผลกระทบรายเดือน</button></div>';
+    if(res&&Number(res.per||0)>0&&Number(res.months||0)>0){
+        h+='<div class="sim-overlay'+(simOverlayOpen?' open':'')+'" id="simOverlay" onclick="if(event.target===this)closeSimOverlay()"><div class="sim-overlay-box"><div class="sim-overlay-hd"><div class="sim-overlay-ttl">ตารางจำลองการผ่อน</div><button class="mini-btn" onclick="closeSimOverlay()" title="ปิด"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="sim-overlay-sub">ยอดผ่อน '+fmt(res.per)+'.- • '+Number(res.months||0)+' เดือน • รวม '+fmt(Number(res.per||0)*Number(res.months||0))+'.-</div><div class="sim-table-wrap">'+simResultTableH(res)+'</div></div></div>'
+    }
+    h+='<div class="credit" style="margin-top:16px">Credit : Opus 4.6 & Jarasrawee</div>';
+    el.innerHTML=h;
 }
 
 function runSim(){
-    var nm=document.getElementById('simName').value||'-',per=Number(document.getElementById('simPer').value)||0,mos=Number(document.getElementById('simMonths').value)||0;
+    var nm=((document.getElementById('simName')||{}).value||'-').trim();
+    var per=Number((document.getElementById('simPer')||{}).value)||0;
+    var mos=getSimMonthsFromUI();
     if(per<=0||mos<=0)return;
-    var h = '<div class="sim-result">';
-    h += '<div class="sim-res-title"><span>ผลการจำลอง: '+esc(nm)+'</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>';
-    h += '<div class="sim-res-sub">ยอดผ่อน '+fmt(per)+'.- ทั้งหมด '+mos+' เดือน (รวม '+fmt(per*mos)+'.-)</div>';
-    h += '<div style="max-height:240px;overflow-y:auto;margin:0 -4px;padding:0 4px"><table class="yt" style="font-size:11px"><thead><tr><th>เดือน</th><th>ปกติ</th><th>หลังผ่อน</th></tr></thead><tbody>';
-    var sM=NOW.getMonth();
-    for(var i=0; i<mos; i++){
-        var mI=(sM+i)%12,yr=cY+Math.floor((sM+i)/12),cc=calc(yr,mI),aR=cc.r-per;
-        h += '<tr><td>'+TM[mI]+(yr!==cY?' '+yr:'')+'</td><td style="text-align:right">'+fmt(cc.r)+'</td><td style="text-align:right;font-weight:800;'+(aR>=0?'color:var(--gn)':'color:var(--rd)')+'">'+(aR>=0?'+':'')+fmt(aR)+'</td></tr>';
-    }
-    h += '</tbody></table></div>';
-    h += '<div class="sim-actions"><button class="sim-save-btn" onclick="saveSim()">บันทึกแผนการผ่อนนี้</button></div></div>';
-    document.getElementById('simResult').innerHTML = h;
+    var s=gs();
+    var draft=normalizeSimDraft(s.simDraft);
+    draft.input={name:nm||'-',per:per,months:mos};
+    draft.result={name:nm||'-',per:per,months:mos,startM:NOW.getMonth(),startY:cY};
+    s.simDraft=draft;
+    syncNow(s);
+    simOverlayOpen=true;
+    render()
 }
-function saveSim(){var s=gs();if(!s.sims)s.sims=[];s.sims.push({name:document.getElementById('simName').value||'-',per:Number(document.getElementById('simPer').value)||0,months:Number(document.getElementById('simMonths').value)||0,startM:NOW.getMonth(),startY:cY});syncNow(s);render()}
+function saveSim(){
+    var s=gs();
+    var draft=normalizeSimDraft(s.simDraft);
+    var r=draft.result;
+    if(!r)return;
+    if(!s.sims)s.sims=[];
+    s.sims.push({name:r.name||'-',per:Number(r.per)||0,months:Number(r.months)||0,startM:Number(r.startM)||NOW.getMonth(),startY:Number(r.startY)||cY});
+    delete s.simDraft;
+    syncNow(s);
+    simOverlayOpen=false;
+    render()
+}
 function delSim(i){var s=gs();if(s.sims)s.sims.splice(i,1);syncNow(s);render()}
 function applySim(i){if(!confirm('\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19?'))return;var s=gs(),sm=s.sims[i];if(!sm)return;if(!s.shM)s.shM={};for(var j=0;j<sm.months;j++){var mI=(sm.startM+j)%12,yr=sm.startY+Math.floor((sm.startM+j)/12),k=mk(yr,mI);s.shM[k]=(Number(s.shM[k])||0)+sm.per;if(s.mo&&s.mo[k])s.mo[k].shopee=Number(s.shM[k])||0}s.sims.splice(i,1);syncNow(s);render()}
 
@@ -1043,7 +1126,58 @@ function drawMC(d,y,m){
         le.innerHTML=lh;
     }
 }
-function drawYC(rows){if(ch){ch.destroy();ch=null}var cv=document.getElementById('yC');if(!cv)return;var c=cCl();ch=new Chart(cv,{type:'bar',data:{labels:TM,datasets:[{label:'\u0E23\u0E31\u0E1A',data:rows.map(function(r){return r.tI}),backgroundColor:'#1EA05A',borderRadius:4,barPercentage:.7},{label:'\u0E08\u0E48\u0E32\u0E22',data:rows.map(function(r){return r.tE}),backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--ac').trim()||'#E0712B',borderRadius:4,barPercentage:.7}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{ticks:{color:c.t,font:{size:9}},grid:{display:false},border:{display:false}},y:{ticks:{color:c.t,font:{size:9,family:'JetBrains Mono'},callback:function(v){return fmt(v)}},grid:{color:c.g},border:{display:false}}},plugins:{legend:{labels:{color:c.t,font:{family:'Sarabun',size:10,weight:'bold'},usePointStyle:true,pointStyle:'circle',padding:10}},tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+fmt(ctx.raw)+'.-'}}}}}})}
+function drawYC(rows){
+    if(ch){ch.destroy();ch=null}
+    var cv=document.getElementById('yC');
+    if(!cv)return;
+    var c=cCl();
+    var cs=getComputedStyle(document.documentElement);
+    var gn=(cs.getPropertyValue('--gn')||'').trim()||'#1EA05A';
+    var rd=(cs.getPropertyValue('--rd')||'').trim()||'#D63E3E';
+    var isMobile=window.innerWidth<=420;
+    ch=new Chart(cv,{
+        type:'bar',
+        data:{
+            labels:TM,
+            datasets:[
+                {label:'\u0E23\u0E31\u0E1A',data:rows.map(function(r){return r.tI}),backgroundColor:gn,borderRadius:6,barPercentage:.7,categoryPercentage:.7},
+                {label:'\u0E08\u0E48\u0E32\u0E22',data:rows.map(function(r){return r.tE}),backgroundColor:rd,borderRadius:6,barPercentage:.7,categoryPercentage:.7}
+            ]
+        },
+        options:{
+            indexAxis:isMobile?'y':'x',
+            responsive:true,
+            maintainAspectRatio:false,
+            scales:isMobile?{
+                y:{
+                    ticks:{color:c.t,font:{size:10,family:'Sarabun'},maxRotation:0,minRotation:0},
+                    grid:{display:false},
+                    border:{display:false}
+                },
+                x:{
+                    ticks:{color:c.t,font:{size:10,family:'JetBrains Mono'},callback:function(v){return fmt(v)}},
+                    grid:{color:c.g},
+                    border:{display:false}
+                }
+            }:{
+                x:{
+                    ticks:{color:c.t,font:{size:9,family:'Sarabun'},maxRotation:0,minRotation:0},
+                    grid:{display:false},
+                    border:{display:false}
+                },
+                y:{
+                    ticks:{color:c.t,font:{size:9,family:'JetBrains Mono'},callback:function(v){return fmt(v)}},
+                    grid:{color:c.g},
+                    border:{display:false}
+                }
+            },
+            plugins:{
+                legend:{position:isMobile?'bottom':'top',labels:{color:c.t,font:{family:'Sarabun',size:isMobile?11:10,weight:'bold'},usePointStyle:true,pointStyle:'circle',padding:10}},
+                tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+fmt(ctx.raw)+'.-'}}}
+            }
+        }
+    })
+}
 
 /* ===== SETTINGS MODAL ===== */
 function openSettings(){stPage='main';renderSettings();document.getElementById('stM').classList.add('open')}
@@ -1061,38 +1195,39 @@ if(stPage==='templates'){h=renderSettingsTemplates();document.getElementById('st
 var pin=getPinCfg();
 var lowRem=st.lowRemaining!==undefined?Number(st.lowRemaining||0):1000;
 var warnPct=st.warnPct!==undefined?Number(st.warnPct||0):90;
-var split=st.incomeSplit||{needs:60,savings:20,invest:10,fun:10};
 var weeklyOn=!!st.weeklyOn;
 var card=st.card||{cycleDay:25,dueDay:10};
 
 h+='<div style="padding:12px 0">';
+h+='<div class="sec st-sec tone-ac"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1"/><path d="M12 20v1"/><path d="M3 12h1"/><path d="M20 12h1"/><path d="M5.6 5.6l.7.7"/><path d="M17.7 17.7l.7.7"/><path d="M5.6 18.4l.7-.7"/><path d="M17.7 6.3l.7-.7"/><circle cx="12" cy="12" r="4"/></svg></div><div class="st-ht"><div class="st-ttl">การแสดงผล</div><div class="st-sub">ทศนิยม และโหมด Privacy</div></div></div><div class="st-body">';
 h+='<div class="sr"><div class="sl">แสดงทศนิยม<small>เช่น 3,000.00.- หรือ 3,000.-</small></div><button class="tgl'+(showDec?' on':'')+'" onclick="toggleDecimal()"></button></div>';
-h+='<div class="sr"><div class="sl">ซ่อนยอดทั้งหมด<small>เหมาะสำหรับโหมด Privacy</small></div><button class="tgl'+(st.hideAmt?' on':'')+'" onclick="toggleHideAmt()"></button></div>';
+h+='<div class="sr" style="border-bottom:none"><div class="sl">ซ่อนยอดทั้งหมด<small>เหมาะสำหรับโหมด Privacy</small></div><button class="tgl'+(st.hideAmt?' on':'')+'" onclick="toggleHideAmt()"></button></div>';
+h+='</div></div>';
 
-h+='<div class="prof-sec-t">ความปลอดภัย</div>';
-h+='<div class="sr"><div class="sl">ล็อกด้วย PIN<small>ค่าเริ่มต้น: ปิด</small></div><button class="tgl'+(pin.enabled?' on':'')+'" onclick="togglePin()"></button></div>';
-h+='<div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn-gh btn-full" onclick="changePin()" '+(pin.enabled?'':'style="opacity:.35;pointer-events:none"')+'>เปลี่ยน PIN</button><button class="btn btn-rd btn-full" onclick="disablePin()" '+(pin.enabled?'':'style="opacity:.35;pointer-events:none"')+'>ปิด PIN</button></div>';
+h+='<div class="sec st-sec tone-pr"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div class="st-ht"><div class="st-ttl">ความปลอดภัย</div><div class="st-sub">ล็อกด้วย PIN (ค่าเริ่มต้น: ปิด)</div></div></div><div class="st-body">';
+h+='<div class="sr"><div class="sl">ล็อกด้วย PIN</div><button class="tgl'+(pin.enabled?' on':'')+'" onclick="togglePin()"></button></div>';
+h+='<div style="display:flex;gap:8px;margin:10px 0 2px"><button class="btn btn-gh btn-full" onclick="changePin()" '+(pin.enabled?'':'style="opacity:.35;pointer-events:none"')+'>เปลี่ยน PIN</button><button class="btn btn-rd btn-full" onclick="disablePin()" '+(pin.enabled?'':'style="opacity:.35;pointer-events:none"')+'>ปิด PIN</button></div>';
+h+='</div></div>';
 
-h+='<div class="prof-sec-t">งบ/แจ้งเตือน</div>';
+h+='<div class="sec st-sec tone-gn"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5"/><path d="M9 17a3 3 0 006 0"/></svg></div><div class="st-ht"><div class="st-ttl">งบ/แจ้งเตือน</div><div class="st-sub">เตือนเงินคงเหลือ และใกล้เต็มงบ</div></div></div><div class="st-body">';
 h+='<div class="sr"><div class="sl">งบรายสัปดาห์<small>คำนวณจากงบรายเดือน / 4</small></div><button class="tgl'+(weeklyOn?' on':'')+'" onclick="toggleWeekly()"></button></div>';
 h+='<div class="sr"><div class="sl">เตือนเงินคงเหลือน้อยกว่า<small>บาท</small></div><input class="si" style="width:120px" id="stLowRem" value="'+lowRem+'"></div>';
-h+='<div class="sr"><div class="sl">เตือนใกล้เต็มงบ<small>เปอร์เซ็นต์</small></div><input class="si" style="width:120px" id="stWarnPct" value="'+warnPct+'"></div>';
+h+='<div class="sr" style="border-bottom:none"><div class="sl">เตือนใกล้เต็มงบ<small>เปอร์เซ็นต์</small></div><input class="si" style="width:120px" id="stWarnPct" value="'+warnPct+'"></div>';
 h+='<div style="margin-top:10px"><button class="btn btn-ac btn-full" onclick="saveAlertSettings()">บันทึกการแจ้งเตือน</button></div>';
+h+='</div></div>';
 
-h+='<div class="prof-sec-t">Income Split</div>';
-h+='<div class="sr"><div class="sl">จำเป็น (%)<small>ค่าใช้จ่ายจำเป็น</small></div><input class="si" id="spNeeds" value="'+Number(split.needs||0)+'"></div>';
-h+='<div class="sr"><div class="sl">ออม (%)<small>เงินออม</small></div><input class="si" id="spSav" value="'+Number(split.savings||0)+'"></div>';
-h+='<div class="sr"><div class="sl">ลงทุน (%)<small>เงินลงทุน</small></div><input class="si" id="spInv" value="'+Number(split.invest||0)+'"></div>';
-h+='<div class="sr"><div class="sl">ใช้จ่าย/ความสุข (%)<small>กินเที่ยวของอยากได้</small></div><input class="si" id="spFun" value="'+Number(split.fun||0)+'"></div>';
-h+='<div style="margin-top:10px"><button class="btn btn-ac btn-full" onclick="saveIncomeSplit()">บันทึก Income Split</button></div>';
+h+='<div class="sec st-sec tone-bl"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div><div class="st-ht"><div class="st-ttl">ฟังก์ชัน</div><div class="st-sub">รายการประจำ Goals กระเป๋า และ Template</div></div></div><div class="st-tiles">';
+h+='<button class="st-tile tone-sh" onclick="openSettingsPage(\'recurring\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 019-9 9 9 0 019 9"/><path d="M21 12a9 9 0 01-9 9 9 9 0 01-9-9"/><path d="M12 7v5l3 2"/></svg></span><span class="st-tile-t">รายการประจำ</span></button>';
+h+='<button class="st-tile tone-gn" onclick="openSettingsPage(\'goals\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 5V3"/><path d="M8 3h8"/><path d="M12 13l3-3"/></svg></span><span class="st-tile-t">Goals</span></button>';
+h+='<button class="st-tile tone-ac" onclick="openSettingsPage(\'wallets\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H5a2 2 0 00-2 2v10a2 2 0 002 2h15V7z"/><path d="M20 7V5a2 2 0 00-2-2H7"/><circle cx="17" cy="14" r="1.5"/></svg></span><span class="st-tile-t">กระเป๋า</span></button>';
+h+='<button class="st-tile tone-pr" onclick="openSettingsPage(\'templates\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h6"/></svg></span><span class="st-tile-t">Template งบ</span></button>';
+h+='</div></div>';
 
-h+='<div class="prof-sec-t">รายการ/การจัดการ</div>';
-h+='<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-gh" onclick="openSettingsPage(\'recurring\')">รายการประจำ</button><button class="btn btn-gh" onclick="openSettingsPage(\'goals\')">Goals</button><button class="btn btn-gh" onclick="openSettingsPage(\'wallets\')">กระเป๋า</button><button class="btn btn-gh" onclick="openSettingsPage(\'templates\')">Template งบ</button></div>';
-
-h+='<div class="prof-sec-t">บัตร/รอบบิล</div>';
+h+='<div class="sec st-sec tone-ac"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/><path d="M6 14h2"/></svg></div><div class="st-ht"><div class="st-ttl">บัตร/รอบบิล</div><div class="st-sub">กำหนดวันตัดรอบและวันครบกำหนด</div></div></div><div class="st-body">';
 h+='<div class="sr"><div class="sl">วันตัดรอบ<small>1-28</small></div><input class="si" style="width:120px" id="stCycle" value="'+Number(card.cycleDay||25)+'"></div>';
-h+='<div class="sr"><div class="sl">วันครบกำหนด<small>1-28</small></div><input class="si" style="width:120px" id="stDue" value="'+Number(card.dueDay||10)+'"></div>';
+h+='<div class="sr" style="border-bottom:none"><div class="sl">วันครบกำหนด<small>1-28</small></div><input class="si" style="width:120px" id="stDue" value="'+Number(card.dueDay||10)+'"></div>';
 h+='<div style="margin-top:10px"><button class="btn btn-ac btn-full" onclick="saveCardSettings()">บันทึกบัตร</button></div>';
+h+='</div></div>';
 h+='<div class="prof-ver">เวอร์ชัน <b>'+esc(APP_VER||'')+'</b><br><span>Okane Wallet</span></div>';
 h+='</div>';
 document.getElementById('stB').innerHTML=h
@@ -1103,7 +1238,6 @@ function openSettingsPage(p){stPage=p;renderSettings()}
 function backSettings(){stPage='main';renderSettings()}
 function toggleWeekly(){var s=gs();var st=ensureSettings();st.weeklyOn=!st.weeklyOn;s.settings=st;syncNow(s);renderSettings();render()}
 function saveAlertSettings(){var s=gs();var st=ensureSettings();st.lowRemaining=Number(document.getElementById('stLowRem').value)||0;st.warnPct=Number(document.getElementById('stWarnPct').value)||90;s.settings=st;syncNow(s);renderSettings();render()}
-function saveIncomeSplit(){var s=gs();var st=ensureSettings();st.incomeSplit={needs:Number(document.getElementById('spNeeds').value)||0,savings:Number(document.getElementById('spSav').value)||0,invest:Number(document.getElementById('spInv').value)||0,fun:Number(document.getElementById('spFun').value)||0};s.settings=st;syncNow(s);renderSettings();render()}
 function saveCardSettings(){var s=gs();var st=ensureSettings();st.card={cycleDay:Math.min(28,Math.max(1,Number(document.getElementById('stCycle').value)||25)),dueDay:Math.min(28,Math.max(1,Number(document.getElementById('stDue').value)||10))};s.settings=st;syncNow(s);renderSettings();render()}
 function togglePin(){var cfg=getPinCfg();if(cfg.enabled){showPinLock('disable',{title:'ปิด PIN',sub:'ใส่ PIN เพื่อยืนยัน',len:4,autoSubmit:true,canCancel:false});return}showPinLock('set',{title:'ตั้ง PIN',sub:'ใส่ PIN 4 หลัก',len:4,autoSubmit:true,canCancel:false})}
 function changePin(){var cfg=getPinCfg();if(!cfg.enabled)return;showPinLock('change_old',{title:'เปลี่ยน PIN',sub:'ใส่ PIN ปัจจุบัน',len:4,autoSubmit:true,canCancel:false})}
