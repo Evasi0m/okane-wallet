@@ -200,11 +200,11 @@ function checkSession(){var s=gs();if(s.isLoggedIn&&s.userInfo){userInfo=s.userI
 function applyTheme(id){document.documentElement.setAttribute('data-theme',id);var s=gs();s.theme=id;localStorage.setItem('okane_v3',JSON.stringify(s))}
 function toggleThemeDD(){document.getElementById('themeDD').classList.toggle('open')}
 document.addEventListener('click',function(e){if(!e.target.closest('.theme-dd'))document.getElementById('themeDD').classList.remove('open')});
-function renderThemeDD(){var cur=gs().theme||'light';var h='';THEMES.forEach(function(t){var lk=!t.free&&isGuest;h+='<div class="theme-item'+(cur===t.id?' active':'')+(lk?' locked':'')+'" onclick="pickTheme(\''+t.id+'\','+(lk?1:0)+')"><div class="theme-dots">';t.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});h+='</div>'+t.name+'</div>'});document.getElementById('themeDD').innerHTML=h}
-function pickTheme(id,lk){if(lk){showPrem();return}applyTheme(id);renderThemeDD();render();document.getElementById('themeDD').classList.remove('open')}
-function showPrem(){document.getElementById('premPopup').classList.add('open')}
-function closePrem(){document.getElementById('premPopup').classList.remove('open')}
-function navClick(v){if(isGuest){showPrem();return}setV(v)}
+function renderThemeDD(){var cur=gs().theme||'light';var h='';THEMES.forEach(function(t){h+='<div class="theme-item'+(cur===t.id?' active':'')+'" onclick="pickTheme(\''+t.id+'\',0)"><div class="theme-dots">';t.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});h+='</div>'+t.name+'</div>'});document.getElementById('themeDD').innerHTML=h}
+function pickTheme(id,lk){applyTheme(id);renderThemeDD();render();document.getElementById('themeDD').classList.remove('open')}
+function showPrem(){}
+function closePrem(){}
+function navClick(v){setV(v)}
 function updateUserBtn(){var b=document.getElementById('userBtn');var s=gs();var pic=s.customPicture||((!isGuest&&userInfo.picture)?userInfo.picture:null);if(!isGuest&&pic)b.innerHTML='<img src="'+pic+'" alt="">'}
 
 /* ===== NAV ===== */
@@ -356,7 +356,9 @@ var carryTotal=(c.carryIn?Number(c.carryIn.rem||0)+sumMap(c.carryIn.cat):0);
 if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:JetBrains Mono,monospace">-'+fmt(carryTotal)+'.-</span></div>';
 
 // INCOME
-h+='<div class="sec" style="animation-delay:.04s"><div class="sec-t"><span>\u0E23\u0E32\u0E22\u0E23\u0E31\u0E1A</span>'+(p?'':'<button class="tgl'+(editInc?' on':'')+'" onclick="editInc=!editInc;render()"></button>')+'</div><div class="sc">';
+var _svgPencil='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+var _svgCheck='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+h+='<div class="sec" style="animation-delay:.04s"><div class="sec-t"><span>\u0E23\u0E32\u0E22\u0E23\u0E31\u0E1A</span>'+(p?'':'<button class="edit-btn'+(editInc?' editing':'')+'" onclick="editInc=!editInc;render()" aria-label="'+(editInc?'บันทึก':'แก้ไข')+'">'+(editInc?_svgCheck:_svgPencil)+'</button>')+'</div><div class="sc">';
 h+='<div class="row"><div class="ri inc">'+IC.inc+'</div><div class="rn"><div class="rn-t">\u0E40\u0E07\u0E34\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19</div></div>';
 if(editInc&&!p)h+='<input class="edit-val" type="number" id="ed_sal" value="'+d.sal+'" onchange="saveField(\'sal\',\'ed_sal\')">';
 else h+='<div class="rv pos">'+fmt(d.sal)+'.-</div>';
@@ -368,7 +370,7 @@ h+='</div></div>';
 var st=ensureSettings();
 
 // EXPENSES
-h+='<div class="sec" style="animation-delay:.08s"><div class="sec-t"><span>\u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22</span>'+(p?'':'<button class="tgl'+(editExp?' on':'')+'" onclick="editExp=!editExp;render()"></button>')+'</div><div class="sc">';
+h+='<div class="sec" style="animation-delay:.08s"><div class="sec-t"><span>\u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22</span>'+(p?'':'<button class="edit-btn'+(editExp?' editing':'')+'" onclick="editExp=!editExp;render()" aria-label="'+(editExp?'บันทึก':'แก้ไข')+'">'+(editExp?_svgCheck:_svgPencil)+'</button>')+'</div><div class="sc">';
 var exps=getAllExpCats(d);
 exps.forEach(function(e){
 var v=Number(d[e.k]||0);
@@ -423,7 +425,7 @@ topCats.sort(function(a,b){return b.v-a.v});
 var peak={d:'',v:0};
 var sLog=gs().dLog||{},prefix=mk(y,m);
 Object.keys(sLog).forEach(function(dk){if(!dk.startsWith(prefix))return;var v=sLog[dk].reduce(function(ss,x){return ss+Number(x.a||0)},0);if(v>peak.v){peak={d:dk,v:v}}});
-h+='<div class="sec ins-card insight-panel" style="animation-delay:.115s"><div class="ip-hd"><div class="ip-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/></svg><span>Insights</span></div></div><div class="sc"><div class="ip-grid">';
+h+='<div class="sec ins-card insight-panel" style="animation-delay:.115s"><div class="ic-mesh"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div><div class="ip-hd"><div class="ip-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/></svg><span>Insights</span></div></div><div class="sc"><div class="ip-grid">';
 h+='<div class="ip-item"><div class="ip-meta"><div class="ri inc">'+IC.inc+'</div><div class="ip-lb"><div class="ip-t">เทียบเดือนก่อน</div><div class="ip-s">'+TMF[prev.m]+' '+prev.y+'</div></div></div><div class="ip-val '+(delta>=0?'pos':'neg')+'">'+(delta>=0?'+':'')+fmt(delta)+'.-</div></div>';
 if(topCats.length>0)h+='<div class="ip-item"><div class="ip-meta"><div class="ri shopee">'+IC.cal+'</div><div class="ip-lb"><div class="ip-t">Top หมวด</div><div class="ip-s">'+topCats.slice(0,3).map(function(x){return getCatName(x.k)+' '+fmt(x.v)+'.-'}).join(' • ')+'</div></div></div><div class="ip-val ip-muted">•</div></div>';
 if(peak.v>0)h+='<div class="ip-item"><div class="ip-meta"><div class="ri rd">'+IC.dl+'</div><div class="ip-lb"><div class="ip-t">วันใช้เงินหนักสุด</div><div class="ip-s">'+peak.d+'</div></div></div><div class="ip-val neg">-'+fmt(peak.v)+'.-</div></div>';
@@ -432,14 +434,11 @@ h+='</div></div></div>';
 // Savings goal
 if(editExp&&!p){var sg=gSet().savGoal||50000;h+='<div class="sec"><div class="sec-t">\u0E40\u0E1B\u0E49\u0E32\u0E2B\u0E21\u0E32\u0E22\u0E2D\u0E2D\u0E21\u0E23\u0E32\u0E22\u0E1B\u0E35</div><div class="sc" style="padding:10px 14px"><div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px;font-weight:600">\u0E40\u0E1B\u0E49\u0E32\u0E2B\u0E21\u0E32\u0E22</span><input class="edit-val" type="number" id="ed_savGoal" value="'+sg+'" onchange="saveSavGoal()"></div></div></div>'}
 
-// Chart
-var gl=isGuest?' guest-lock':'';
-h+='<div class="sec glass-chart'+gl+'" style="animation-delay:.12s"'+(isGuest?' onclick="showPrem()"':'')+'><div class="sec-t">สัดส่วนรายจ่ายแบ่งตามหมวดหมู่</div><div class="sc" style="padding:14px 10px"><div class="cw"><canvas id="mC"></canvas><div id="mC-center" class="chart-center"></div></div><div id="mC-legend" class="chart-legend"></div></div>';
-if(isGuest)h+='<div class="guest-lock-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>\u0E2A\u0E21\u0E31\u0E04\u0E23\u0E2A\u0E21\u0E32\u0E0A\u0E34\u0E01</div>';
+h+='<div class="sec glass-chart" style="animation-delay:.12s"><div class="sec-t">สัดส่วนรายจ่ายแบ่งตามหมวดหมู่</div><div class="sc" style="padding:14px 10px"><div class="cw"><canvas id="mC"></canvas><div id="mC-center" class="chart-center"></div></div><div id="mC-legend" class="chart-legend"></div></div>';
 h+='</div>';
 if(!p)h+='<div class="reset-area"><button class="reset-btn" onclick="resetMonth()">\u0E25\u0E49\u0E32\u0E07\u0E40\u0E14\u0E37\u0E2D\u0E19 '+TM[m]+'</button><div class="credit">Credit : Opus 4.6 & Jarasrawee</div></div>';
 else h+='<div class="credit">Credit : Opus 4.6 & Jarasrawee</div>';
-el.innerHTML=h;if(!isGuest)drawMC(d,y,m)
+el.innerHTML=h;drawMC(d,y,m)
 }
 
 /* ===== RENDER DAILY ===== */
@@ -472,7 +471,7 @@ var filteredLog = log.filter(function(x){
     return n.indexOf(sq.toLowerCase()) >= 0 || cat.indexOf(sq.toLowerCase()) >= 0;
 });
 
-h+='<div class="sec day-hero"><div class="sec-t dh-head"><div class="dh-head-box"><span class="dh-title">\u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49</span><span class="dh-amt">-'+fmt(total)+'.-</span></div></div>';
+h+='<div class="sec day-hero"><div class="dh-mesh"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div><div class="dh-head"><span class="dh-title">\u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49</span><span class="dh-amt">-'+fmt(total)+'.-</span></div>';
 
 // Search Bar
 h+='<div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="ค้นหาบันทึกหรือหมวดหมู่..." oninput="sq=this.value;rDailyList()" id="sqI" value="'+sq+'"><button class="ib" style="width:32px;height:32px;border-radius:10px" onclick="openFilterPop()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg></button></div>';
@@ -666,20 +665,31 @@ function rSim(el){
     var selVal=(mos>48)?'custom':String(Math.max(1,mos||12));
     var customVal=(mos>48)?String(mos):'';
 
-    var h='<div class="sec sim-sec" style="margin-top:10px"><div class="sec-t"><span>จำลองการผ่อนชำระ</span><button class="mini-btn" onclick="clearSimDraft()" title="ล้างข้อมูล">'+IC.dl+'</button></div><div class="sc sim-form">';
-    h+='<div class="sim-grid">';
-    h+='<div class="sim-field"><label>ชื่อสินค้า / เป้าหมาย</label><input id="simName" class="sim-inp" placeholder="เช่น iPhone 16, PS5..." value="'+nameVal+'" oninput="simDraftUpdate()"></div>';
-    h+='<div class="sim-field"><label>ยอดผ่อนต่อเดือน (บาท)</label><input type="number" id="simPer" class="sim-inp sim-mono" placeholder="0" min="0" value="'+perVal+'" oninput="simDraftUpdate()"></div>';
-    h+='<div class="sim-field"><label>จำนวนงวด (เดือน)</label><select id="simMonthsSel" class="sim-inp" style="appearance:auto" onchange="onSimMonthsSelChange(this.value)">';
-    for(var i=1;i<=48;i++){h+='<option value="'+i+'"'+(selVal===String(i)?' selected':'')+'>'+i+' เดือน</option>'}
-    h+='<option value="custom"'+(selVal==='custom'?' selected':'')+'>มากกว่า 48 เดือน…</option>';
-    h+='</select><input type="number" id="simMonthsCustom" class="sim-inp sim-mono" placeholder="ใส่จำนวนเดือน (49+)" min="49" value="'+esc(customVal)+'" style="'+(selVal==='custom'?'':'display:none')+'" oninput="simDraftUpdate()"></div>';
     var startDefY=input.startY||cY;var startDefM=(typeof input.startM==='number')?input.startM:NOW.getMonth();
-    h+='<div class="sim-field"><label>เริ่มผ่อนจากเดือน</label><select id="simStartSel" class="sim-inp" style="appearance:auto" onchange="simDraftUpdate()">';
+    var h='<div class="sec sim-sec" style="margin-top:10px">';
+    // Header
+    h+='<div class="sim-hdr"><div class="sim-hdr-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h2M10 15h4"/></svg></div><div><div class="sim-hdr-title">จำลองการผ่อนชำระ</div><div class="sim-hdr-sub">คำนวณผลกระทบต่องบรายเดือน</div></div><button class="mini-btn" onclick="clearSimDraft()" title="ล้างข้อมูล" style="margin-left:auto">'+IC.dl+'</button></div>';
+    h+='<div class="sc sim-form">';
+    // Group 1: สินค้า
+    h+='<div class="sim-group"><div class="sim-group-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>สินค้า / เป้าหมาย</div>';
+    h+='<input id="simName" class="sim-inp" placeholder="เช่น iPhone 16, PS5, รถยนต์..." value="'+nameVal+'" oninput="simDraftUpdate()"></div>';
+    // Group 2: ยอดผ่อน
+    h+='<div class="sim-group"><div class="sim-group-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>ยอดผ่อนต่อเดือน (บาท)</div>';
+    h+='<input type="number" id="simPer" class="sim-inp sim-mono" placeholder="0" min="0" value="'+perVal+'" oninput="simDraftUpdate()"></div>';
+    // Group 3: งวด + เริ่ม (2 col)
+    h+='<div class="sim-2col">';
+    h+='<div class="sim-group"><div class="sim-group-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>จำนวนงวด</div>';
+    h+='<select id="simMonthsSel" class="sim-inp" style="appearance:auto" onchange="onSimMonthsSelChange(this.value)">';
+    for(var i=1;i<=48;i++){h+='<option value="'+i+'"'+(selVal===String(i)?' selected':'')+'>'+i+' เดือน</option>'}
+    h+='<option value="custom"'+(selVal==='custom'?' selected':'')+'>มากกว่า 48…</option>';
+    h+='</select><input type="number" id="simMonthsCustom" class="sim-inp sim-mono" placeholder="49+ เดือน" min="49" value="'+esc(customVal)+'" style="'+(selVal==='custom'?'':'display:none')+';margin-top:6px" oninput="simDraftUpdate()"></div>';
+    h+='<div class="sim-group"><div class="sim-group-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>เริ่มผ่อนจากเดือน</div>';
+    h+='<select id="simStartSel" class="sim-inp" style="appearance:auto" onchange="simDraftUpdate()">';
     for(var k=0;k<24;k++){var mI=(NOW.getMonth()+k)%12;var yI=cY+Math.floor((NOW.getMonth()+k)/12);var val=yI+'-'+String(mI).padStart(2,'0');var sel=(yI===startDefY&&mI===startDefM)?' selected':'';h+='<option value="'+val+'"'+sel+'>'+TM[mI]+' '+yI+'</option>'}
     h+='</select></div>';
-    h+='<div class="sim-field"><button class="sim-save-btn" onclick="runSim()">คำนวณผลกระทบรายเดือน</button></div>';
     h+='</div>';
+    // Calc button
+    h+='<button class="sim-calc-main" onclick="runSim()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-3"/><rect x="9" y="3" width="6" height="8" rx="1"/><path d="M9 12h6M9 16h4"/></svg>คำนวณผลกระทบรายเดือน</button>';
 
     if(res&&Number(res.per||0)>0&&Number(res.months||0)>0){
         h+='<div class="sim-result" style="margin-top:14px">';
@@ -909,7 +919,7 @@ function chgDay(d){viewDate.setDate(viewDate.getDate()+d);render()}
 
 /* ===== CATEGORY PICKER + CUSTOM ===== */
 var tempCats=[];
-function openCat(){if(isGuest){showPrem();return}tempCats=gCats().map(function(c){return c.id});renderCatPopup();document.getElementById('catPopup').classList.add('open')}
+function openCat(){tempCats=gCats().map(function(c){return c.id});renderCatPopup();document.getElementById('catPopup').classList.add('open')}
 function closeCat(){document.getElementById('catPopup').classList.remove('open')}
 function renderCatPopup(){var h='<div class="cat-grid">';PRESET_CATS.forEach(function(p){var on=tempCats.indexOf(p.id)>=0;h+='<div class="cat-item '+(on?'on':'')+'" onclick="toggleTmpCat(\''+p.id+'\')">'+ICON_LIST[p.icon]+' '+p.name+'</div>'});h+='</div>';
 // Show existing custom cats
