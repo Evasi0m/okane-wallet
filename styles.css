@@ -598,8 +598,8 @@
 .sim-t tbody tr:nth-child(even) td{background:rgba(255,255,255,.03)}
 
 /* YEAR */
-.year-cw{height:320px}
-@media (max-width:420px){.year-cw{height:360px}}
+.year-cw{height:380px}
+@media (max-width:420px){.year-cw{height:420px}}
 .year-t{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--cb);border-radius:16px;overflow:hidden;background:var(--card)}
 .year-t thead th{font-size:10px;font-weight:900;color:var(--tx3);text-transform:uppercase;letter-spacing:.35px;padding:11px 12px;text-align:left;background:var(--bg2);border-bottom:1px solid var(--cb)}
 .year-t thead th:nth-child(n+2){text-align:right}

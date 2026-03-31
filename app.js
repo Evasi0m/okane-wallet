@@ -1188,35 +1188,101 @@ function drawYC(rows){
     var cs=getComputedStyle(document.documentElement);
     var gn=(cs.getPropertyValue('--gn')||'').trim()||'#1EA05A';
     var rd=(cs.getPropertyValue('--rd')||'').trim()||'#D63E3E';
+    var tx=(cs.getPropertyValue('--tx')||'').trim()||'#2C1810';
+    var tx3=(cs.getPropertyValue('--tx3')||'').trim()||'#B8A090';
+    var card=(cs.getPropertyValue('--card')||'').trim()||'#fff';
+
+    // build gradient colors
+    var gnA=gn+'CC', rdA=rd+'CC';
+
     ch=new Chart(cv,{
         type:'bar',
         data:{
             labels:TM,
             datasets:[
-                {label:'\u0E23\u0E31\u0E1A',data:rows.map(function(r){return r.tI}),backgroundColor:gn,borderRadius:6,barPercentage:.7,categoryPercentage:.7},
-                {label:'\u0E08\u0E48\u0E32\u0E22',data:rows.map(function(r){return r.tE}),backgroundColor:rd,borderRadius:6,barPercentage:.7,categoryPercentage:.7}
+                {
+                    label:'\u0E23\u0E31\u0E1A',
+                    data:rows.map(function(r){return r.tI}),
+                    backgroundColor:gnA,
+                    borderColor:gn,
+                    borderWidth:0,
+                    borderRadius:6,
+                    borderSkipped:false,
+                    barPercentage:.55,
+                    categoryPercentage:.85
+                },
+                {
+                    label:'\u0E08\u0E48\u0E32\u0E22',
+                    data:rows.map(function(r){return r.tE}),
+                    backgroundColor:rdA,
+                    borderColor:rd,
+                    borderWidth:0,
+                    borderRadius:6,
+                    borderSkipped:false,
+                    barPercentage:.55,
+                    categoryPercentage:.85
+                }
             ]
         },
         options:{
             indexAxis:'y',
             responsive:true,
             maintainAspectRatio:false,
+            layout:{padding:{top:4,right:8,bottom:4,left:0}},
             scales:{
                 y:{
-                    ticks:{color:c.t,font:{size:10,family:'Sarabun'},maxRotation:0,minRotation:0},
+                    ticks:{
+                        color:tx,
+                        font:{size:11,family:'Sarabun',weight:'700'},
+                        maxRotation:0,
+                        minRotation:0,
+                        padding:4
+                    },
                     grid:{display:false},
                     border:{display:false}
                 },
                 x:{
-                    ticks:{color:c.t,font:{size:10,family:'JetBrains Mono'},callback:function(v){return fmt(v)}},
-                    grid:{color:c.g},
+                    ticks:{
+                        color:tx3,
+                        font:{size:9,family:'JetBrains Mono'},
+                        maxTicksLimit:5,
+                        callback:function(v){
+                            if(v>=1000000)return(v/1000000).toFixed(1)+'M';
+                            if(v>=1000)return(v/1000).toFixed(0)+'K';
+                            return v;
+                        }
+                    },
+                    grid:{color:c.g,lineWidth:1},
                     border:{display:false}
                 }
             },
             plugins:{
-                legend:{position:'bottom',labels:{color:c.t,font:{family:'Sarabun',size:11,weight:'bold'},usePointStyle:true,pointStyle:'circle',padding:10}},
-                tooltip:{callbacks:{label:function(ctx){return ctx.dataset.label+': '+fmt(ctx.raw)+'.-'}}}
-            }
+                legend:{
+                    position:'bottom',
+                    labels:{
+                        color:tx,
+                        font:{family:'Sarabun',size:12,weight:'bold'},
+                        usePointStyle:true,
+                        pointStyle:'rectRounded',
+                        pointStyleWidth:14,
+                        padding:16,
+                        boxHeight:10
+                    }
+                },
+                tooltip:{
+                    backgroundColor:'rgba(0,0,0,0.75)',
+                    titleColor:'#fff',
+                    bodyColor:'rgba(255,255,255,0.85)',
+                    padding:10,
+                    cornerRadius:10,
+                    callbacks:{
+                        label:function(ctx){
+                            return ' '+ctx.dataset.label+': '+fmt(ctx.raw)+'.-';
+                        }
+                    }
+                }
+            },
+            animation:{duration:600,easing:'easeOutQuart'}
         }
     })
 }
