@@ -1184,16 +1184,16 @@ function drawYC(rows){
     if(ch){ch.destroy();ch=null}
     var cv=document.getElementById('yC');
     if(!cv)return;
-    var c=cCl();
     var cs=getComputedStyle(document.documentElement);
     var gn=(cs.getPropertyValue('--gn')||'').trim()||'#1EA05A';
     var rd=(cs.getPropertyValue('--rd')||'').trim()||'#D63E3E';
     var tx=(cs.getPropertyValue('--tx')||'').trim()||'#2C1810';
+    var tx2=(cs.getPropertyValue('--tx2')||'').trim()||'#7A6050';
     var tx3=(cs.getPropertyValue('--tx3')||'').trim()||'#B8A090';
-    var card=(cs.getPropertyValue('--card')||'').trim()||'#fff';
+    var cb=(cs.getPropertyValue('--cb')||'').trim()||'rgba(190,160,130,.18)';
 
-    // build gradient colors
-    var gnA=gn+'CC', rdA=rd+'CC';
+    // คำนวณ net (เหลือ) สำหรับแต่ละเดือน
+    var netData=rows.map(function(r){return Math.max(0,r.tI-r.tE)});
 
     ch=new Chart(cv,{
         type:'bar',
@@ -1201,26 +1201,26 @@ function drawYC(rows){
             labels:TM,
             datasets:[
                 {
-                    label:'\u0E23\u0E31\u0E1A',
-                    data:rows.map(function(r){return r.tI}),
-                    backgroundColor:gnA,
-                    borderColor:gn,
-                    borderWidth:0,
-                    borderRadius:6,
-                    borderSkipped:false,
-                    barPercentage:.55,
-                    categoryPercentage:.85
-                },
-                {
                     label:'\u0E08\u0E48\u0E32\u0E22',
                     data:rows.map(function(r){return r.tE}),
-                    backgroundColor:rdA,
+                    backgroundColor:rd+'BB',
                     borderColor:rd,
                     borderWidth:0,
-                    borderRadius:6,
-                    borderSkipped:false,
-                    barPercentage:.55,
-                    categoryPercentage:.85
+                    borderRadius:{topRight:5,bottomRight:5,topLeft:0,bottomLeft:0},
+                    borderSkipped:'left',
+                    barPercentage:.65,
+                    categoryPercentage:.88
+                },
+                {
+                    label:'\u0E23\u0E31\u0E1A',
+                    data:rows.map(function(r){return r.tI}),
+                    backgroundColor:gn+'BB',
+                    borderColor:gn,
+                    borderWidth:0,
+                    borderRadius:{topRight:5,bottomRight:5,topLeft:0,bottomLeft:0},
+                    borderSkipped:'left',
+                    barPercentage:.65,
+                    categoryPercentage:.88
                 }
             ]
         },
@@ -1228,15 +1228,15 @@ function drawYC(rows){
             indexAxis:'y',
             responsive:true,
             maintainAspectRatio:false,
-            layout:{padding:{top:4,right:8,bottom:4,left:0}},
+            layout:{padding:{top:4,right:12,bottom:4,left:0}},
             scales:{
                 y:{
                     ticks:{
                         color:tx,
-                        font:{size:11,family:'Sarabun',weight:'700'},
+                        font:{size:12,family:'Sarabun',weight:'700'},
                         maxRotation:0,
                         minRotation:0,
-                        padding:4
+                        padding:6
                     },
                     grid:{display:false},
                     border:{display:false}
@@ -1244,7 +1244,7 @@ function drawYC(rows){
                 x:{
                     ticks:{
                         color:tx3,
-                        font:{size:9,family:'JetBrains Mono'},
+                        font:{size:10,family:'JetBrains Mono'},
                         maxTicksLimit:5,
                         callback:function(v){
                             if(v>=1000000)return(v/1000000).toFixed(1)+'M';
@@ -1252,37 +1252,48 @@ function drawYC(rows){
                             return v;
                         }
                     },
-                    grid:{color:c.g,lineWidth:1},
+                    grid:{color:cb,lineWidth:1},
                     border:{display:false}
                 }
             },
             plugins:{
                 legend:{
                     position:'bottom',
+                    reverse:true,
                     labels:{
                         color:tx,
                         font:{family:'Sarabun',size:12,weight:'bold'},
                         usePointStyle:true,
                         pointStyle:'rectRounded',
                         pointStyleWidth:14,
-                        padding:16,
+                        padding:20,
                         boxHeight:10
                     }
                 },
                 tooltip:{
-                    backgroundColor:'rgba(0,0,0,0.75)',
+                    backgroundColor:'rgba(0,0,0,0.78)',
                     titleColor:'#fff',
                     bodyColor:'rgba(255,255,255,0.85)',
-                    padding:10,
-                    cornerRadius:10,
+                    padding:12,
+                    cornerRadius:12,
                     callbacks:{
+                        title:function(items){return items[0].label},
                         label:function(ctx){
                             return ' '+ctx.dataset.label+': '+fmt(ctx.raw)+'.-';
+                        },
+                        afterBody:function(items){
+                            var inc=0,exp=0;
+                            items.forEach(function(it){
+                                if(it.dataset.label==='\u0E23\u0E31\u0E1A')inc=it.raw;
+                                else exp=it.raw;
+                            });
+                            var net=inc-exp;
+                            return [' \u0E40\u0E2B\u0E25\u0E37\u0E2D: '+(net>=0?'+':'')+fmt(net)+'.-'];
                         }
                     }
                 }
             },
-            animation:{duration:600,easing:'easeOutQuart'}
+            animation:{duration:500,easing:'easeOutQuart'}
         }
     })
 }

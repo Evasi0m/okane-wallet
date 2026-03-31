@@ -13,6 +13,7 @@
 #app{display:none;padding-bottom:96px}#app.show{display:block}
 .hdr{position:sticky;top:0;z-index:90;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;background:rgba(var(--hdrBg, 255,255,255),.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--cb);box-shadow:0 1px 12px rgba(0,0,0,.03)}.hdr-logo{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:800;color:var(--txLogo, var(--tx))}.hdr-logo svg{width:28px;height:28px;color:var(--txLogo, var(--tx))}.hdr-r{display:flex;gap:6px}.ib{width:36px;height:36px;border-radius:10px;border:1px solid var(--cb);background:var(--card2);color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .18s ease-out,border-color .2s,color .2s,box-shadow .2s;box-shadow:0 0 0 1px rgba(255,255,255,.14) inset}.ib:active{transform:translateY(1px) scale(.96);box-shadow:0 0 0 0 rgba(255,255,255,0) inset}.ib:hover{border-color:var(--ac);color:var(--ac)}.ib img{width:26px;height:26px;border-radius:50%}
 .ybar{display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 0 14px}
+.ybar.hide{display:none}
 /* ybar pill style */
 .ybar-pill{display:inline-flex;align-items:center;gap:8px;padding:9px 20px;background:var(--card);border:1px solid var(--cb);border-radius:999px;box-shadow:var(--s1)}
 .ybar-pill span{font-size:15px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--tx)}
