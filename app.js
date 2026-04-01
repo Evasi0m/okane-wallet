@@ -92,6 +92,7 @@ var CAT_RESERVED_KEYS={sal:1,oI:1,savAutoTransfer:1};
 var _catEditId=null,_incomeEditId=null,_incomeColor=INCOME_COLORS[0];
 var SVG_PENCIL='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
 var SVG_CHECK='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+var _catPopupMode='add',_authRefreshStarted=false;
 
 /* ===== STORAGE ===== */
 function normalizeStore(d){if(!d||typeof d!=='object'||Array.isArray(d))d={};if(!d.meta||typeof d.meta!=='object'||Array.isArray(d.meta))d.meta={};if(typeof d.meta.updatedAt!=='number')d.meta.updatedAt=0;return d}
@@ -322,7 +323,13 @@ function activeCategoryIdsForMonth(d,y,m){
 }
 
 /* ===== AUTH ===== */
-function finishAuth(syncLocal){isGuest=false;persistStore(applySessionData(gs()),false);if(syncLocal)queueSync(true);enterApp()}
+function finishAuth(syncLocal){
+    isGuest=false;
+    persistStore(applySessionData(gs()),false);
+    if(syncLocal)queueSync(true);
+    if(document.getElementById('app').classList.contains('show')){updateUserBtn();render();return}
+    enterApp()
+}
 function initGoogleAuth(){try{tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',callback:function(resp){if(resp.error){finishAuth(false);return}accessToken=resp.access_token;fetchUserInfo().then(function(){return driveLoad()}).then(function(mode){finishAuth(mode==='keepLocal')}).catch(function(){finishAuth(false)})}});}catch(e){}}
 function googleLogin(){if(!tokenClient){alert('\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E1E\u0E23\u0E49\u0E2D\u0E21');return}tokenClient.requestAccessToken()}
 function fetchUserInfo(){return fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(d){userInfo={name:d.name||'',email:d.email||'',picture:d.picture||''}})}
@@ -330,8 +337,36 @@ function driveSync(){if(!accessToken)return Promise.resolve();if(_syncing){_sync
 function driveLoad(){if(!accessToken)return Promise.resolve('none');return fetch("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D'okane_data_v3.json'&fields=files(id)&orderBy=modifiedTime%20desc",{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(d){if(d.files&&d.files.length>0){driveFileId=d.files[0].id;return fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(cloud){if(cloud&&typeof cloud==='object'){var local=gs(),cloudData=normalizeStore(cloud);if((local.meta.updatedAt||0)>(cloudData.meta.updatedAt||0))return'keepLocal';persistStore(cloudData,false);return'cloud'}})}return'none'}).catch(function(){return'none'})}
 function driveDeleteFile(){if(!accessToken||!driveFileId)return Promise.resolve();return fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId,{method:'DELETE',headers:{'Authorization':'Bearer '+accessToken}}).catch(function(){}).then(function(){driveFileId=null})}
 function guestLogin(){isGuest=true;var s=gs();s.isLoggedIn=false;s.guestUsed=true;ss(s);enterApp()}
-function enterApp(){refreshCurrentContext();document.getElementById('welcome').classList.add('hide');document.getElementById('app').classList.add('show');applyTheme(gs().theme||'light');setV('m');updateUserBtn();if(pinEnabled()){showPinLock('unlock',{title:'ใส่ PIN เพื่อปลดล็อก',sub:'เพื่อความปลอดภัยของข้อมูล',len:4,autoSubmit:true,canCancel:false})}}
-function checkSession(){var s=gs();if(s.isLoggedIn&&s.userInfo){userInfo=s.userInfo;isGuest=false;if(!accessToken){try{initGoogleAuth();tokenClient.requestAccessToken({prompt:'none'});return}catch(e){}}finishAuth(false)}else if(s.guestUsed){isGuest=true;enterApp()}}
+function enterApp(){
+    refreshCurrentContext();
+    var app=document.getElementById('app'),wasShown=app.classList.contains('show');
+    document.getElementById('welcome').classList.add('hide');
+    app.classList.add('show');
+    applyTheme(gs().theme||'light');
+    setV(vw||'m');
+    updateUserBtn();
+    if(!wasShown&&pinEnabled()){showPinLock('unlock',{title:'ใส่ PIN เพื่อปลดล็อก',sub:'เพื่อความปลอดภัยของข้อมูล',len:4,autoSubmit:true,canCancel:false})}
+}
+function startSilentAuthRefresh(){
+    if(_authRefreshStarted||accessToken||isGuest)return;
+    _authRefreshStarted=true;
+    try{
+        initGoogleAuth();
+        if(tokenClient)tokenClient.requestAccessToken({prompt:'none'})
+    }catch(e){}
+}
+function checkSession(){
+    var s=gs();
+    if(s.isLoggedIn&&s.userInfo){
+        userInfo=s.userInfo;
+        isGuest=false;
+        persistStore(applySessionData(s),false);
+        enterApp();
+        setTimeout(function(){startSilentAuthRefresh()},0);
+        return
+    }
+    if(s.guestUsed){isGuest=true;enterApp()}
+}
 
 /* ===== THEME ===== */
 function applyTheme(id){document.documentElement.setAttribute('data-theme',id);var s=gs();s.theme=id;persistStore(s,false)}
@@ -501,33 +536,33 @@ if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="backgrou
 if(isNewUser())h+='<div class="setup-banner"><div class="setup-banner-ic">'+IC.cal+'</div><div><div class="setup-banner-t">เริ่มต้นใช้งานครั้งแรก</div><div class="setup-banner-s">เพิ่มเงินเดือนและสร้างหมวดค่าใช้จ่ายก่อน เพื่อให้รายเดือน รายวัน และรายปีคำนวณได้ครบ</div></div><div class="setup-banner-actions"><button class="btn btn-ac" onclick="openCat()">เพิ่มหมวดค่าใช้จ่าย</button><button class="btn btn-gh" onclick="editInc=true;render()">ใส่เงินเดือน</button></div></div>';
 
 // INCOME
-h+='<div class="sec" style="animation-delay:.04s"><div class="sec-t">'+secTitle(IC.inc,'รายรับ',{editing:editInc})+'<button class="edit-btn'+(editInc?' editing':'')+'" onclick="editInc=!editInc;render()" aria-label="'+(editInc?'บันทึก':'แก้ไข')+'">'+(editInc?SVG_CHECK:SVG_PENCIL)+'</button></div><div class="sc">';
-h+='<div class="row'+(editInc?' edit-jiggle':'')+'"><div class="ri inc">'+IC.inc+'</div><div class="rn"><div class="rn-t">\u0E40\u0E07\u0E34\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19</div><div class="rn-s">รายรับประจำของเดือนนี้</div></div>';
-if(editInc)h+='<input class="edit-val" type="number" id="ed_sal" value="'+d.sal+'" onchange="saveField(&#39;sal&#39;,&#39;ed_sal&#39;)">';
+h+='<div class="sec" style="animation-delay:.04s"><div class="sec-t">'+secTitle(IC.inc,'รายรับ')+'<button class="edit-btn'+(editInc?' editing':'')+'" onclick="editInc=!editInc;render()" aria-label="'+(editInc?'บันทึก':'แก้ไข')+'">'+(editInc?SVG_CHECK:SVG_PENCIL)+'</button></div><div class="sc">';
+h+='<div class="row"><div class="ri inc">'+IC.inc+'</div><div class="rn"><div class="rn-t">\u0E40\u0E07\u0E34\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19</div><div class="rn-s">รายรับประจำของเดือนนี้</div></div>';
+if(editInc)h+='<input class="edit-val edit-jiggle" type="number" id="ed_sal" value="'+d.sal+'" onchange="saveField(&#39;sal&#39;,&#39;ed_sal&#39;)">';
 else h+='<div class="rv pos">'+fmt(d.sal)+'.-</div>';
 h+='</div>';
 if(d.oI.length>0){h+='<div class="sub-lb">รายรับเพิ่มเติม</div>';d.oI.forEach(function(x,i){h+=incomeItem(x,i)})}
-h+='<div style="padding:8px 10px 0"><button class="add-cat-btn'+(editInc?' edit-jiggle':'')+'" onclick="openIncomePopup()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>เพิ่มรายรับเพิ่มเติม</button></div>';
+h+='<div style="padding:8px 10px 0"><button class="add-cat-btn" onclick="openIncomePopup()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>เพิ่มรายรับเพิ่มเติม</button></div>';
 h+='</div></div>';
 
 var st=ensureSettings();
 var otherItems=getDailyOther(y,m);
 
 // EXPENSES
-h+='<div class="sec" style="animation-delay:.08s"><div class="sec-t">'+secTitle(IC.dl,'รายจ่าย',{editing:editExp})+'<button class="edit-btn'+(editExp?' editing':'')+'" onclick="editExp=!editExp;render()" aria-label="'+(editExp?'บันทึก':'แก้ไข')+'">'+(editExp?SVG_CHECK:SVG_PENCIL)+'</button></div><div class="sc">';
+h+='<div class="sec" style="animation-delay:.08s"><div class="sec-t">'+secTitle(IC.dl,'รายจ่าย')+'<button class="edit-btn'+(editExp?' editing':'')+'" onclick="toggleExpenseEdit()" aria-label="'+(editExp?'บันทึก':'แก้ไข')+'">'+(editExp?SVG_CHECK:SVG_PENCIL)+'</button></div><div class="sc">';
 var exps=getAllExpCats(d,y,m);
 if(exps.length===0)h+='<div class="empty-section-note">ยังไม่มีหมวดค่าใช้จ่าย กด "เพิ่มหมวดค่าใช้จ่าย" เพื่อเริ่มต้น</div>';
 exps.forEach(function(e){
 var v=Number(d[e.k]||0);
 var isShopee=e.k==='shopee';
-h+='<div class="row'+(editExp?' edit-jiggle':'')+'">'+catBadge(e.k)+'<div class="rn"><div class="rn-t" style="display:flex;align-items:center;gap:6px">'+esc(e.n)+(e.hasCal?'<button class="mini-btn" style="width:24px;height:24px" onclick="event.stopPropagation();openShopee()">'+IC.cal+'</button>':'')+'</div></div>';
-if(editExp&&!isShopee)h+='<input class="edit-val" type="number" id="ed_'+e.k+'" value="'+v+'" onchange="saveField(&#39;'+e.k+'&#39;,&#39;ed_'+e.k+'&#39;)" step="0.01">';
+h+='<div class="row">'+catBadge(e.k)+'<div class="rn"><div class="rn-t" style="display:flex;align-items:center;gap:6px">'+esc(e.n)+(e.hasCal?'<button class="mini-btn" style="width:24px;height:24px" onclick="event.stopPropagation();openShopee()">'+IC.cal+'</button>':'')+'</div></div>';
+if(editExp&&!isShopee)h+='<input class="edit-val edit-jiggle" type="number" id="ed_'+e.k+'" value="'+v+'" onchange="saveField(&#39;'+e.k+'&#39;,&#39;ed_'+e.k+'&#39;)" step="0.01">';
 else h+='<div class="rv neg">'+fmt(v)+'.-</div>';
 h+='</div>';
 });
 
 // Add cat btn
-h+='<div style="padding:4px 10px 8px"><button class="add-cat-btn" onclick="openCat()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>เพิ่มหมวดค่าใช้จ่าย</button></div>';
+h+='<div style="padding:4px 10px 8px"><button class="add-cat-btn" onclick="openCat(\'add\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>เพิ่มหมวดค่าใช้จ่าย</button></div>';
 
 var rec=(gs().recur||[]).filter(function(r){return r&&r.on});
 if(rec.length>0){
@@ -535,8 +570,6 @@ h+='<div class="sub-lb">รายการประจำ <span style="font-fami
 rec.forEach(function(r){h+='<div class="ci"><div class="rn"><div class="rn-t" style="font-size:12px">'+esc(r.name||'-')+' <span style="color:var(--tx2);font-weight:600">('+esc(getCatName(r.cat||'other'))+')</span></div><div class="rn-s">'+fmt(r.amount||0)+'.- / เดือน</div></div></div>'})
 }
 
-// Other expenses from daily log (auto)
-h+='<div style="padding:4px 10px 8px"><button class="add-cat-btn" onclick="setV(\'d\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>เพิ่มรายการอื่นๆ</button></div>';
 if(otherItems.length>0||c.otherTotal>0){
 h+='<div class="sub-lb">\u0E04\u0E48\u0E32\u0E43\u0E0A\u0E49\u0E08\u0E48\u0E32\u0E22\u0E2D\u0E37\u0E48\u0E19\u0E46 (\u0E08\u0E32\u0E01\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E23\u0E32\u0E22\u0E27\u0E31\u0E19) <span style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;color:var(--rd)">'+fmt(c.otherTotal)+'.-</span></div>';
 otherItems.forEach(function(x){h+='<div class="ci"><div class="rn"><div class="rn-t" style="font-size:12px;color:var(--rd)">'+fmt(x.a)+'.- '+(x.n?'<span style="color:var(--tx2);font-weight:500">'+esc(x.n)+'</span>':'')+'</div><div class="rn-s">'+x.date+' '+x.t+'</div></div></div>'})}
@@ -721,11 +754,13 @@ function rYear(el){var h='',ti=0,te=0,ts=getYearSavedTotal(cY),rows=[];for(var m
 h+=heroH('\u0E2A\u0E23\u0E38\u0E1B\u0E23\u0E32\u0E22\u0E1B\u0E35 '+cY,tr,ti,te);
 h+=savTabH(getSavings().balance);
 h+='<div class="sec"><div class="sec-t">'+secTitle(IC.save,'เป้าหมายออมรายปี')+'<span class="rv pos" style="font-size:12px">'+prog.toFixed(0)+'%</span></div><div class="sc"><div style="padding:4px 16px 0;font-size:11px;color:var(--tx3)">ออมแล้ว '+fmt(ts)+' / '+fmt(goal)+'.-</div><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill pf-gn" style="width:'+Math.min(prog,100)+'%"></div></div></div><div style="padding:8px 16px 0;font-size:11px;color:var(--tx2)">เงินเก็บสะสมปัจจุบัน '+fmt(getSavings().balance)+'.-</div></div></div>';
-h+='<div class="sec"><div class="sec-t">'+secTitle(IC.cal,'ตาราง')+'</div><div class="sc" style="padding:0"><table class="year-t"><thead><tr><th>\u0E40\u0E14\u0E37\u0E2D\u0E19</th><th>\u0E23\u0E31\u0E1A</th><th>\u0E08\u0E48\u0E32\u0E22</th><th>\u0E40\u0E2B\u0E25\u0E37\u0E2D</th></tr></thead><tbody>';
+h+='<div class="sec year-board"><div class="sec-t">'+secTitle(IC.cal,'สรุปรายเดือน')+'</div><div class="sc" style="padding:0 10px 14px"><div class="year-card-list">';
 rows.forEach(function(c,i){
-    h+='<tr><td data-l="\u0E40\u0E14\u0E37\u0E2D\u0E19">'+TM[i]+'</td><td data-l="\u0E23\u0E31\u0E1A" class="year-pos">'+fmt(c.tI)+'.-</td><td data-l="\u0E08\u0E48\u0E32\u0E22" class="year-neg">-'+fmt(c.tE)+'.-</td><td data-l="\u0E40\u0E2B\u0E25\u0E37\u0E2D" class="'+(c.r>=0?'year-pos':'year-neg')+'">'+(c.r>=0?'+':'-')+fmt(Math.abs(c.r))+'.-</td></tr>'
+    var pct=ti>0?(c.tI/Math.max(ti,1))*100:0;
+    h+='<article class="year-card"><div class="year-card-top"><div><div class="year-card-month">'+TMF[i]+'</div><div class="year-card-sub">รายรับคิดเป็น '+pct.toFixed(0)+'% ของทั้งปี</div></div><div class="year-card-net '+(c.r>=0?'year-pos':'year-neg')+'">'+(c.r>=0?'+':'-')+fmt(Math.abs(c.r))+'.-</div></div><div class="year-card-metrics"><div class="year-metric"><span>รายรับ</span><strong class="year-pos">+'+fmt(c.tI)+'.-</strong></div><div class="year-metric"><span>รายจ่าย</span><strong class="year-neg">-'+fmt(c.tE)+'.-</strong></div></div></article>'
 });
-h+='</tbody><tfoot><tr><td data-l="\u0E23\u0E27\u0E21">\u0E23\u0E27\u0E21</td><td data-l="\u0E23\u0E31\u0E1A" class="year-pos">'+fmt(ti)+'.-</td><td data-l="\u0E08\u0E48\u0E32\u0E22" class="year-neg">-'+fmt(te)+'.-</td><td data-l="\u0E40\u0E2B\u0E25\u0E37\u0E2D" class="'+(tr>=0?'year-pos':'year-neg')+'">'+(tr>=0?'+':'-')+fmt(Math.abs(tr))+'.-</td></tr></tfoot></table></div></div>';
+h+='<article class="year-card year-card-total"><div class="year-card-top"><div><div class="year-card-month">รวมทั้งปี</div><div class="year-card-sub">ภาพรวมของปี '+cY+'</div></div><div class="year-card-net '+(tr>=0?'year-pos':'year-neg')+'">'+(tr>=0?'+':'-')+fmt(Math.abs(tr))+'.-</div></div><div class="year-card-metrics"><div class="year-metric"><span>รายรับรวม</span><strong class="year-pos">+'+fmt(ti)+'.-</strong></div><div class="year-metric"><span>รายจ่ายรวม</span><strong class="year-neg">-'+fmt(te)+'.-</strong></div></div></article>';
+h+='</div></div></div>';
 h+='<div class="sec"><div class="sec-t">'+secTitle(IC.cal,'กราฟ')+'</div><div class="sc" style="padding:14px 10px"><div class="cw year-cw"><canvas id="yC"></canvas></div></div></div>';
 h+='<div class="reset-area"><button class="reset-btn" onclick="resetYear()">\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E35 '+cY+'</button><div class="credit">Credit : Opus 4.6 & Jarasrawee</div></div>';
 el.innerHTML=h;drawYC(rows)}
@@ -795,12 +830,12 @@ function simResultTableH(res){
     var now4=getBangkokNow();
     var sM=Number(res.startM!==undefined?res.startM:now4.getMonth());
     var sY=Number(res.startY!==undefined?res.startY:now4.getFullYear());
-    var h='<table class="sim-t"><thead><tr><th>\u0E40\u0E14\u0E37\u0E2D\u0E19</th><th>\u0E1B\u0E01\u0E15\u0E34</th><th>\u0E1C\u0E48\u0E2D\u0E19</th><th>\u0E2B\u0E25\u0E31\u0E07\u0E1C\u0E48\u0E2D\u0E19</th></tr></thead><tbody>';
+    var h='<div class="sim-plan-list">';
     for(var i=0;i<mos;i++){
         var mI=(sM+i)%12,yr=sY+Math.floor((sM+i)/12),cc=calc(yr,mI),aR=cc.r-per;
-        h+='<tr><td>'+TM[mI]+(yr!==sY?' '+yr:'')+'</td><td class="sim-mono">'+(cc.r>=0?'+':'-')+fmt(Math.abs(cc.r))+'.-</td><td class="sim-mono sim-muted">-'+fmt(per)+'.-</td><td class="sim-mono '+(aR>=0?'sim-pos':'sim-neg')+'">'+(aR>=0?'+':'-')+fmt(Math.abs(aR))+'.-</td></tr>'
+        h+='<article class="sim-plan-card"><div class="sim-plan-head"><span class="sim-plan-month">'+TM[mI]+' '+yr+'</span><span class="sim-plan-after '+(aR>=0?'sim-pos':'sim-neg')+'">'+(aR>=0?'+':'-')+fmt(Math.abs(aR))+'.-</span></div><div class="sim-plan-grid"><div class="sim-plan-metric"><span>ก่อนผ่อน</span><strong class="sim-mono">'+(cc.r>=0?'+':'-')+fmt(Math.abs(cc.r))+'.-</strong></div><div class="sim-plan-metric"><span>ค่างวด</span><strong class="sim-mono sim-muted">-'+fmt(per)+'.-</strong></div><div class="sim-plan-metric"><span>หลังผ่อน</span><strong class="sim-mono '+(aR>=0?'sim-pos':'sim-neg')+'">'+(aR>=0?'+':'-')+fmt(Math.abs(aR))+'.-</strong></div></div></article>'
     }
-    h+='</tbody></table>';
+    h+='</div>';
     return h
 }
 function rSim(el){
@@ -1051,25 +1086,28 @@ function getCategorySuggestions(){
     PRESET_CATS.forEach(function(p){if(used.indexOf(p.id)<0)items.push(buildCatConfig(p))});
     return items
 }
-function openCat(){renderCatPopup();document.getElementById('catPopup').classList.add('open')}
+function toggleExpenseEdit(){editExp=!editExp;if(editExp)openCat('manage');else closeCat();render()}
+function openCat(mode){_catPopupMode=mode||'add';renderCatPopup();document.getElementById('catPopup').classList.add('open')}
 function closeCat(){document.getElementById('catPopup').classList.remove('open')}
 function renderCatPopup(){
 var current=gCats(),suggestions=getCategorySuggestions(),h='';
-if(current.length){
+if(_catPopupMode==='manage'&&current.length){
     h+='<div class="sub-lb" style="padding:0 0 8px">หมวดที่ใช้งานอยู่</div><div class="cat-manage-list">';
     current.forEach(function(c){
         h+='<div class="cat-manage-item"><div class="cat-manage-main">'+catBadge(c.id)+'<div><div class="cat-manage-name">'+esc(c.name)+'</div><div class="cat-manage-meta">งบเริ่มต้น '+fmt(c.budget||0)+'.-</div></div></div><button class="mini-btn" onclick="closeCat();openCreateCat(\''+c.id+'\')" aria-label="แก้ไขหมวด">'+SVG_PENCIL+'</button></div>'
     });
     h+='</div>'
+}else if(_catPopupMode==='manage'){
+    h+='<div class="empty-section-note" style="margin:0 0 12px">ยังไม่มีหมวดให้แก้ไข กดเพิ่มหมวดค่าใช้จ่ายก่อน</div>'
 }else{
     h+='<div class="empty-section-note" style="margin:0 0 12px">ยังไม่มีหมวดค่าใช้จ่ายของคุณ</div>'
 }
-if(suggestions.length){
+if(_catPopupMode==='add'&&suggestions.length){
     h+='<div class="sub-lb" style="padding:6px 0 8px">หมวดแนะนำ</div><div class="cat-grid">';
     suggestions.forEach(function(c){h+='<div class="cat-item" onclick="addSuggestedCat(\''+c.id+'\')">'+iconSvgByKey(c.icon,c.id)+' '+esc(c.name)+'</div>'});
     h+='</div>'
 }
-h+='<button class="add-cat-btn" style="margin-top:12px" onclick="closeCat();openCreateCat()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E2B\u0E21\u0E27\u0E14\u0E43\u0E2B\u0E21\u0E48</button>';
+if(_catPopupMode==='add')h+='<button class="add-cat-btn" style="margin-top:12px" onclick="closeCat();openCreateCat()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>สร้างหมวดค่าใช้จ่ายใหม่</button>';
 h+='<div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-gh btn-full" onclick="closeCat()">\u0E1B\u0E34\u0E14</button></div>';
 document.getElementById('catGrid').innerHTML=h}
 function addSuggestedCat(id){
