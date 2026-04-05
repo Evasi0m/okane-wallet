@@ -959,25 +959,21 @@ var qaCat=null,qaWallet='cash';
 function getAllDailyCats(){var cats=gCats().map(function(c){return{id:c.id,name:c.name,c:'custom',ic:c.icon,color:c.color}});cats.push({id:'other',name:'\u0E2D\u0E37\u0E48\u0E19\u0E46',c:'other'});return cats}
 function getLastCat(){var s=gs();if(s.dLog){var ks=Object.keys(s.dLog).sort();for(var i=ks.length-1;i>=0;i--){var l=s.dLog[ks[i]];if(l&&l.length){return l[l.length-1].cat||'other'}}}var cats=getAllDailyCats().filter(function(x){return x.id!=='other'});return cats.length?cats[0].id:'other'}
 function getThaiToday(){var now=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));return dKey(now)}
-function openQuickAdd(){qaCat=null;qaWallet=getLastWallet();window._qaA='';window._qaN='';window._qaDate='';renderQA();document.getElementById('qaM').classList.add('open');setTimeout(function(){var i=document.getElementById('qaAmt');if(i)i.focus()},300)}
-function closeQA(){document.getElementById('qaM').classList.remove('open');window._qaA='';window._qaN='';window._qaDate=''}
+function openQuickAdd(){qaCat=null;qaWallet=getLastWallet();window._qaA='';window._qaN='';var today=getThaiToday();var di=document.getElementById('qaDate');if(di){di.value=today;di.max=today}renderQA();document.getElementById('qaM').classList.add('open');setTimeout(function(){var i=document.getElementById('qaAmt');if(i)i.focus()},300)}
+function closeQA(){document.getElementById('qaM').classList.remove('open');window._qaA='';window._qaN=''}
 function renderQA(){
     var cats = getAllDailyCats();
     var hasAmt = Number(window._qaA||0) > 0;
-    var today = getThaiToday();
-    var selDate = window._qaDate || today;
     // Amount + presets
     var h = '<div class="qa-amt-wrap">';
     h += '<input class="qa-amt" type="number" id="qaAmt" placeholder="0" min="0" oninput="qaAmtChange()"'+(window._qaA?' value="'+window._qaA+'"':'')+' style="margin-bottom:6px">';
     h += '<div class="qa-presets"><button onclick="quickAmt(5)">+5</button><button onclick="quickAmt(10)">+10</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(300)">+300</button><button onclick="quickAmt(1000)">+1000</button></div>';
     h += '</div>';
-    // Wallet + Date row
+    // Wallet (centered)
     var w=getWallets();
-    h += '<div class="qa-meta-row">';
-    h += '<div class="qa-meta-col"><span class="qa-meta-lb">กระเป๋า</span><div class="qa-presets qa-presets-sm">';
+    h += '<div class="qa-meta-lb" style="text-align:center;margin:8px 0 4px">กระเป๋า</div>';
+    h += '<div class="qa-presets" style="margin-bottom:10px">';
     w.forEach(function(x){h+='<button onclick="qaPickWallet(\''+x.id+'\')" style="'+(qaWallet===x.id?'background:var(--acBg2);color:var(--ac);border-color:var(--ac)':'')+'">'+esc(x.name)+'</button>'});
-    h += '</div></div>';
-    h += '<div class="qa-meta-col"><span class="qa-meta-lb">วันที่</span><input class="qa-date-inp" type="date" id="qaDate" value="'+selDate+'" max="'+today+'" onchange="window._qaDate=this.value"></div>';
     h += '</div>';
     // Category section
     h += '<div class="qa-meta-lb" style="margin:8px 0 6px">หมวดหมู่ <span style="color:var(--rd)">*</span></div>';
@@ -1014,8 +1010,8 @@ function quickAmt(v){
     window._qaA=i.value;
     qaAmtChange();
 }
-function qaPickWallet(id){window._qaA=(document.getElementById('qaAmt')||{}).value||'';window._qaN=(document.getElementById('qaNote')||{}).value||'';window._qaDate=(document.getElementById('qaDate')||{}).value||'';qaWallet=id;setLastWallet(id);renderQA()}
-function pickQA(id){window._qaA=(document.getElementById('qaAmt')||{}).value||'';window._qaN=(document.getElementById('qaNote')||{}).value||'';window._qaDate=(document.getElementById('qaDate')||{}).value||'';qaCat=id;renderQA()}
+function qaPickWallet(id){window._qaA=(document.getElementById('qaAmt')||{}).value||'';window._qaN=(document.getElementById('qaNote')||{}).value||'';qaWallet=id;setLastWallet(id);renderQA()}
+function pickQA(id){window._qaA=(document.getElementById('qaAmt')||{}).value||'';window._qaN=(document.getElementById('qaNote')||{}).value||'';qaCat=id;renderQA()}
 function saveQA(){
 var amt=Number((document.getElementById('qaAmt')||{}).value)||0;
 if(amt<=0){var ai=document.getElementById('qaAmt');if(ai)ai.style.borderColor='var(--rd)';return}
