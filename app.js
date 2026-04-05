@@ -955,62 +955,90 @@ function doSavWd(){var amt=Number(document.getElementById('svWAmt').value)||0;if
 /* savAutoTransfer removed */
 
 /* ===== QUICK ADD ===== */
-var qaCat='other',qaWallet='cash';
+var qaCat=null,qaWallet='cash';
 function getAllDailyCats(){var cats=gCats().map(function(c){return{id:c.id,name:c.name,c:'custom',ic:c.icon,color:c.color}});cats.push({id:'other',name:'\u0E2D\u0E37\u0E48\u0E19\u0E46',c:'other'});return cats}
 function getLastCat(){var s=gs();if(s.dLog){var ks=Object.keys(s.dLog).sort();for(var i=ks.length-1;i>=0;i--){var l=s.dLog[ks[i]];if(l&&l.length){return l[l.length-1].cat||'other'}}}var cats=getAllDailyCats().filter(function(x){return x.id!=='other'});return cats.length?cats[0].id:'other'}
-function openQuickAdd(){qaCat=getLastCat();qaWallet=getLastWallet();renderQA();document.getElementById('qaM').classList.add('open');setTimeout(function(){var i=document.getElementById('qaAmt');if(i)i.focus()},300)}
-function closeQA(){document.getElementById('qaM').classList.remove('open');window._qaA='';window._qaN=''}
+function getThaiToday(){var now=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));return dKey(now)}
+function openQuickAdd(){qaCat=null;qaWallet=getLastWallet();window._qaA='';window._qaN='';window._qaDate='';renderQA();document.getElementById('qaM').classList.add('open');setTimeout(function(){var i=document.getElementById('qaAmt');if(i)i.focus()},300)}
+function closeQA(){document.getElementById('qaM').classList.remove('open');window._qaA='';window._qaN='';window._qaDate=''}
 function renderQA(){
     var cats = getAllDailyCats();
-    var h = '<div class="qa-amt-wrap"><input class="qa-amt" type="number" id="qaAmt" placeholder="0" min="0"'+(window._qaA?' value="'+window._qaA+'"':'')+'>';
-    h += '<div class="qa-presets"><button onclick="quickAmt(20)">+20</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(500)">+500</button></div></div>';
-    var w=getWallets();
-    h += '<div class="sub-lb">กระเป๋า</div><div class="qa-presets" style="margin:0 0 10px">';
-    w.forEach(function(x){h+='<button onclick="qaWallet=\''+x.id+'\';setLastWallet(\''+x.id+'\');renderQA()" style="'+(qaWallet===x.id?'background:var(--acBg2);color:var(--ac);border-color:var(--ac)':'')+'">'+esc(x.name)+'</button>'});
+    var hasAmt = Number(window._qaA||0) > 0;
+    var today = getThaiToday();
+    var selDate = window._qaDate || today;
+    // Amount + presets
+    var h = '<div class="qa-amt-wrap">';
+    h += '<input class="qa-amt" type="number" id="qaAmt" placeholder="0" min="0" oninput="qaAmtChange()"'+(window._qaA?' value="'+window._qaA+'"':'')+' style="margin-bottom:6px">';
+    h += '<div class="qa-presets"><button onclick="quickAmt(5)">+5</button><button onclick="quickAmt(10)">+10</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(300)">+300</button><button onclick="quickAmt(1000)">+1000</button></div>';
     h += '</div>';
-    
-    h += '<div class="sub-lb">เลือกหมวดหมู่</div>';
-    if(cats.length===1&&cats[0].id==='other')h += '<div class="empty-section-note" style="margin:0 4px 10px">ยังไม่มีหมวดค่าใช้จ่าย สร้างหมวดก่อนแล้วค่อยบันทึกรายวันได้สะดวกขึ้น</div>';
-    h += '<div class="qa-cats" style="grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0">';
+    // Wallet + Date row
+    var w=getWallets();
+    h += '<div class="qa-meta-row">';
+    h += '<div class="qa-meta-col"><span class="qa-meta-lb">กระเป๋า</span><div class="qa-presets qa-presets-sm">';
+    w.forEach(function(x){h+='<button onclick="qaPickWallet(\''+x.id+'\')" style="'+(qaWallet===x.id?'background:var(--acBg2);color:var(--ac);border-color:var(--ac)':'')+'">'+esc(x.name)+'</button>'});
+    h += '</div></div>';
+    h += '<div class="qa-meta-col"><span class="qa-meta-lb">วันที่</span><input class="qa-date-inp" type="date" id="qaDate" value="'+selDate+'" max="'+today+'" onchange="window._qaDate=this.value"></div>';
+    h += '</div>';
+    // Category section
+    h += '<div class="qa-meta-lb" style="margin:8px 0 6px">หมวดหมู่ <span style="color:var(--rd)">*</span></div>';
+    if(cats.length===1&&cats[0].id==='other')h += '<div class="empty-section-note" style="margin:0 4px 8px;font-size:12px">ยังไม่มีหมวดค่าใช้จ่าย สร้างหมวดก่อนแล้วค่อยบันทึกได้</div>';
+    h += '<div class="qa-cats"'+(hasAmt?'':' style="opacity:0.4;pointer-events:none"')+'>';
     cats.forEach(function(c){
-        h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 4px;border-radius:12px;border:1.5px solid var(--cb);cursor:pointer;min-height:70px">';
-        h += '<div style="margin-bottom:6px;display:flex;align-items:center;justify-content:center;color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
-        h += '<span style="font-size:10px;font-weight:700;text-align:center">'+esc(c.name)+'</span>';
+        h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
+        h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
+        h += '<span>'+esc(c.name)+'</span>';
         h += '</div>';
     });
+    // Manage button as grid cell
+    h += '<div class="qa-cat qa-cat-manage" onclick="closeQA();openCat()">';
+    h += '<div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>';
+    h += '<span>จัดการ</span>';
     h += '</div>';
-    h += '<button class="add-cat-btn" style="margin:12px 0;width:100%;padding:12px;border-radius:12px;border:1.5px dashed var(--cb);background:transparent;color:var(--tx3);font-weight:700" onclick="closeQA();openCat()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>จัดการหมวดค่าใช้จ่าย</button>';
-    
-    h += '<div class="sub-lb">บันทึกช่วยจำ</div>';
-    h += '<input class="qa-note" id="qaNote" placeholder="กินอะไรไป? ซื้อที่ไหน?..."'+(window._qaN?' value="'+esc(window._qaN)+'"':'')+'>';
+    h += '</div>';
+    // Note
+    h += '<input class="qa-note" id="qaNote" placeholder="บันทึกช่วยจำ (ไม่บังคับ)"'+(window._qaN?' value="'+esc(window._qaN)+'"':'')+' style="margin-top:8px">';
     document.getElementById('qaB').innerHTML = h;
 }
 
-function quickAmt(v){
-    var i = document.getElementById('qaAmt');
-    if(!i) return;
-    var cur = Number(i.value) || 0;
-    i.value = cur + v;
-    window._qaA = i.value;
+function qaAmtChange(){
+    var i=document.getElementById('qaAmt');
+    window._qaA=i?i.value:'';
+    var hasAmt=Number(window._qaA)>0;
+    var grid=document.querySelector('.qa-cats');
+    if(grid){grid.style.opacity=hasAmt?'1':'0.4';grid.style.pointerEvents=hasAmt?'':'none'}
 }
-function pickQA(id){window._qaA=(document.getElementById('qaAmt')||{}).value||'';window._qaN=(document.getElementById('qaNote')||{}).value||'';qaCat=id;renderQA()}
-function saveQA(){var amt=Number(document.getElementById('qaAmt').value)||0;if(amt<=0){document.getElementById('qaAmt').style.borderColor='var(--rd)';return}var note=document.getElementById('qaNote').value||'';var cat=qaCat;
+function quickAmt(v){
+    var i=document.getElementById('qaAmt');
+    if(!i)return;
+    i.value=Number(i.value||0)+v;
+    window._qaA=i.value;
+    qaAmtChange();
+}
+function qaPickWallet(id){window._qaA=(document.getElementById('qaAmt')||{}).value||'';window._qaN=(document.getElementById('qaNote')||{}).value||'';window._qaDate=(document.getElementById('qaDate')||{}).value||'';qaWallet=id;setLastWallet(id);renderQA()}
+function pickQA(id){window._qaA=(document.getElementById('qaAmt')||{}).value||'';window._qaN=(document.getElementById('qaNote')||{}).value||'';window._qaDate=(document.getElementById('qaDate')||{}).value||'';qaCat=id;renderQA()}
+function saveQA(){
+var amt=Number((document.getElementById('qaAmt')||{}).value)||0;
+if(amt<=0){var ai=document.getElementById('qaAmt');if(ai)ai.style.borderColor='var(--rd)';return}
+if(!qaCat){alert('กรุณาเลือกหมวดหมู่ก่อนบันทึก');return}
+var note=(document.getElementById('qaNote')||{}).value||'';
+var cat=qaCat;
+var dateKey=(document.getElementById('qaDate')||{}).value||getThaiToday();
 // Check if category needs monthly budget
 if(cat!=='other'){
-var now2=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));
-var moData=gm(now2.getFullYear(),now2.getMonth());
+var dp=dateKey.split('-');var yr=Number(dp[0]),mo=Number(dp[1])-1;
+var moData=gm(yr,mo);
 var hasBudget=moData[cat]!==undefined&&Number(moData[cat])>0;
 if(!hasBudget){
-var budgetStr=prompt('\u0E2B\u0E21\u0E27\u0E14 "'+getCatName(cat)+'" \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E07\u0E1A\u0E23\u0E32\u0E22\u0E40\u0E14\u0E37\u0E2D\u0E19\n\u0E43\u0E2A\u0E48\u0E07\u0E1A/\u0E40\u0E14\u0E37\u0E2D\u0E19 (\u0E1B\u0E25\u0E48\u0E2D\u0E22\u0E27\u0E48\u0E32\u0E07 = \u0E43\u0E0A\u0E49\u0E22\u0E2D\u0E14\u0E19\u0E35\u0E49\u0E40\u0E1B\u0E47\u0E19\u0E07\u0E1A):',String(amt));
+var budgetStr=prompt('หมวด "'+getCatName(cat)+'" ยังไม่มีงบรายเดือน\nใส่งบ/เดือน (ปล่อยว่าง = ใช้ยอดนี้เป็นงบ):',String(amt));
 if(budgetStr===null)return;
 var budget=Number(budgetStr)||amt;
-moData[cat]=budget;sm_(now2.getFullYear(),now2.getMonth(),moData);
+moData[cat]=budget;sm_(yr,mo,moData);
 }}
 // Save daily log entry
 var now2b=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));
-var key=dKey(now2b);var log=getDayLog(key);
+var log=getDayLog(dateKey);
 log.push({a:amt,cat:cat,n:note,w:qaWallet,t:String(now2b.getHours()).padStart(2,'0')+':'+String(now2b.getMinutes()).padStart(2,'0')});
-saveDayLog(key,log);closeQA();showUndo('บันทึกสำเร็จ!',true);if(vw==='d')render();else setV('d')}
+saveDayLog(dateKey,log);closeQA();showUndo('บันทึกสำเร็จ!',true);if(vw==='d')render();else setV('d')}
 function getCatName(id){return getCatMeta(id).name||id}
 document.getElementById('qaM').addEventListener('click',function(e){if(e.target===this)closeQA()});
 function showUndo(msg,isSuccess){var t=document.getElementById('undoToast');if(!t)return;document.getElementById('undoMsg').textContent=msg||'ลบแล้ว';t.classList.toggle('success',!!isSuccess);t.classList.add('show');clearTimeout(_undoTimer);_undoTimer=setTimeout(function(){t.classList.remove('show');if(!isSuccess)_lastDelete=null},isSuccess?3000:5000)}
