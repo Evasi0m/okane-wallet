@@ -683,8 +683,8 @@
 .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;text-align:left}.cat-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;border:1.5px solid var(--cb);cursor:pointer;transition:all .2s;font-size:13px;font-weight:600}.cat-item:hover{border-color:var(--ac)}.cat-item.on{border-color:var(--gn);background:var(--gnBg)}.cat-item svg{width:20px;height:20px;flex-shrink:0}
 .icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:8px 0}.icon-item{width:100%;aspect-ratio:1;border-radius:8px;border:1px solid var(--cb);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;color:var(--tx3)}.icon-item:hover{border-color:var(--ac);color:var(--ac)}.icon-item.on{border-color:var(--ac);background:var(--acBg);color:var(--ac)}.icon-item svg{width:18px;height:18px}
 .qa-amt-wrap {
-    padding: 12px 4px 0;
-    margin-bottom: 12px;
+    padding: 10px 4px 0;
+    margin-bottom: 8px;
 }
 .qa-amt {
     width: 100%;
@@ -696,7 +696,7 @@
     text-align: center;
     color: var(--ac);
     outline: none;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 .qa-amt::placeholder {
     color: var(--cb);
@@ -704,15 +704,15 @@
 .qa-presets {
     display: flex;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
 }
 .qa-presets button {
     background: var(--bg2);
     border: 1px solid var(--cb);
-    padding: 6px 12px;
+    padding: 5px 9px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--tx2);
     cursor: pointer;
@@ -724,12 +724,24 @@
     border-color: var(--ac);
     transform: scale(0.95);
 }
-.qa-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:14px 0}.qa-cat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:10px;border:1.5px solid var(--cb);cursor:pointer;transition:all .2s;font-size:11px;font-weight:600;color:var(--tx2)}.qa-cat:hover{border-color:var(--ac)}.qa-cat.on{border-color:var(--ac);background:var(--acBg);color:var(--ac)}.qa-cat svg{width:20px;height:20px}
+.qa-meta-row{display:flex;gap:10px;margin:10px 0 4px;align-items:flex-start}
+.qa-meta-col{flex:1;min-width:0}
+.qa-meta-lb{font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:5px}
+.qa-presets-sm button{padding:4px 8px;font-size:11px}
+.qa-date-inp{width:100%;padding:5px 8px;border:1px solid var(--cb);border-radius:8px;background:var(--bg2);color:var(--tx);font-family:inherit;font-size:12px;font-weight:600;outline:none;box-sizing:border-box}
+.qa-date-inp:focus{border-color:var(--ac)}
+.qa-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 8px;transition:opacity .2s}
+.qa-cat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 4px;border-radius:10px;border:1.5px solid var(--cb);cursor:pointer;transition:all .2s;font-size:10px;font-weight:600;color:var(--tx2)}
+.qa-cat:hover{border-color:var(--ac)}
+.qa-cat.on{border-color:var(--ac);background:var(--acBg);color:var(--ac)}
+.qa-cat svg{width:20px;height:20px}
+.qa-cat-manage{border-style:dashed;color:var(--tx3)}
+.qa-cat-manage:hover{border-color:var(--ac);color:var(--ac)}
 .qa-note {
     width: 100%;
-    padding: 12px;
+    padding: 10px 12px;
     border: 1.5px solid var(--cb);
-    border-radius: 12px;
+    border-radius: 10px;
     background: var(--bg2);
     color: var(--tx);
     font-family: inherit;
@@ -737,6 +749,7 @@
     font-weight: 600;
     outline: none;
     transition: all 0.2s;
+    box-sizing: border-box;
 }
 .qa-note:focus {
     border-color: var(--ac);
