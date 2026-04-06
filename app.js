@@ -659,8 +659,21 @@ h+=dailyListH(filteredLog, dk);
 h+='</div></div>';
 
 // Weekly + Monthly summary
-var weekT=0,weekD=0;for(var i=0;i<7;i++){var wd=new Date(viewDate);wd.setDate(wd.getDate()-wd.getDay()+i);var wl=getDayLog(dKey(wd));var wt=wl.reduce(function(s2,x){return s2+Number(x.a||0)},0);if(wt>0)weekD++;weekT+=wt}
-h+='<div class="sec"><div class="sec-t">'+secTitle(IC.cal,'สรุป')+'</div><div class="sc" style="padding:14px"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600"><span>\u0E2A\u0E31\u0E1B\u0E14\u0E32\u0E2B\u0E4C\u0E19\u0E35\u0E49</span><span class="rv neg" style="font-size:14px">-'+fmt(weekT)+'.-</span></div><div style="font-size:11px;color:var(--tx3);margin-top:4px">'+weekD+' \u0E27\u0E31\u0E19'+(weekD>0?' \u0E40\u0E09\u0E25\u0E35\u0E48\u0E22 '+fmt(Math.round(weekT/weekD))+'.-/\u0E27\u0E31\u0E19':'')+'</div>';
+var weekT=0,weekD=0,weekItems=[];
+for(var wi=0;wi<7;wi++){var wd=new Date(viewDate);wd.setDate(wd.getDate()-wd.getDay()+wi);var wdk=dKey(wd);var wl=getDayLog(wdk);var wt=wl.reduce(function(s2,x){return s2+Number(x.a||0)},0);if(wt>0)weekD++;weekT+=wt;wl.forEach(function(x){weekItems.push(Object.assign({date:wdk},x))})}
+weekItems.sort(function(a,b){return (a.date+a.t)<(b.date+b.t)?1:-1});
+var mDays=new Date(vy,vm+1,0).getDate(),mT=0,mC2=0,monthItems=[];
+for(var d2=1;d2<=mDays;d2++){var mdk2=vy+'-'+String(vm+1).padStart(2,'0')+'-'+String(d2).padStart(2,'0');var ml=getDayLog(mdk2);ml.forEach(function(x){mT+=Number(x.a||0);mC2++;monthItems.push(Object.assign({date:mdk2},x))})}
+monthItems.sort(function(a,b){return (a.date+a.t)<(b.date+b.t)?1:-1});
+var sumCats=getAllDailyCats();
+function sumExpRows(items){var r='';if(!items.length)return '<div style="font-size:11px;color:var(--tx3);padding:6px 0">ไม่มีรายการ</div>';items.forEach(function(x){var dp=x.date.split('-');var ds=dp[2]+'/'+dp[1];var cn=(sumCats.find(function(c){return c.id===x.cat})||{name:'อื่นๆ'}).name;r+='<div class="sum-xi"><span class="sum-xi-d">'+ds+'</span><span class="sum-xi-t">'+(x.t||'')+'</span><span class="sum-xi-n">'+(x.n?esc(x.n):esc(cn))+'</span><span class="sum-xi-a">-'+fmt(x.a)+'.-</span></div>'});return r}
+h+='<div class="sec"><div class="sec-t">'+secTitle(IC.cal,'สรุป')+'</div><div class="sc" style="padding:14px">';
+// Week row
+h+='<div class="sum-hd" onclick="toggleSumExp(\'week\')">';
+h+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600"><span>สัปดาห์นี้ <span class="sum-arr" id="sum-arr-week">▾</span></span><span class="rv neg" style="font-size:14px">-'+fmt(weekT)+'.-</span></div>';
+h+='<div style="font-size:11px;color:var(--tx3);margin-top:3px">'+weekD+' วัน'+(weekD>0?' เฉลี่ย '+fmt(Math.round(weekT/weekD))+'.-/วัน':'')+'</div>';
+h+='</div>';
+h+='<div id="sum-exp-week" class="sum-exp">'+sumExpRows(weekItems)+'</div>';
 var st=ensureSettings();
 if(st.weeklyOn){
     var md=gm(vy,vm),wb=0;
@@ -668,16 +681,26 @@ if(st.weeklyOn){
     ex.forEach(function(e){var b=Number(md[e.k]||0);if(b>0)wb+=b});
     wb=Math.max(0,Math.round(wb/4));
     var leftW=wb-weekT;
-    h+='<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--cb)"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700"><span>\u0E07\u0E1A\u0E2A\u0E31\u0E1B\u0E14\u0E32\u0E2B\u0E4C\u0E19\u0E35\u0E49</span><span class="rv '+(leftW>=0?'pos':'neg')+'" style="font-size:14px">'+(leftW>=0?'+':'')+fmt(leftW)+'.-</span></div><div style="font-size:11px;color:var(--tx3);margin-top:4px">\u0E07\u0E1A '+fmt(wb)+'.-</div></div>';
+    h+='<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--cb)"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700"><span>งบสัปดาห์นี้</span><span class="rv '+(leftW>=0?'pos':'neg')+'" style="font-size:14px">'+(leftW>=0?'+':'')+fmt(leftW)+'.-</span></div><div style="font-size:11px;color:var(--tx3);margin-top:4px">งบ '+fmt(wb)+'.-</div></div>';
     h+=progBar(weekT,wb);
 }
-// Monthly
-var mDays=new Date(vy,vm+1,0).getDate(),mT=0,mC2=0;
-for(var d2=1;d2<=mDays;d2++){var ml=getDayLog(vy+'-'+String(vm+1).padStart(2,'0')+'-'+String(d2).padStart(2,'0'));ml.forEach(function(x){mT+=Number(x.a||0);mC2++})}
-h+='<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-top:10px;padding-top:10px;border-top:1px solid var(--cb)"><span>\u0E40\u0E14\u0E37\u0E2D\u0E19 '+TMF[vm]+'</span><span class="rv neg" style="font-size:14px">-'+fmt(mT)+'.-</span></div><div style="font-size:11px;color:var(--tx3);margin-top:4px">'+mC2+' \u0E23\u0E32\u0E22\u0E01\u0E32\u0E23</div>';
+// Month row
+h+='<div class="sum-hd" onclick="toggleSumExp(\'month\')" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--cb)">';
+h+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600"><span>เดือน '+TMF[vm]+' <span class="sum-arr" id="sum-arr-month">▾</span></span><span class="rv neg" style="font-size:14px">-'+fmt(mT)+'.-</span></div>';
+h+='<div style="font-size:11px;color:var(--tx3);margin-top:3px">'+mC2+' รายการ</div>';
+h+='</div>';
+h+='<div id="sum-exp-month" class="sum-exp">'+sumExpRows(monthItems)+'</div>';
 h+='</div></div>';
 h+='<div class="credit">Credit : Opus 4.6 & Jarasrawee</div>';
 el.innerHTML=h}
+function toggleSumExp(type){
+    var el=document.getElementById('sum-exp-'+type);
+    if(!el)return;
+    var open=el.classList.contains('open');
+    el.classList.toggle('open',!open);
+    var arr=document.getElementById('sum-arr-'+type);
+    if(arr)arr.style.transform=open?'':'rotate(180deg)';
+}
 function dailyListH(log, dk){
     var h = '';
     if(log.length > 0){

@@ -725,6 +725,18 @@
     transform: scale(0.95);
 }
 .qa-meta-lb{font-size:11px;font-weight:700;color:var(--tx2);display:block;margin-bottom:5px}
+.sum-hd{cursor:pointer;user-select:none;-webkit-user-select:none}
+.sum-hd:active{opacity:.7}
+.sum-arr{display:inline-block;font-size:10px;color:var(--tx3);transition:transform .25s;vertical-align:middle;margin-left:2px}
+.sum-exp{display:none;overflow:hidden}
+.sum-exp.open{display:block;animation:sumFadeIn .2s ease}
+@keyframes sumFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.sum-xi{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--cb);font-size:11px}
+.sum-xi:last-child{border-bottom:none}
+.sum-xi-d{color:var(--tx3);min-width:34px;font-weight:600;flex-shrink:0}
+.sum-xi-t{color:var(--tx3);min-width:32px;flex-shrink:0}
+.sum-xi-n{flex:1;color:var(--tx);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sum-xi-a{color:var(--rd);font-weight:700;white-space:nowrap;flex-shrink:0}
 .qa-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 8px;transition:opacity .2s}
 .qa-cat{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 4px;border-radius:10px;border:1.5px solid var(--cb);cursor:pointer;transition:all .2s;font-size:10px;font-weight:600;color:var(--tx2)}
 .qa-cat:hover{border-color:var(--ac)}
