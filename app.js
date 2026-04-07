@@ -665,15 +665,15 @@ weekItems.sort(function(a,b){return (a.date+a.t)<(b.date+b.t)?1:-1});
 var mDays=new Date(vy,vm+1,0).getDate(),mT=0,mC2=0,monthItems=[];
 for(var d2=1;d2<=mDays;d2++){var mdk2=vy+'-'+String(vm+1).padStart(2,'0')+'-'+String(d2).padStart(2,'0');var ml=getDayLog(mdk2);ml.forEach(function(x){mT+=Number(x.a||0);mC2++;monthItems.push(Object.assign({date:mdk2},x))})}
 monthItems.sort(function(a,b){return (a.date+a.t)<(b.date+b.t)?1:-1});
-var sumCats=getAllDailyCats();
-function sumExpRows(items){var r='';if(!items.length)return '<div style="font-size:11px;color:var(--tx3);padding:6px 0">ไม่มีรายการ</div>';items.forEach(function(x){var dp=x.date.split('-');var ds=dp[2]+'/'+dp[1];var cn=(sumCats.find(function(c){return c.id===x.cat})||{name:'อื่นๆ'}).name;r+='<div class="sum-xi"><span class="sum-xi-d">'+ds+'</span><span class="sum-xi-t">'+(x.t||'')+'</span><span class="sum-xi-n">'+(x.n?esc(x.n):esc(cn))+'</span><span class="sum-xi-a">-'+fmt(x.a)+'.-</span></div>'});return r}
+window._sumData={week:weekItems,month:monthItems,cats:getAllDailyCats()};
+window._sumView=window._sumView||{week:'time',month:'time'};
 h+='<div class="sec"><div class="sec-t">'+secTitle(IC.cal,'สรุป')+'</div><div class="sc" style="padding:14px">';
 // Week row
 h+='<div class="sum-hd" onclick="toggleSumExp(\'week\')">';
 h+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600"><span>สัปดาห์นี้ <span class="sum-arr" id="sum-arr-week">▾</span></span><span class="rv neg" style="font-size:14px">-'+fmt(weekT)+'.-</span></div>';
 h+='<div style="font-size:11px;color:var(--tx3);margin-top:3px">'+weekD+' วัน'+(weekD>0?' เฉลี่ย '+fmt(Math.round(weekT/weekD))+'.-/วัน':'')+'</div>';
 h+='</div>';
-h+='<div id="sum-exp-week" class="sum-exp">'+sumExpRows(weekItems)+'</div>';
+h+='<div id="sum-exp-week" class="sum-exp"><div class="sum-vbar"><span class="sum-vbar-lb">เรียงโดย</span><div class="sum-vtog" id="sum-vtog-week" onclick="event.stopPropagation();toggleSumView(\'week\')"><span id="sum-vopt-week-time" class="sum-vopt'+(window._sumView.week==='time'?' on':'')+'">เวลา</span><span id="sum-vopt-week-cat" class="sum-vopt'+(window._sumView.week==='cat'?' on':'')+'">หมวดหมู่</span></div></div><div id="sum-exp-content-week">'+buildSumRows('week')+'</div></div>';
 var st=ensureSettings();
 if(st.weeklyOn){
     var md=gm(vy,vm),wb=0;
@@ -689,10 +689,55 @@ h+='<div class="sum-hd" onclick="toggleSumExp(\'month\')" style="margin-top:10px
 h+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600"><span>เดือน '+TMF[vm]+' <span class="sum-arr" id="sum-arr-month">▾</span></span><span class="rv neg" style="font-size:14px">-'+fmt(mT)+'.-</span></div>';
 h+='<div style="font-size:11px;color:var(--tx3);margin-top:3px">'+mC2+' รายการ</div>';
 h+='</div>';
-h+='<div id="sum-exp-month" class="sum-exp">'+sumExpRows(monthItems)+'</div>';
+h+='<div id="sum-exp-month" class="sum-exp"><div class="sum-vbar"><span class="sum-vbar-lb">เรียงโดย</span><div class="sum-vtog" id="sum-vtog-month" onclick="event.stopPropagation();toggleSumView(\'month\')"><span id="sum-vopt-month-time" class="sum-vopt'+(window._sumView.month==='time'?' on':'')+'">เวลา</span><span id="sum-vopt-month-cat" class="sum-vopt'+(window._sumView.month==='cat'?' on':'')+'">หมวดหมู่</span></div></div><div id="sum-exp-content-month">'+buildSumRows('month')+'</div></div>';
 h+='</div></div>';
 h+='<div class="credit">Credit : Opus 4.6 & Jarasrawee</div>';
 el.innerHTML=h}
+function buildSumRows(type){
+    var items=window._sumData&&window._sumData[type]||[];
+    var cats=window._sumData&&window._sumData.cats||[];
+    var mode=window._sumView&&window._sumView[type]||'time';
+    if(!items.length)return '<div style="font-size:11px;color:var(--tx3);padding:6px 0">ไม่มีรายการ</div>';
+    if(mode==='time'){
+        var r='';
+        items.forEach(function(x){
+            var dp=x.date.split('-');var ds=dp[2]+'/'+dp[1];
+            var catObj=cats.find(function(c){return c.id===x.cat})||{name:'อื่นๆ'};
+            r+='<div class="sum-xi">';
+            r+='<span class="sum-xi-d">'+ds+'</span>';
+            r+='<span class="sum-xi-t">'+(x.t||'')+'</span>';
+            r+='<span class="sum-xi-n">';
+            if(x.n)r+=esc(x.n)+' <em class="sum-xi-cat">'+esc(catObj.name)+'</em>';
+            else r+=esc(catObj.name);
+            r+='</span>';
+            r+='<span class="sum-xi-a">-'+fmt(x.a)+'.-</span>';
+            r+='</div>';
+        });
+        return r;
+    } else {
+        var groups={},order=[];
+        items.forEach(function(x){var cid=x.cat||'other';if(!groups[cid]){groups[cid]={total:0,items:[]};order.push(cid)}groups[cid].total+=Number(x.a||0);groups[cid].items.push(x)});
+        order.sort(function(a,b){return groups[b].total-groups[a].total});
+        var r='';
+        order.forEach(function(cid){
+            var g=groups[cid];
+            var catObj=cats.find(function(c){return c.id===cid})||{name:'อื่นๆ'};
+            r+='<div class="sum-cg">';
+            r+='<div class="sum-cg-hd"><span class="sum-cg-name">'+getCatIcon(cid)+' '+esc(catObj.name)+'</span><span class="sum-xi-a">-'+fmt(g.total)+'.-</span></div>';
+            g.items.forEach(function(x){
+                var dp=x.date.split('-');var ds=dp[2]+'/'+dp[1];
+                r+='<div class="sum-xi sum-xi-in">';
+                r+='<span class="sum-xi-d">'+ds+'</span>';
+                r+='<span class="sum-xi-t">'+(x.t||'')+'</span>';
+                r+='<span class="sum-xi-n">'+(x.n?esc(x.n):'')+'</span>';
+                r+='<span class="sum-xi-a">-'+fmt(x.a)+'.-</span>';
+                r+='</div>';
+            });
+            r+='</div>';
+        });
+        return r;
+    }
+}
 function toggleSumExp(type){
     var el=document.getElementById('sum-exp-'+type);
     if(!el)return;
@@ -700,6 +745,14 @@ function toggleSumExp(type){
     el.classList.toggle('open',!open);
     var arr=document.getElementById('sum-arr-'+type);
     if(arr)arr.style.transform=open?'':'rotate(180deg)';
+}
+function toggleSumView(type){
+    window._sumView=window._sumView||{week:'time',month:'time'};
+    var next=window._sumView[type]==='time'?'cat':'time';
+    window._sumView[type]=next;
+    var ct=document.getElementById('sum-exp-content-'+type);
+    if(ct)ct.innerHTML=buildSumRows(type);
+    ['time','cat'].forEach(function(m){var el=document.getElementById('sum-vopt-'+type+'-'+m);if(el)el.classList.toggle('on',m===next)});
 }
 function dailyListH(log, dk){
     var h = '';
