@@ -85,6 +85,7 @@ var cY=NOW.getFullYear(),sM_=NOW.getMonth(),vw='m',ch=null,shY,tokenClient=null,
 var editInc=false,editExp=false,viewDate=new Date(NOW);
 var DF={salary:0,savGoal:0};
 var _syncing=false,_syncTimer=null,_syncPending=false;
+var _lastDriveModTime=null,_lastUploadTime=0,_pollTimer=null,_visListenerAdded=false;
 var _mCalcCache={};
 var stPage='main',_pinMode='unlock',_pinValue='',_pinPending=null,_lastDelete=null,_undoTimer=null;
 var dFilter={q:'',min:0,max:0,cat:'',wallet:'',onlyOverspent:false,onlyCarry:false};
@@ -333,8 +334,83 @@ function finishAuth(syncLocal){
 function initGoogleAuth(){try{tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',callback:function(resp){if(resp.error){finishAuth(false);return}accessToken=resp.access_token;fetchUserInfo().then(function(){return driveLoad()}).then(function(mode){finishAuth(mode==='keepLocal')}).catch(function(){finishAuth(false)})}});}catch(e){}}
 function googleLogin(){if(!tokenClient){alert('\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E1E\u0E23\u0E49\u0E2D\u0E21');return}tokenClient.requestAccessToken()}
 function fetchUserInfo(){return fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(d){userInfo={name:d.name||'',email:d.email||'',picture:d.picture||''}})}
-function driveSync(){if(!accessToken)return Promise.resolve();if(_syncing){_syncPending=true;return Promise.resolve()}_syncing=true;clearTimeout(_syncTimer);var data=gs();data.lastSync=new Date().toISOString();persistStore(data,false);var body=JSON.stringify(data);var req;if(driveFileId){req=fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',{method:'PATCH',headers:{'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'},body:body}).then(function(r){if(!r.ok)throw new Error('drive sync failed')})}else{var meta=JSON.stringify({name:'okane_data_v3.json',parents:['appDataFolder']});var form=new FormData();form.append('metadata',new Blob([meta],{type:'application/json'}));form.append('file',new Blob([body],{type:'application/json'}));req=fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form}).then(function(r){if(!r.ok)throw new Error('drive create failed');return r.json()}).then(function(d){if(d.id)driveFileId=d.id;else throw new Error('missing drive file id')})}return req.catch(function(){}).then(function(){_syncing=false;if(_syncPending){_syncPending=false;return driveSync()}})}
-function driveLoad(){if(!accessToken)return Promise.resolve('none');return fetch("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D'okane_data_v3.json'&fields=files(id)&orderBy=modifiedTime%20desc",{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(d){if(d.files&&d.files.length>0){driveFileId=d.files[0].id;return fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(cloud){if(cloud&&typeof cloud==='object'){var local=gs(),cloudData=normalizeStore(cloud);if((local.meta.updatedAt||0)>(cloudData.meta.updatedAt||0))return'keepLocal';persistStore(cloudData,false);return'cloud'}})}return'none'}).catch(function(){return'none'})}
+function driveSync(){if(!accessToken)return Promise.resolve();if(_syncing){_syncPending=true;return Promise.resolve()}_syncing=true;clearTimeout(_syncTimer);var data=gs();data.lastSync=new Date().toISOString();persistStore(data,false);var body=JSON.stringify(data);var req;if(driveFileId){req=fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',{method:'PATCH',headers:{'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'},body:body}).then(function(r){if(!r.ok)throw new Error('drive sync failed')})}else{var meta=JSON.stringify({name:'okane_data_v3.json',parents:['appDataFolder']});var form=new FormData();form.append('metadata',new Blob([meta],{type:'application/json'}));form.append('file',new Blob([body],{type:'application/json'}));req=fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form}).then(function(r){if(!r.ok)throw new Error('drive create failed');return r.json()}).then(function(d){if(d.id)driveFileId=d.id;else throw new Error('missing drive file id')})}return req.then(function(){_lastUploadTime=Date.now();_lastDriveModTime=null}).catch(function(){}).then(function(){_syncing=false;if(_syncPending){_syncPending=false;return driveSync()}})}
+function driveLoad(){if(!accessToken)return Promise.resolve('none');return fetch("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D'okane_data_v3.json'&fields=files(id)&orderBy=modifiedTime%20desc",{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(d){if(d.files&&d.files.length>0){driveFileId=d.files[0].id;return fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(cloud){if(cloud&&typeof cloud==='object'){var cloudData=normalizeStore(cloud);var localIsNew=isNewUser();var local=gs();if(!localIsNew&&(local.meta.updatedAt||0)>(cloudData.meta.updatedAt||0))return'keepLocal';persistStore(cloudData,false);return'cloud'}})}return'none'}).catch(function(){return'none'})}
+function driveCheckModTime(){
+    if(!accessToken||!driveFileId)return Promise.resolve(null);
+    return fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?fields=modifiedTime',
+        {headers:{'Authorization':'Bearer '+accessToken}})
+        .then(function(r){return r.ok?r.json():null})
+        .then(function(d){return(d&&d.modifiedTime)?d.modifiedTime:null})
+        .catch(function(){return null});
+}
+function driveMergeAndApply(cloudData){
+    var local=gs();
+    var merged=JSON.parse(JSON.stringify(local));
+    var changed=false;
+    // dLog: per-day union
+    var allDays=Object.keys(Object.assign({},local.dLog||{},cloudData.dLog||{}));
+    allDays.forEach(function(dk){
+        var localDay=local.dLog&&local.dLog[dk]?local.dLog[dk]:[];
+        var cloudDay=cloudData.dLog&&cloudData.dLog[dk]?cloudData.dLog[dk]:[];
+        var localKeys={};
+        localDay.forEach(function(x){localKeys[x.t+'|'+x.a+'|'+(x.cat||'')+'|'+(x.n||'')] = 1});
+        var added=[];
+        cloudDay.forEach(function(x){
+            var k=x.t+'|'+x.a+'|'+(x.cat||'')+'|'+(x.n||'');
+            if(!localKeys[k])added.push(x);
+        });
+        if(added.length){
+            if(!merged.dLog)merged.dLog={};
+            merged.dLog[dk]=(merged.dLog[dk]||[]).concat(added).sort(function(a,b){return a.t-b.t});
+            changed=true;
+        }
+    });
+    // mo: last-writer-wins per store timestamp
+    if((cloudData.meta&&cloudData.meta.updatedAt||0)>(local.meta&&local.meta.updatedAt||0)){
+        if(JSON.stringify(cloudData.mo)!==JSON.stringify(local.mo)){merged.mo=cloudData.mo;changed=true}
+    }
+    // collections: union by id
+    var cols=['goals','recur','wallets','customCats'];
+    cols.forEach(function(col){
+        var la=local[col]||[];
+        var ca=cloudData[col]||[];
+        var localIds={};
+        la.forEach(function(x){if(x.id)localIds[x.id]=1});
+        var toAdd=ca.filter(function(x){return x.id&&!localIds[x.id]});
+        if(toAdd.length){merged[col]=(merged[col]||[]).concat(toAdd);changed=true}
+    });
+    // savings.history: union by id
+    var lsh=(local.savings&&local.savings.history)||[];
+    var csh=(cloudData.savings&&cloudData.savings.history)||[];
+    var shIds={};
+    lsh.forEach(function(x){if(x.id)shIds[x.id]=1});
+    var shAdd=csh.filter(function(x){return x.id&&!shIds[x.id]});
+    if(shAdd.length){if(!merged.savings)merged.savings={};merged.savings.history=lsh.concat(shAdd);changed=true}
+    // settings/theme/pin: keep local (no change needed)
+    if(changed){
+        merged.meta=merged.meta||{};
+        merged.meta.updatedAt=Date.now();
+        persistStore(merged,false);
+        queueSync(false);
+        render();
+    }
+}
+function drivePollSync(){
+    if(isGuest||!accessToken||!driveFileId||_syncing)return;
+    if(Date.now()-_lastUploadTime<10000)return;
+    driveCheckModTime().then(function(modTime){
+        if(!modTime)return;
+        if(modTime===_lastDriveModTime)return;
+        _lastDriveModTime=modTime;
+        return fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',
+            {headers:{'Authorization':'Bearer '+accessToken}})
+            .then(function(r){return r.json()})
+            .then(function(cloud){
+                if(cloud&&typeof cloud==='object')driveMergeAndApply(normalizeStore(cloud));
+            }).catch(function(){});
+    });
+}
 function driveDeleteFile(){if(!accessToken||!driveFileId)return Promise.resolve();return fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId,{method:'DELETE',headers:{'Authorization':'Bearer '+accessToken}}).catch(function(){}).then(function(){driveFileId=null})}
 function guestLogin(){isGuest=true;var s=gs();s.isLoggedIn=false;s.guestUsed=true;ss(s);enterApp()}
 function enterApp(){
@@ -346,6 +422,11 @@ function enterApp(){
     setV(vw||'m');
     updateUserBtn();
     if(!wasShown&&pinEnabled()){showPinLock('unlock',{title:'ใส่ PIN เพื่อปลดล็อก',sub:'เพื่อความปลอดภัยของข้อมูล',len:4,autoSubmit:true,canCancel:false})}
+    if(isGuest){setTimeout(function(){showGuestWarn()},400)}
+    if(!isGuest){
+        if(!_pollTimer)_pollTimer=setInterval(function(){drivePollSync()},5*60*1000);
+        if(!_visListenerAdded){_visListenerAdded=true;document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')setTimeout(drivePollSync,1000)})}
+    }
 }
 function startSilentAuthRefresh(){
     if(_authRefreshStarted||accessToken||isGuest)return;
