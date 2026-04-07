@@ -56,6 +56,20 @@
 <div class="cal-popup" id="calPop"><div class="cal-box"><div class="cal-hd"><button onclick="calNav(-1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg></button><span id="calTitle"></span><button onclick="calNav(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 18 15 12 9 6"/></svg></button></div><div class="cal-wk"><span>อา</span><span>จ</span><span>อ</span><span>พ</span><span>พฤ</span><span>ศ</span><span>ส</span></div><div class="cal-days" id="calDays"></div></div></div>
 <!-- Month Picker Popup -->
 <div class="cal-popup" id="mpPop"><div class="cal-box"><div class="cal-hd"><button onclick="mpNav(-1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg></button><span id="mpTitle"></span><button onclick="mpNav(1)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 18 15 12 9 6"/></svg></button></div><div class="mp-grid" id="mpGrid"></div></div></div>
+<!-- Guest Warning Popup -->
+<div class="popup-overlay" id="guestWarnPopup">
+  <div class="popup-box">
+    <div class="guest-warn-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <h3>คุณกำลังใช้งานแบบ Guest</h3>
+    <div class="guest-warn-list">
+      <div class="guest-warn-item"><span class="guest-warn-x">✕</span><span>ข้อมูลไม่ถูก backup ขึ้น Cloud</span></div>
+      <div class="guest-warn-item"><span class="guest-warn-x">✕</span><span>ข้อมูลจะ<strong>หายถาวร</strong>หาก clear browser cache หรือเปลี่ยนอุปกรณ์</span></div>
+      <div class="guest-warn-item"><span class="guest-warn-x">✕</span><span>ไม่สามารถใช้งานร่วมกันหลายอุปกรณ์ได้</span></div>
+    </div>
+    <button class="btn btn-ac btn-full" onclick="closeGuestWarn();googleLogin()" style="margin-top:4px">เชื่อมต่อ Google Account</button>
+    <button class="btn btn-gh btn-full" onclick="closeGuestWarn()" style="margin-top:8px">รับทราบ ใช้ต่อแบบ Guest</button>
+  </div>
+</div>
 <!-- Filter Popup -->
 <div class="cal-popup" id="filterPop"><div class="cal-box"><div class="cal-hd"><span>ตัวกรอง</span><button onclick="closeFilterPop()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div id="filterBody"></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-gh btn-full" onclick="resetFilters()">ล้าง</button><button class="btn btn-ac btn-full" onclick="applyFilters()">ใช้ตัวกรอง</button></div></div></div>
 <script src="app.js"></script>

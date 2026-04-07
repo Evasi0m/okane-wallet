@@ -346,7 +346,10 @@ function enterApp(){
     setV(vw||'m');
     updateUserBtn();
     if(!wasShown&&pinEnabled()){showPinLock('unlock',{title:'ใส่ PIN เพื่อปลดล็อก',sub:'เพื่อความปลอดภัยของข้อมูล',len:4,autoSubmit:true,canCancel:false})}
+    if(isGuest){setTimeout(function(){showGuestWarn()},400)}
 }
+function showGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.add('open')}
+function closeGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.remove('open')}
 function startSilentAuthRefresh(){
     if(_authRefreshStarted||accessToken||isGuest)return;
     _authRefreshStarted=true;
