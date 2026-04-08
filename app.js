@@ -85,7 +85,7 @@ var cY=NOW.getFullYear(),sM_=NOW.getMonth(),vw='m',ch=null,shY,tokenClient=null,
 var editInc=false,editExp=false,viewDate=new Date(NOW);
 var DF={salary:0,savGoal:0};
 var _syncing=false,_syncTimer=null,_syncPending=false;
-var _lastDriveModTime=null,_lastUploadTime=0,_pollTimer=null,_visListenerAdded=false,_lastSyncSuccess=0;
+var _lastDriveModTime=null,_lastUploadTime=0,_pollTimer=null,_visListenerAdded=false,_lastSyncSuccess=0,_pendingManualSync=false;
 var _mCalcCache={};
 var stPage='main',_pinMode='unlock',_pinValue='',_pinPending=null,_lastDelete=null,_undoTimer=null;
 var dFilter={q:'',min:0,max:0,cat:'',wallet:'',onlyOverspent:false,onlyCarry:false};
@@ -328,6 +328,7 @@ function finishAuth(syncLocal){
     isGuest=false;
     persistStore(applySessionData(gs()),false);
     if(syncLocal)queueSync(true);
+    if(_pendingManualSync){_pendingManualSync=false;setTimeout(manualSync,500)}
     if(document.getElementById('app').classList.contains('show')){updateUserBtn();render();return}
     enterApp()
 }
@@ -425,7 +426,14 @@ function manualSync(){
     var btn=document.getElementById('manualSyncBtn');
     var lbl=document.getElementById('manualSyncLbl');
     if(!btn||!lbl)return;
-    if(isGuest||!accessToken){alert('ต้องเชื่อมต่อ Google Drive ก่อน');return}
+    if(isGuest){alert('ต้องเชื่อมต่อ Google Account ก่อน');return}
+    if(!accessToken){
+        _pendingManualSync=true;
+        btn.disabled=true;
+        btn.innerHTML='<span class="spin-ic"></span>กำลังเชื่อมต่อ…';
+        googleLogin();
+        return;
+    }
     if(_syncing)return;
     btn.disabled=true;
     btn.innerHTML='<span class="spin-ic"></span>กำลังซิงค์…';
