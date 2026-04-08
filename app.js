@@ -1456,7 +1456,7 @@ function openUser(){
     h+='</div><span style="font-size:13px;font-weight:600;color:var(--tx2)">'+curTheme.name+'</span>';
     h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div></div></div></div>';
     // Sync
-    if(!isGuest&&accessToken){var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';h+='<div class="prof-sec-t">Google Drive</div><div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px"><button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Google Drive</button><div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);margin-top:6px;text-align:center">'+syncLbl+'</div></div></div>'}
+    if(!isGuest){var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';h+='<div class="prof-sec-t">Google Drive</div><div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px"><button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Google Drive</button><div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);margin-top:6px;text-align:center">'+syncLbl+'</div></div></div>'}
     // Reset
     h+='<div class="prof-sec-t prof-sec-danger">จัดการข้อมูล</div>';
     h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px">';
