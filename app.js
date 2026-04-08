@@ -1446,6 +1446,8 @@ function openUser(){
     curTheme.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});
     h+='</div><span style="font-size:13px;font-weight:600;color:var(--tx2)">'+curTheme.name+'</span>';
     h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div></div></div></div>';
+    // Sync
+    if(!isGuest&&accessToken){var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';h+='<div class="prof-sec-t">Google Drive</div><div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px"><button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Google Drive</button><div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);margin-top:6px;text-align:center">'+syncLbl+'</div></div></div>'}
     // Reset
     h+='<div class="prof-sec-t prof-sec-danger">จัดการข้อมูล</div>';
     h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px">';
@@ -1809,7 +1811,6 @@ h+='<div class="sr"><div class="sl">วันตัดรอบ<small>1-28</smal
 h+='<div class="sr" style="border-bottom:none"><div class="sl">วันครบกำหนด<small>1-28</small></div><input class="si" style="width:120px" id="stDue" value="'+Number(card.dueDay||10)+'"></div>';
 h+='<div style="margin-top:10px"><button class="btn btn-ac btn-full" onclick="saveCardSettings()">บันทึกบัตร</button></div>';
 h+='</div></div>';
-if(!isGuest&&accessToken){var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';h+='<div class="sec st-sec tone-sh"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v-1a8 8 0 018-8 8 8 0 018 8"/><path d="M20 12v1a8 8 0 01-8 8 8 8 0 01-8-8"/><polyline points="20 8 20 12 16 12"/><polyline points="4 16 4 12 8 12"/></svg></div><div class="st-ht"><div class="st-ttl">Google Drive Sync</div><div class="st-sub">ซิงค์ข้อมูลอัตโนมัติทุก 5 นาที</div></div></div><div class="st-body"><div class="sr" style="border-bottom:none;flex-direction:column;align-items:flex-start;gap:8px"><button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Google Drive</button><div id="manualSyncLbl" style="font-size:11px;color:var(--tx3)">'+syncLbl+'</div></div></div></div>'}
 h+='<div class="prof-ver">เวอร์ชัน <b>'+esc(APP_VER||'')+'</b><br><span>Okane Wallet</span></div>';
 h+='</div>';
 document.getElementById('stB').innerHTML=h
