@@ -1466,13 +1466,17 @@ function openUser(){
     // Sync
     if(!isGuest){var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';h+='<div class="prof-sec-t">Google Drive</div><div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px"><button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Google Drive</button><div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);margin-top:6px;text-align:center">'+syncLbl+'</div></div></div>'}
     // Import / Export
-    h+='<div class="prof-sec-t">Import / Export</div>';
+    h+='<div class="prof-sec-t">Backup & Restore</div>';
     h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">';
-    h+='<div style="font-size:11px;color:var(--tx3);margin-bottom:2px">Backup ข้อมูลทั้งหมด หรือโหลดกลับจากไฟล์</div>';
+    h+='<div style="font-size:11px;color:var(--tx3);margin-bottom:2px">สำรองข้อมูลทั้งหมด หรือกู้คืนจากไฟล์ backup — ใช้ย้ายข้อมูลระหว่างบัญชีได้</div>';
     h+='<button class="btn btn-gh btn-full" onclick="exportBackup()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Backup (.json)</button>';
-    h+='<button class="btn btn-gh btn-full" onclick="exportCsv()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export รายการ (.csv)</button>';
     h+='<button class="btn btn-gh btn-full" onclick="triggerImport()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import Backup (.json)</button>';
     h+='<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(this)">';
+    h+='</div></div>';
+    h+='<div class="prof-sec-t">ดูข้อมูลใน Excel / Google Sheets</div>';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:6px">';
+    h+='<div style="font-size:11px;color:var(--tx3);margin-bottom:2px">Export รายการใช้จ่ายเป็นตาราง — ใช้เปิดดูหรือวิเคราะห์บน Excel / Google Sheets เท่านั้น ไม่สามารถ import กลับได้</div>';
+    h+='<button class="btn btn-gh btn-full" onclick="exportCsv()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export รายการทั้งหมด (.csv)</button>';
     h+='</div></div>';
     // Reset
     h+='<div class="prof-sec-t prof-sec-danger">จัดการข้อมูล</div>';
