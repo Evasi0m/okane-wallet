@@ -1465,6 +1465,15 @@ function openUser(){
     h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div></div></div></div>';
     // Sync
     if(!isGuest){var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';h+='<div class="prof-sec-t">Google Drive</div><div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px"><button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Google Drive</button><div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);margin-top:6px;text-align:center">'+syncLbl+'</div></div></div>'}
+    // Import / Export
+    h+='<div class="prof-sec-t">Import / Export</div>';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">';
+    h+='<div style="font-size:11px;color:var(--tx3);margin-bottom:2px">Backup ข้อมูลทั้งหมด หรือโหลดกลับจากไฟล์</div>';
+    h+='<button class="btn btn-gh btn-full" onclick="exportBackup()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Backup (.json)</button>';
+    h+='<button class="btn btn-gh btn-full" onclick="exportCsv()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export รายการ (.csv)</button>';
+    h+='<button class="btn btn-gh btn-full" onclick="triggerImport()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import Backup (.json)</button>';
+    h+='<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(this)">';
+    h+='</div></div>';
     // Reset
     h+='<div class="prof-sec-t prof-sec-danger">จัดการข้อมูล</div>';
     h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px">';
@@ -1480,6 +1489,92 @@ function openUser(){
     document.getElementById('uM').classList.add('open');
 }
 function closeUser(){document.getElementById('uM').classList.remove('open')}
+function exportBackup(){
+    var s=gs();
+    var backup={
+        _app:'okane-wallet',_version:APP_VER,_exportedAt:new Date().toISOString(),
+        dLog:s.dLog||{},mo:s.mo||{},savings:s.savings||{balance:0,history:[]},
+        wallets:s.wallets||[],customCats:s.customCats||[],recur:s.recur||[],
+        goals:s.goals||[],templates:s.templates||[],settings:s.settings||{},
+        shM:s.shM||{},sims:s.sims||[]
+    };
+    var blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;
+    a.download='okane_backup_'+getThaiToday()+'.json';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+function exportCsv(){
+    var s=gs();
+    var rows=[['วันที่','เวลา','จำนวนเงิน','หมวดหมู่','กระเป๋า','หมายเหตุ']];
+    var dates=Object.keys(s.dLog||{}).sort();
+    dates.forEach(function(dk){
+        (s.dLog[dk]||[]).forEach(function(e){
+            var note=String(e.n||'').replace(/"/g,'""');
+            rows.push([dk,e.t||'',Number(e.a||0),getCatName(e.cat||'other'),getWalletName(e.w||'cash'),'"'+note+'"']);
+        });
+    });
+    var csv='\uFEFF'+rows.map(function(r){return r.join(',')}).join('\r\n');
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;
+    a.download='okane_transactions_'+getThaiToday()+'.csv';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+function triggerImport(){document.getElementById('importFile').click()}
+function handleImport(input){
+    var file=input.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(e){
+        try{
+            var data=JSON.parse(e.target.result);
+            if(data._app!=='okane-wallet'&&!data.dLog&&!data.mo){
+                alert('ไฟล์ไม่ถูกต้อง กรุณาใช้ไฟล์ที่ Export จาก Okane Wallet เท่านั้น');
+                input.value='';return;
+            }
+            var txCount=0;
+            Object.keys(data.dLog||{}).forEach(function(dk){txCount+=(data.dLog[dk]||[]).length});
+            var catCount=(data.customCats||[]).length;
+            var walletCount=(data.wallets||[]).length;
+            var savHist=(data.savings&&data.savings.history)||[];
+            var msg='นำเข้าข้อมูล:\n'
+                +'• รายจ่าย: '+txCount+' รายการ\n'
+                +'• หมวดหมู่ custom: '+catCount+' หมวด\n'
+                +'• กระเป๋า: '+walletCount+' ใบ\n'
+                +'• ประวัติออม: '+savHist.length+' รายการ\n'
+                +'• Export เมื่อ: '+(data._exportedAt||'ไม่ทราบ')+'\n\n'
+                +'⚠️ ข้อมูลปัจจุบันจะถูกแทนที่ทั้งหมด\nต้องการดำเนินการต่อ?';
+            if(!confirm(msg)){input.value='';return}
+            var s=gs();
+            var imported=Object.assign({},s,{
+                dLog:data.dLog||{},mo:data.mo||{},
+                savings:data.savings||{balance:0,history:[]},
+                wallets:data.wallets||s.wallets,
+                customCats:data.customCats||[],
+                recur:data.recur||[],goals:data.goals||[],
+                templates:data.templates||[],settings:data.settings||s.settings,
+                shM:data.shM||{},sims:data.sims||[]
+            });
+            // Recalc savings balance from history
+            var bal=0;
+            (imported.savings.history||[]).forEach(function(h){
+                if(h.type==='withdraw'){bal=Math.max(0,bal-Number(h.amount||0))}
+                else{bal+=Number(h.amount||0)}
+            });
+            imported.savings.balance=bal;
+            syncNow(imported);
+            input.value='';
+            closeUser();
+            setTimeout(function(){render();alert('นำเข้าข้อมูลสำเร็จ '+txCount+' รายการ')},200);
+        }catch(ex){
+            alert('อ่านไฟล์ไม่ได้ กรุณาตรวจสอบไฟล์แล้วลองใหม่');
+            input.value='';
+        }
+    };
+    reader.readAsText(file,'utf-8');
+}
 function saveUser(){var s=gs();s.userName=(document.getElementById('uName')||{}).value||'';syncNow(s);render();closeUser()}
 function logout(){var s=gs();delete s.isLoggedIn;delete s.userInfo;persistStore(s,false);accessToken=null;isGuest=true;location.reload()}
 function resetAll(){if(!confirm('\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14?\n\n\u0E01\u0E32\u0E23\u0E01\u0E23\u0E30\u0E17\u0E33\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01\u0E44\u0E14\u0E49 \u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E17\u0E38\u0E01\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E08\u0E30\u0E2B\u0E32\u0E22\u0E44\u0E1B\u0E16\u0E32\u0E27\u0E23'))return;clearTimeout(_syncTimer);var hadAuth=!!accessToken;localStorage.removeItem('okane_v3');clearCalcCache();var done=function(){accessToken=null;isGuest=true;location.reload()};if(hadAuth&&driveFileId){driveDeleteFile().then(done)}else done()}
