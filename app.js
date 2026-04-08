@@ -334,7 +334,7 @@ function finishAuth(syncLocal){
 function initGoogleAuth(){try{tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',callback:function(resp){if(resp.error){finishAuth(false);return}accessToken=resp.access_token;fetchUserInfo().then(function(){return driveLoad()}).then(function(mode){finishAuth(mode==='keepLocal')}).catch(function(){finishAuth(false)})}});}catch(e){}}
 function googleLogin(){if(!tokenClient){alert('\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E1E\u0E23\u0E49\u0E2D\u0E21');return}tokenClient.requestAccessToken()}
 function fetchUserInfo(){return fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(d){userInfo={name:d.name||'',email:d.email||'',picture:d.picture||''}})}
-function driveSync(){if(!accessToken)return Promise.resolve();if(_syncing){_syncPending=true;return Promise.resolve()}_syncing=true;clearTimeout(_syncTimer);var data=gs();data.lastSync=new Date().toISOString();persistStore(data,false);var body=JSON.stringify(data);var req;if(driveFileId){req=fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',{method:'PATCH',headers:{'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'},body:body}).then(function(r){if(!r.ok)throw new Error('drive sync failed')})}else{var meta=JSON.stringify({name:'okane_data_v3.json',parents:['appDataFolder']});var form=new FormData();form.append('metadata',new Blob([meta],{type:'application/json'}));form.append('file',new Blob([body],{type:'application/json'}));req=fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form}).then(function(r){if(!r.ok)throw new Error('drive create failed');return r.json()}).then(function(d){if(d.id)driveFileId=d.id;else throw new Error('missing drive file id')})}return req.then(function(){_lastUploadTime=Date.now();_lastSyncSuccess=Date.now();_lastDriveModTime=null}).catch(function(){}).then(function(){_syncing=false;if(_syncPending){_syncPending=false;return driveSync()}})}
+function driveSync(){if(!accessToken)return Promise.resolve();if(_syncing){_syncPending=true;return Promise.resolve()}_syncing=true;clearTimeout(_syncTimer);var data=gs();data.lastSync=new Date().toISOString();persistStore(data,false);var body=JSON.stringify(data);var req;if(driveFileId){req=fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',{method:'PATCH',headers:{'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'},body:body}).then(function(r){if(!r.ok)throw new Error('drive sync failed')})}else{var meta=JSON.stringify({name:'okane_data_v3.json',parents:['appDataFolder']});var form=new FormData();form.append('metadata',new Blob([meta],{type:'application/json'}));form.append('file',new Blob([body],{type:'application/json'}));req=fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form}).then(function(r){if(!r.ok)throw new Error('drive create failed');return r.json()}).then(function(d){if(d.id)driveFileId=d.id;else throw new Error('missing drive file id')})}var failed=false;return req.then(function(){_lastUploadTime=Date.now();_lastSyncSuccess=Date.now();_lastDriveModTime=null}).catch(function(){failed=true}).then(function(){_syncing=false;if(_syncPending){_syncPending=false;return driveSync()}if(failed)throw new Error('sync failed')})}
 function driveLoad(){if(!accessToken)return Promise.resolve('none');return fetch("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D'okane_data_v3.json'&fields=files(id)&orderBy=modifiedTime%20desc",{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(d){if(d.files&&d.files.length>0){driveFileId=d.files[0].id;return fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(cloud){if(cloud&&typeof cloud==='object'){var cloudData=normalizeStore(cloud);var localIsNew=isNewUser();var local=gs();if(!localIsNew&&(local.meta.updatedAt||0)>(cloudData.meta.updatedAt||0))return'keepLocal';persistStore(cloudData,false);return'cloud'}})}return'none'}).catch(function(){return'none'})}
 function driveCheckModTime(){
     if(!accessToken||!driveFileId)return Promise.resolve(null);
@@ -371,6 +371,7 @@ function driveMergeAndApply(cloudData){
         if(JSON.stringify(cloudData.mo)!==JSON.stringify(local.mo)){merged.mo=cloudData.mo;changed=true}
     }
     // collections: union by id
+    var cloudNewer=(cloudData.meta&&cloudData.meta.updatedAt||0)>(local.meta&&local.meta.updatedAt||0);
     var cols=['goals','recur','wallets','customCats'];
     cols.forEach(function(col){
         var la=local[col]||[];
@@ -378,7 +379,15 @@ function driveMergeAndApply(cloudData){
         var localIds={};
         la.forEach(function(x){if(x.id)localIds[x.id]=1});
         var toAdd=ca.filter(function(x){return x.id&&!localIds[x.id]});
-        if(toAdd.length){merged[col]=(merged[col]||[]).concat(toAdd);changed=true}
+        // If cloud store is newer, also update existing items that differ
+        var updateMap={};
+        if(cloudNewer){ca.forEach(function(x){if(x.id&&localIds[x.id]&&JSON.stringify(x)!==JSON.stringify(la.find(function(l){return l.id===x.id})))updateMap[x.id]=x})}
+        var hasUpdates=Object.keys(updateMap).length>0;
+        if(toAdd.length||hasUpdates){
+            var base=(merged[col]||[]).concat(toAdd);
+            merged[col]=hasUpdates?base.map(function(x){return updateMap[x.id]||x}):base;
+            changed=true;
+        }
     });
     // savings.history: union by id
     var lsh=(local.savings&&local.savings.history)||[];
