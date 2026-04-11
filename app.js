@@ -43,6 +43,8 @@ broom:'<svg '+_s+'><path d="M12 2v9M5 14h14l-2 8H7z"/></svg>',
 wallet:'<svg '+_s+'><path d="M20 7H5a2 2 0 00-2 2v10a2 2 0 002 2h15V7z"/><path d="M20 7V5a2 2 0 00-2-2H7"/><circle cx="17" cy="14" r="1.5"/></svg>'
 };
 var IC={food:ICON_LIST.coffee,save:'<svg '+_s+'><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>',shopee:ICON_LIST.shopee,gas:'<svg '+_s+'><path d="M3 22V6a2 2 0 012-2h8a2 2 0 012 2v16"/><path d="M3 22h12"/><path d="M15 10h2a2 2 0 012 2v2a2 2 0 002 2"/><path d="M5 8h8"/></svg>',ck:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',dl:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',inc:'<svg '+_s+'><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',other:ICON_LIST.wallet,cal:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>'};
+function applyCustomIcons(){var ci=(function(){try{return JSON.parse(localStorage.getItem('okane_v3')||'{}').customIcons||{}}catch(e){return{}}})();Object.keys(ci).forEach(function(k){var p=k.split('.');if(p[0]==='ICON_LIST'&&p[1]&&(p[1] in ICON_LIST))ICON_LIST[p[1]]=ci[k];if(p[0]==='IC'&&p[1]&&(p[1] in IC))IC[p[1]]=ci[k];});}
+applyCustomIcons();
 
 /* ===== CONSTANTS ===== */
 var TM=['\u0E21.\u0E04.','\u0E01.\u0E1E.','\u0E21\u0E35.\u0E04.','\u0E40\u0E21.\u0E22.','\u0E1E.\u0E04.','\u0E21\u0E34.\u0E22.','\u0E01.\u0E04.','\u0E2A.\u0E04.','\u0E01.\u0E22.','\u0E15.\u0E04.','\u0E1E.\u0E22.','\u0E18.\u0E04.'];
@@ -1981,5 +1983,6 @@ window.addEventListener('load',function(){
     try{new MutationObserver(function(){enhanceNumericInputs(document)}).observe(document.body,{childList:true,subtree:true})}catch(e){}
     checkSession()
 });
+window.addEventListener('storage',function(e){if(e.key==='okane_v3'){applyCustomIcons();if(typeof render==='function')render();}});
 
 
