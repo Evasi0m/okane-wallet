@@ -79,7 +79,7 @@ var THEMES=[
     {id:'slate',name:'Minimal Slate',dots:['#F8FAFC','#475569','#FFFFFF'],free:false}
 ];
 var CLIENT_ID='933620688457-nqv6qs8381m46t8dn8sqv0qecbcuav82.apps.googleusercontent.com';
-var APP_VER='0.2.1';
+var APP_VER='0.2.2';
 function getBangkokNow(){return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}))}
 function getSafeImageSrc(src){var v=String(src||'').trim();return /^(data:image\/|https?:\/\/)/i.test(v)?v:''}
 var NOW=getBangkokNow();
@@ -312,7 +312,7 @@ function catBadge(catId){
     return '<div class="ri custom" style="background:'+bg+';color:'+esc(meta.color||defaultCatColor(catId))+'">'+getCatIcon(catId)+'</div>'
 }
 function secTitle(svg,label,meta){
-    return '<span class="sec-label'+(meta&&meta.editing?' edit-jiggle':'')+'"><span class="sec-label-ic">'+svg+'</span><span>'+label+'</span></span>'
+    return '<span class="sec-label'+(meta&&meta.editing?' editing':'')+'"><span class="sec-label-ic">'+svg+'</span><span>'+label+'</span></span>'
 }
 function isNewUser(){
     var s=gs();
@@ -743,7 +743,7 @@ if(isNewUser())h+='<div class="setup-banner"><div class="setup-banner-ic">'+IC.c
 // INCOME
 h+='<div class="sec" style="animation-delay:.04s"><div class="sec-t">'+secTitle(IC.inc,'รายรับ')+'<button class="edit-btn'+(editInc?' editing':'')+'" onclick="editInc=!editInc;render()" aria-label="'+(editInc?'บันทึก':'แก้ไข')+'">'+(editInc?SVG_CHECK:SVG_PENCIL)+'</button></div><div class="sc">';
 h+='<div class="row"><div class="ri inc">'+IC.inc+'</div><div class="rn"><div class="rn-t">\u0E40\u0E07\u0E34\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19</div><div class="rn-s">รายรับประจำของเดือนนี้</div></div>';
-if(editInc)h+='<input class="edit-val edit-jiggle" type="number" id="ed_sal" value="'+d.sal+'" onchange="saveField(&#39;sal&#39;,&#39;ed_sal&#39;)">';
+if(editInc)h+='<input class="edit-val" type="number" id="ed_sal" value="'+d.sal+'" onchange="saveField(&#39;sal&#39;,&#39;ed_sal&#39;)">';
 else h+='<div class="rv pos">'+fmt(d.sal)+'</div>';
 h+='</div>';
 if(d.oI.length>0){h+='<div class="sub-lb">รายรับเพิ่มเติม</div>';d.oI.forEach(function(x,i){h+=incomeItem(x,i)})}
@@ -761,7 +761,7 @@ exps.forEach(function(e){
 var v=Number(d[e.k]||0);
 var isShopee=e.k==='shopee';
 h+='<div class="row">'+catBadge(e.k)+'<div class="rn"><div class="rn-t" style="display:flex;align-items:center;gap:6px">'+esc(e.n)+(e.hasCal?'<button class="mini-btn" style="width:24px;height:24px" onclick="event.stopPropagation();openShopee()">'+IC.cal+'</button>':'')+'</div></div>';
-if(editExp&&!isShopee)h+='<input class="edit-val edit-jiggle" type="number" id="ed_'+e.k+'" value="'+v+'" onchange="saveField(&#39;'+e.k+'&#39;,&#39;ed_'+e.k+'&#39;)" step="0.01">';
+if(editExp&&!isShopee)h+='<input class="edit-val" type="number" id="ed_'+e.k+'" value="'+v+'" onchange="saveField(&#39;'+e.k+'&#39;,&#39;ed_'+e.k+'&#39;)" step="0.01">';
 else h+='<div class="rv neg">'+fmt(v)+'</div>';
 h+='</div>';
 });

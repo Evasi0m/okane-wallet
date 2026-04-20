@@ -148,8 +148,6 @@
 [data-theme="dark"] .edit-btn,[data-theme="basics"] .edit-btn,[data-theme="ocean"] .edit-btn,[data-theme="cyber"] .edit-btn{background:var(--card2);border-color:var(--cb);color:var(--tx3)}
 [data-theme="dark"] .edit-btn:hover,[data-theme="basics"] .edit-btn:hover,[data-theme="ocean"] .edit-btn:hover,[data-theme="cyber"] .edit-btn:hover{border-color:var(--ac);color:var(--ac);background:var(--acBg)}
 [data-theme="dark"] .edit-btn.editing,[data-theme="basics"] .edit-btn.editing,[data-theme="ocean"] .edit-btn.editing,[data-theme="cyber"] .edit-btn.editing{border-color:var(--gn);color:var(--gn);background:var(--gnBg)}
-.edit-jiggle{animation:editJiggle 2.8s ease-in-out infinite}
-@keyframes editJiggle{0%,100%{transform:translateX(0)}20%{transform:translateX(-1px)}40%{transform:translateX(1.5px)}60%{transform:translateX(-1px)}80%{transform:translateX(.75px)}}
 .edit-val{width:80px;text-align:right;padding:5px 8px;border:1.5px solid var(--ac);border-radius:8px;background:var(--bg);color:var(--tx);font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace;outline:none}
 .mini-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--cb);background:var(--card2);color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;padding:0}.mini-btn:hover{border-color:var(--ac);color:var(--ac)}.mini-btn:active{transform:scale(.9)}
 .setup-banner{display:grid;grid-template-columns:auto 1fr;gap:14px;padding:16px 18px;margin:0 0 16px;background:linear-gradient(135deg,rgba(240,128,48,.12),rgba(30,160,90,.1));border:1px solid rgba(240,128,48,.18);border-radius:22px;box-shadow:0 12px 28px rgba(0,0,0,.05)}
