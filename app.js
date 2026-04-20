@@ -79,7 +79,7 @@ var THEMES=[
     {id:'slate',name:'Minimal Slate',dots:['#F8FAFC','#475569','#FFFFFF'],free:false}
 ];
 var CLIENT_ID='933620688457-nqv6qs8381m46t8dn8sqv0qecbcuav82.apps.googleusercontent.com';
-var APP_VER='0.1.7';
+var APP_VER='0.1.9';
 function getBangkokNow(){return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}))}
 function getSafeImageSrc(src){var v=String(src||'').trim();return /^(data:image\/|https?:\/\/)/i.test(v)?v:''}
 var NOW=getBangkokNow();
@@ -1451,7 +1451,16 @@ function renderCreateCat(){
     h += '<input class="inp" id="ccName" placeholder="ชื่อหมวด" style="margin-bottom:12px;width:100%" value="'+esc(current?current.name:'')+'">';
     h += '<input class="inp" type="number" id="ccBudget" placeholder="งบ/เดือน (เช่น 800)" min="0" style="margin-bottom:12px;width:100%" value="'+Number(current&&current.budget||0)+'">';
     h += '<div style="font-size:12px;font-weight:700;margin:12px 0 8px">สีไอคอน:</div><div class="color-palette">';
-    CAT_PALETTE.forEach(function(color){h+='<button class="color-dot'+(ccColor===color?' on':'')+'" style="background:'+color+'" onclick="ccColor=\''+color+'\';renderCreateCat()" type="button"></button>'});
+    CAT_PALETTE.forEach(function(color){
+        var isOn=ccColor===color;
+        var glow=isOn?'inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px '+color+',0 4px 10px rgba(0,0,0,.2)':'';
+        h+='<button class="color-dot'+(isOn?' on':'')+'" style="background:'+color+';'+(glow?'box-shadow:'+glow:'')+';" data-color="'+color+'" onclick="ccColor=\''+color+'\';renderCreateCat()" type="button"></button>'
+    });
+    var isBlack=ccColor==='#1A1A1A';
+    var isWhite=ccColor==='#FFFFFF';
+    h+='<button class="color-dot'+(isBlack?' on':'')+'" style="background:#1A1A1A;'+(isBlack?'box-shadow:inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px #1A1A1A,0 4px 10px rgba(0,0,0,.2);':'')+'" data-color="#1A1A1A" onclick="ccColor=\'#1A1A1A\';renderCreateCat()" type="button"></button>';
+    h+='<button class="color-dot'+(isWhite?' on':'')+'" style="background:#FFFFFF;border:1.5px solid #ccc;'+(isWhite?'box-shadow:inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px #aaa,0 4px 10px rgba(0,0,0,.2);':'')+'" data-color="#FFFFFF" onclick="ccColor=\'#FFFFFF\';renderCreateCat()" type="button"></button>';
+    h+='<label class="color-dot color-dot-custom" title="เลือกสีเอง" style="background:'+(/^#[0-9A-Fa-f]{6}$/.test(ccColor)&&CAT_PALETTE.indexOf(ccColor)<0&&ccColor!=='#1A1A1A'&&ccColor!=='#FFFFFF'?ccColor:'transparent')+';border:2px dashed var(--tx3);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative"><input type="color" value="'+(/^#[0-9A-Fa-f]{6}$/.test(ccColor)?ccColor:'#F59E0B')+'" style="opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer" oninput="pickCatCustomColor(this.value,this.parentElement)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></label>';
     h += '</div>';
     h += '<div style="font-size:12px;font-weight:700;margin:12px 0 8px">เลือก icon:</div>';
     h += '<div class="icon-grid" style="grid-template-columns:repeat(5,1fr);max-height:300px;overflow-y:auto;padding:4px;background:var(--bg2);border-radius:12px;border:1px solid var(--cb)">';
@@ -1701,18 +1710,51 @@ function incomeItem(x,i){
 }
 function pickIncomeColor(color){
     _incomeColor=color;
-    document.querySelectorAll('.color-dot').forEach(function(btn){
-        btn.classList.toggle('on',btn.getAttribute('data-color')===color)
+    document.querySelectorAll('#incPopup .color-dot').forEach(function(btn){
+        var c=btn.getAttribute('data-color');
+        var isOn=c===color;
+        btn.classList.toggle('on',isOn);
+        if(isOn&&c){btn.style.boxShadow='inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px '+c+',0 4px 10px rgba(0,0,0,.2)'}
+        else{btn.style.boxShadow=''}
     });
     var prev=document.querySelector('.income-preview');
     if(prev)prev.style.color=color
+}
+function pickIncomeCustomColor(color,label){
+    pickIncomeColor(color);
+    label.style.background=color;
+    label.style.borderStyle='solid';
+    label.style.borderColor=color
+}
+function pickCatCustomColor(color,label){
+    ccColor=color;
+    document.querySelectorAll('#ccPopup .color-dot').forEach(function(b){
+        var c=b.getAttribute('data-color');
+        var isOn=c===ccColor;
+        b.classList.toggle('on',isOn);
+        if(isOn&&c){b.style.boxShadow='inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px '+c+',0 4px 10px rgba(0,0,0,.2)'}
+        else{b.style.boxShadow=''}
+    });
+    document.querySelectorAll('.icon-item').forEach(function(el){el.style.color=ccColor});
+    label.style.background=ccColor;
+    label.style.borderStyle='solid';
+    label.style.borderColor=ccColor
 }
 function openIncomePopup(id){
     _incomeEditId=id||null;
     var cur=id?gm(cY,sM_).oI.find(function(x){return x.id===id}):null;
     _incomeColor=cur&&cur.color?cur.color:INCOME_COLORS[0];
     var h='<div class="mbd"><input class="inp" id="incName" placeholder="ที่มาของรายรับ" style="margin-bottom:12px;width:100%" value="'+esc(cur&&cur.n||'')+'"><input class="inp" type="number" id="incAmount" placeholder="จำนวนเงิน" inputmode="decimal" min="0" style="margin-bottom:12px;width:100%" value="'+Number(cur&&cur.a||0)+'" onfocus="if(this.value==\'0\'||this.value===\'0\')this.value=\'\'" onblur="if(this.value===\'\')this.value=\'0\'"><div style="font-size:12px;font-weight:700;margin:12px 0 8px">สีไอคอน</div><div class="color-palette">';
-    INCOME_COLORS.forEach(function(color){h+='<button class="color-dot'+(_incomeColor===color?' on':'')+'" type="button" data-color="'+color+'" style="background:'+color+'" onclick="pickIncomeColor(\''+color+'\')"></button>'});
+    INCOME_COLORS.forEach(function(color){
+        var isOn=_incomeColor===color;
+        var glow=isOn?'inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px '+color+',0 4px 10px rgba(0,0,0,.2)':'';
+        h+='<button class="color-dot'+(isOn?' on':'')+'" type="button" data-color="'+color+'" style="background:'+color+';'+(glow?'box-shadow:'+glow:'')+';" onclick="pickIncomeColor(\''+color+'\')"></button>'
+    });
+    var incBlack=_incomeColor==='#1A1A1A';
+    var incWhite=_incomeColor==='#FFFFFF';
+    h+='<button class="color-dot'+(incBlack?' on':'')+'" type="button" data-color="#1A1A1A" style="background:#1A1A1A;'+(incBlack?'box-shadow:inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px #1A1A1A,0 4px 10px rgba(0,0,0,.2);':'')+'" onclick="pickIncomeColor(\'#1A1A1A\')"></button>';
+    h+='<button class="color-dot'+(incWhite?' on':'')+'" type="button" data-color="#FFFFFF" style="background:#FFFFFF;border:1.5px solid #ccc;'+(incWhite?'box-shadow:inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px #aaa,0 4px 10px rgba(0,0,0,.2);':'')+'" onclick="pickIncomeColor(\'#FFFFFF\')"></button>';
+    h+='<label class="color-dot color-dot-custom" title="เลือกสีเอง" style="background:'+(INCOME_COLORS.indexOf(_incomeColor)<0&&_incomeColor!=='#1A1A1A'&&_incomeColor!=='#FFFFFF'?_incomeColor:'transparent')+';border:2px dashed var(--tx3);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative"><input type="color" value="'+(/^#[0-9A-Fa-f]{6}$/.test(_incomeColor)?_incomeColor:'#16A34A')+'" style="opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer" oninput="pickIncomeCustomColor(this.value,this.parentElement)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></label>';
     h+='</div><div class="income-preview" style="color:'+esc(_incomeColor)+'">'+IC.inc+'<span>ตัวอย่างไอคอนรายรับ</span></div></div><div class="mft" style="padding:16px 18px 0;display:flex;gap:10px"><button class="btn btn-gh btn-full" onclick="closeIncomePopup()">ยกเลิก</button><button class="btn btn-ac btn-full" onclick="saveIncomePopup()">'+(_incomeEditId?'บันทึก':'เพิ่มรายรับ')+'</button></div>';
     document.getElementById('incBody').innerHTML=h;
     document.getElementById('incPopup').classList.add('open')

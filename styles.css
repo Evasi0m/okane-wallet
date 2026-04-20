@@ -847,7 +847,24 @@
 #manualSyncBtn.sync-ok{background:var(--gn)!important}#manualSyncBtn.sync-err{background:var(--rd)!important}#manualSyncBtn:disabled{opacity:.75;cursor:not-allowed}
 
 .color-palette{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 14px}
-.color-dot{width:34px;height:34px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .18s;outline:none;flex-shrink:0}
+.color-dot{
+    width:34px;height:34px;border-radius:50%;
+    border:none;cursor:pointer;outline:none;flex-shrink:0;
+    transition:transform .18s,box-shadow .18s;
+    position:relative;
+    box-shadow:inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 2px 6px rgba(0,0,0,.18)
+}
+.color-dot::after{
+    content:'';position:absolute;top:4px;left:6px;width:40%;height:28%;
+    border-radius:50%;background:rgba(255,255,255,.45);
+    filter:blur(1px);pointer-events:none
+}
 .color-dot:hover{transform:scale(1.1)}
-.color-dot.on{border-color:var(--tx1);transform:scale(1.1);box-shadow:0 0 0 1.5px var(--card),0 0 0 3px var(--tx1)}
+.color-dot.on{
+    transform:scale(1.12);
+    box-shadow:inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 12px 4px currentColor,0 4px 10px rgba(0,0,0,.2)
+}
+.color-dot-custom{width:34px;height:34px;border-radius:50%;flex-shrink:0;color:var(--tx3);border:2px dashed var(--tx3);background:transparent;box-shadow:none}
+.color-dot-custom::after{display:none}
+.color-dot-custom:hover{transform:scale(1.1);color:var(--tx1);border-color:var(--tx1)}
 .income-preview{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg2);border-radius:10px;font-size:13px;font-weight:600;margin-top:4px}
