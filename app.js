@@ -569,7 +569,7 @@ function pickTheme(id,lk){applyTheme(id);syncNow(gs());renderThemeDD();render();
 function showPrem(){}
 function closePrem(){}
 function navClick(v){setV(v)}
-function updateUserBtn(){var b=document.getElementById('userBtn');var s=gs();var pic=getSafeImageSrc(s.customPicture||((!isGuest&&userInfo.picture)?userInfo.picture:null));if(!b)return;if(!isGuest&&pic)b.innerHTML='<img src="'+esc(pic)+'" alt="">';else b.innerHTML=''}
+function updateUserBtn(){var b=document.getElementById('userBtn');var s=gs();var pic=getSafeImageSrc(s.customPicture||((!isGuest&&userInfo.picture)?userInfo.picture:null));if(!b)return;if(!isGuest&&pic)b.innerHTML='<img src="'+esc(pic)+'" alt="">';else b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>'}
 
 /* ===== NAV ===== */
 function setV(v){vw=v;document.getElementById('n0').classList.toggle('on',v==='d');document.getElementById('n1').classList.toggle('on',v==='m');document.getElementById('n2').classList.toggle('on',v==='y');document.getElementById('n3').classList.toggle('on',v==='sim');
@@ -1651,7 +1651,7 @@ function handleImport(input){
     reader.readAsText(file,'utf-8');
 }
 function saveUser(){var s=gs();s.userName=(document.getElementById('uName')||{}).value||'';syncNow(s);render();closeUser()}
-function logout(){var s=gs();delete s.isLoggedIn;delete s.userInfo;persistStore(s,false);accessToken=null;isGuest=true;location.reload()}
+function logout(){clearTimeout(_syncTimer);clearInterval(_tokenRefreshTimer);localStorage.removeItem('okane_v3');clearCalcCache();accessToken=null;driveFileId=null;isGuest=true;location.reload()}
 function resetAll(){if(!confirm('\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14?\n\n\u0E01\u0E32\u0E23\u0E01\u0E23\u0E30\u0E17\u0E33\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01\u0E44\u0E14\u0E49 \u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E17\u0E38\u0E01\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E08\u0E30\u0E2B\u0E32\u0E22\u0E44\u0E1B\u0E16\u0E32\u0E27\u0E23'))return;clearTimeout(_syncTimer);var hadAuth=!!accessToken;localStorage.removeItem('okane_v3');clearCalcCache();var done=function(){accessToken=null;isGuest=true;location.reload()};if(hadAuth&&driveFileId){driveDeleteFile().then(done)}else done()}
 
 function triggerPicUpload(){var f=document.getElementById('picFile');if(f)f.click()}
