@@ -754,7 +754,7 @@ var st=ensureSettings();
 var otherItems=getDailyOther(y,m);
 
 // EXPENSES
-h+='<div class="sec" style="animation-delay:.08s"><div class="sec-t">'+secTitle(IC.dl,'รายจ่าย')+'<button class="edit-btn'+(editExp?' editing':'')+'" onclick="toggleExpenseEdit()" aria-label="'+(editExp?'บันทึก':'แก้ไข')+'">'+(editExp?SVG_CHECK:SVG_PENCIL)+'</button></div><div class="sc">';
+h+='<div class="sec" style="animation-delay:.08s"><div class="sec-t">'+secTitle(IC.dl,'รายจ่าย')+'<div style="display:inline-flex;gap:6px;align-items:center"><button class="edit-btn" onclick="openCat(\'manage\')" aria-label="จัดการหมวด" title="จัดการหมวดค่าใช้จ่าย"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button><button class="edit-btn'+(editExp?' editing':'')+'" onclick="toggleExpenseEdit()" aria-label="'+(editExp?'บันทึก':'แก้ไข')+'">'+(editExp?SVG_CHECK:SVG_PENCIL)+'</button></div></div><div class="sc">';
 var exps=getAllExpCats(d,y,m,c.spentMap,c.recurMap);
 if(exps.length===0)h+='<div class="empty-section-note">ยังไม่มีหมวดค่าใช้จ่าย กด "เพิ่มหมวดค่าใช้จ่าย" เพื่อเริ่มต้น</div>';
 exps.forEach(function(e){
@@ -1454,10 +1454,12 @@ function getCategorySuggestions(){
     PRESET_CATS.forEach(function(p){if(used.indexOf(p.id)<0)items.push(buildCatConfig(p))});
     return items
 }
-function toggleExpenseEdit(){editExp=!editExp;if(editExp)openCat('manage');else closeCat();render()}
+function toggleExpenseEdit(){editExp=!editExp;render()}
 function openCat(mode){_catPopupMode=mode||'add';renderCatPopup();document.getElementById('catPopup').classList.add('open')}
 function closeCat(){document.getElementById('catPopup').classList.remove('open')}
 function renderCatPopup(){
+var titleEl=document.getElementById('catPopupTitle');
+if(titleEl)titleEl.textContent=(_catPopupMode==='manage')?'แก้ไขหมวดค่าใช้จ่าย':'เพิ่มหมวดค่าใช้จ่าย';
 var current=gCats(),suggestions=getCategorySuggestions(),h='';
 if(_catPopupMode==='manage'&&current.length){
     h+='<div class="sub-lb" style="padding:0 0 8px">หมวดที่ใช้งานอยู่</div><div class="cat-manage-list">';
