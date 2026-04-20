@@ -79,7 +79,7 @@ var THEMES=[
     {id:'slate',name:'Minimal Slate',dots:['#F8FAFC','#475569','#FFFFFF'],free:false}
 ];
 var CLIENT_ID='933620688457-nqv6qs8381m46t8dn8sqv0qecbcuav82.apps.googleusercontent.com';
-var APP_VER='0.1.4';
+var APP_VER='0.1.6';
 function getBangkokNow(){return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}))}
 function getSafeImageSrc(src){var v=String(src||'').trim();return /^(data:image\/|https?:\/\/)/i.test(v)?v:''}
 var NOW=getBangkokNow();
@@ -1098,7 +1098,14 @@ function simDraftUpdate(){
     s.simDraft=draft;
     ss(s)
 }
-function openSimOverlay(){simOverlayOpen=true;render()}
+function openSimOverlay(){
+    simOverlayOpen=false;
+    render();
+    setTimeout(function(){
+        var ov=document.getElementById('simOverlay');
+        if(ov){simOverlayOpen=true;ov.classList.add('open')}
+    },20)
+}
 var _simCloseT;
 function closeSimOverlay(){
     var ov=document.getElementById('simOverlay');
