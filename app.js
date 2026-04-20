@@ -507,7 +507,7 @@ function applyTheme(id){document.documentElement.setAttribute('data-theme',id);v
 function toggleThemeDD(){document.getElementById('themeDD').classList.toggle('open')}
 document.addEventListener('click',function(e){if(!e.target.closest('.theme-dd'))document.getElementById('themeDD').classList.remove('open')});
 function renderThemeDD(){var cur=gs().theme||'light';var h='';THEMES.forEach(function(t){h+='<div class="theme-item'+(cur===t.id?' active':'')+'" onclick="pickTheme(\''+t.id+'\',0)"><div class="theme-dots">';t.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});h+='</div>'+t.name+'</div>'});document.getElementById('themeDD').innerHTML=h}
-function pickTheme(id,lk){applyTheme(id);renderThemeDD();render();document.getElementById('themeDD').classList.remove('open')}
+function pickTheme(id,lk){applyTheme(id);syncNow(gs());renderThemeDD();render();document.getElementById('themeDD').classList.remove('open')}
 function showPrem(){}
 function closePrem(){}
 function navClick(v){setV(v)}
@@ -1024,7 +1024,7 @@ function simDraftUpdate(){
     if(st&&st.indexOf('-')>0){var sp=st.split('-');sy=Number(sp[0])||now3.getFullYear();sm=Number(sp[1])||now3.getMonth()}
     draft.input={name:name,per:per,months:mos,startM:sm,startY:sy};
     s.simDraft=draft;
-    syncNow(s)
+    ss(s)
 }
 function openSimOverlay(){simOverlayOpen=true;render()}
 var _simCloseT;
@@ -1612,7 +1612,7 @@ document.getElementById('uM').addEventListener('click',function(e){if(e.target==
 
 /* ===== ACTIONS ===== */
 function saveField(k,id){var v=Number(document.getElementById(id).value)||0;var d=gm(cY,sM_);d[k]=v;sm_(cY,sM_,d);render()}
-function saveSavGoal(id){var el=document.getElementById(id||'stSavGoal')||document.getElementById('ed_savGoal');if(!el)return;var v=Number(el.value)||0;var s=gs();if(!s.settings)s.settings=Object.assign({},DF);s.settings.savGoal=v;ss(s);renderSettings();render()}
+function saveSavGoal(id){var el=document.getElementById(id||'stSavGoal')||document.getElementById('ed_savGoal');if(!el)return;var v=Number(el.value)||0;var s=gs();if(!s.settings)s.settings=Object.assign({},DF);s.settings.savGoal=v;syncNow(s);renderSettings();render()}
 function incomeItem(x,i){
     var color=esc(x.color||INCOME_COLORS[0]),bg='rgba(22,163,74,.12)';
     if(color.charAt(0)==='#'){var r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);bg='rgba('+r+','+g+','+b+',.12)'}
