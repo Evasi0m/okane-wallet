@@ -87,6 +87,7 @@ var cY=NOW.getFullYear(),sM_=NOW.getMonth(),vw='m',ch=null,shY,tokenClient=null,
 var editInc=false,editExp=false,viewDate=new Date(NOW);
 var DF={salary:0,savGoal:0};
 var _syncing=false,_syncTimer=null,_syncPending=false;
+var _tokenRefreshTimer=null;
 var _lastDriveModTime=null,_lastUploadTime=0,_pollTimer=null,_visListenerAdded=false,_lastSyncSuccess=0,_pendingManualSync=false;
 var _mCalcCache={};
 var stPage='main',_pinMode='unlock',_pinValue='',_pinPending=null,_lastDelete=null,_undoTimer=null;
@@ -102,7 +103,7 @@ function normalizeStore(d){if(!d||typeof d!=='object'||Array.isArray(d))d={};if(
 function gs(){try{return normalizeStore(JSON.parse(localStorage.getItem('okane_v3')||'{}'))}catch(e){return normalizeStore({})}}
 function clearCalcCache(){_mCalcCache={}}
 function persistStore(d,markUpdated){d=normalizeStore(d);if(markUpdated!==false)d.meta.updatedAt=Date.now();localStorage.setItem('okane_v3',JSON.stringify(d));clearCalcCache();return d}
-function queueSync(immediate){if(isGuest||!accessToken)return;if(_syncing){_syncPending=true;return}clearTimeout(_syncTimer);if(immediate)driveSync();else _syncTimer=setTimeout(function(){driveSync()},1500)}
+function queueSync(immediate){if(isGuest)return;if(!accessToken){_syncPending=true;updateSyncIndicator();startSilentAuthRefresh();return}if(_syncing){_syncPending=true;return}clearTimeout(_syncTimer);if(immediate)driveSync();else _syncTimer=setTimeout(function(){driveSync()},1500)}
 function ss(d){persistStore(d,true);queueSync(false)}
 function syncNow(d){persistStore(d,true);queueSync(true)}
 function gSet(){var s=gs();return s.settings||Object.assign({},DF)}
@@ -334,18 +335,36 @@ function activeCategoryIdsForMonth(d,y,m,spentMap,recurMap){
 }
 
 /* ===== AUTH ===== */
+function scheduleTokenRefresh(){
+    clearInterval(_tokenRefreshTimer);
+    _tokenRefreshTimer=setInterval(function(){
+        if(!isGuest&&accessToken){
+            accessToken=null;
+            _authRefreshStarted=false;
+            startSilentAuthRefresh()
+        }
+    },50*60*1000)
+}
+function updateSyncIndicator(){
+    var el=document.getElementById('syncPendingBadge');
+    if(!el)return;
+    el.style.display=(!isGuest&&_syncPending)?'':'none'
+}
 function finishAuth(syncLocal){
     isGuest=false;
+    _authRefreshStarted=false;
     persistStore(applySessionData(gs()),false);
-    if(syncLocal)queueSync(true);
+    if(syncLocal||_syncPending){_syncPending=false;queueSync(true)}
     if(_pendingManualSync){_pendingManualSync=false;setTimeout(manualSync,500)}
+    scheduleTokenRefresh();
+    updateSyncIndicator();
     if(document.getElementById('app').classList.contains('show')){updateUserBtn();render();return}
     enterApp()
 }
 function initGoogleAuth(){try{tokenClient=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',callback:function(resp){if(resp.error){finishAuth(false);return}accessToken=resp.access_token;fetchUserInfo().then(function(){return driveLoad()}).then(function(mode){finishAuth(mode==='keepLocal')}).catch(function(){finishAuth(false)})}});}catch(e){}}
 function googleLogin(){if(!tokenClient){alert('\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E1E\u0E23\u0E49\u0E2D\u0E21');return}tokenClient.requestAccessToken()}
 function fetchUserInfo(){return fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(d){userInfo={name:d.name||'',email:d.email||'',picture:d.picture||''}})}
-function driveSync(){if(!accessToken)return Promise.resolve();if(_syncing){_syncPending=true;return Promise.resolve()}_syncing=true;clearTimeout(_syncTimer);var data=gs();data.lastSync=new Date().toISOString();persistStore(data,false);var body=JSON.stringify(data);var req;if(driveFileId){req=fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',{method:'PATCH',headers:{'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'},body:body}).then(function(r){if(!r.ok)throw new Error('drive sync failed')})}else{var meta=JSON.stringify({name:'okane_data_v3.json',parents:['appDataFolder']});var form=new FormData();form.append('metadata',new Blob([meta],{type:'application/json'}));form.append('file',new Blob([body],{type:'application/json'}));req=fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form}).then(function(r){if(!r.ok)throw new Error('drive create failed');return r.json()}).then(function(d){if(d.id)driveFileId=d.id;else throw new Error('missing drive file id')})}var failed=false;return req.then(function(){_lastUploadTime=Date.now();_lastSyncSuccess=Date.now();_lastDriveModTime=null}).catch(function(){failed=true}).then(function(){_syncing=false;if(_syncPending){_syncPending=false;return driveSync()}if(failed)throw new Error('sync failed')})}
+function driveSync(){if(!accessToken)return Promise.resolve();if(_syncing){_syncPending=true;return Promise.resolve()}_syncing=true;clearTimeout(_syncTimer);var data=gs();data.lastSync=new Date().toISOString();persistStore(data,false);var body=JSON.stringify(data);var req;if(driveFileId){req=fetch('https://www.googleapis.com/upload/drive/v3/files/'+driveFileId+'?uploadType=media',{method:'PATCH',headers:{'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'},body:body}).then(function(r){if(r.status===401){var e=new Error('401');e.status=401;throw e}if(!r.ok)throw new Error('drive sync failed')})}else{var meta=JSON.stringify({name:'okane_data_v3.json',parents:['appDataFolder']});var form=new FormData();form.append('metadata',new Blob([meta],{type:'application/json'}));form.append('file',new Blob([body],{type:'application/json'}));req=fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Authorization':'Bearer '+accessToken},body:form}).then(function(r){if(r.status===401){var e=new Error('401');e.status=401;throw e}if(!r.ok)throw new Error('drive create failed');return r.json()}).then(function(d){if(d.id)driveFileId=d.id;else throw new Error('missing drive file id')})}var failed=false;return req.then(function(){_lastUploadTime=Date.now();_lastSyncSuccess=Date.now();_lastDriveModTime=null;updateSyncIndicator()}).catch(function(err){if(err&&err.status===401){_syncPending=true;accessToken=null;_authRefreshStarted=false;startSilentAuthRefresh();updateSyncIndicator()}else{failed=true}}).then(function(){_syncing=false;if(_syncPending&&accessToken){_syncPending=false;return driveSync()}if(failed)throw new Error('sync failed')})}
 function driveLoad(){if(!accessToken)return Promise.resolve('none');return fetch("https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D'okane_data_v3.json'&fields=files(id)&orderBy=modifiedTime%20desc",{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(d){if(d.files&&d.files.length>0){driveFileId=d.files[0].id;return fetch('https://www.googleapis.com/drive/v3/files/'+driveFileId+'?alt=media',{headers:{'Authorization':'Bearer '+accessToken}}).then(function(r){return r.json()}).then(function(cloud){if(cloud&&typeof cloud==='object'){var cloudData=normalizeStore(cloud);var localIsNew=isNewUser();var local=gs();if(!localIsNew&&(local.meta.updatedAt||0)>(cloudData.meta.updatedAt||0))return'keepLocal';if(!localIsNew){cloudData._guestBackup={snapshot:JSON.parse(JSON.stringify(local)),savedAt:Date.now()}}persistStore(cloudData,false);return'cloud'}})}return'none'}).catch(function(){return'none'})}
 function driveCheckModTime(){
     if(!accessToken||!driveFileId)return Promise.resolve(null);
@@ -521,7 +540,7 @@ function enterApp(){
 function showGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.add('open')}
 function closeGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.remove('open')}
 function startSilentAuthRefresh(){
-    if(_authRefreshStarted||accessToken||isGuest)return;
+    if(_authRefreshStarted||isGuest)return;
     _authRefreshStarted=true;
     try{
         initGoogleAuth();
@@ -1516,7 +1535,7 @@ function openUser(){
     h+='</div><span style="font-size:13px;font-weight:600;color:var(--tx2)">'+curTheme.name+'</span>';
     h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div></div></div></div>';
     // Sync
-    if(!isGuest){var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';h+='<div class="prof-sec-t">Google Drive</div><div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px"><button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Google Drive</button><div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);margin-top:6px;text-align:center">'+syncLbl+'</div></div></div>'}
+    if(!isGuest){var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';var pendingBadge=_syncPending?'<div id="syncPendingBadge" style="font-size:11px;color:var(--accent);margin-top:4px;text-align:center">⏳ มีข้อมูลรอ sync...</div>':'<div id="syncPendingBadge" style="display:none;font-size:11px;color:var(--accent);margin-top:4px;text-align:center">⏳ มีข้อมูลรอ sync...</div>';h+='<div class="prof-sec-t">Google Drive</div><div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px"><button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Google Drive</button><div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);margin-top:6px;text-align:center">'+syncLbl+'</div>'+pendingBadge+'</div></div>'}
     // Import / Export
     h+='<div class="prof-sec-t">Backup & Restore</div>';
     h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">';
