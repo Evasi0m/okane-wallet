@@ -1249,14 +1249,14 @@ var qaCat=null,qaWallet='cash';
 function getAllDailyCats(){var cats=gCats().map(function(c){return{id:c.id,name:c.name,c:'custom',ic:c.icon,color:c.color}});cats.push({id:'other',name:'\u0E2D\u0E37\u0E48\u0E19\u0E46',c:'other'});return cats}
 function getLastCat(){var s=gs();if(s.dLog){var ks=Object.keys(s.dLog).sort();for(var i=ks.length-1;i>=0;i--){var l=s.dLog[ks[i]];if(l&&l.length){return l[l.length-1].cat||'other'}}}var cats=getAllDailyCats().filter(function(x){return x.id!=='other'});return cats.length?cats[0].id:'other'}
 function getThaiToday(){var now=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));return dKey(now)}
-function openQuickAdd(){qaCat=null;qaWallet=getLastWallet();window._qaA='';window._qaN='';var today=getThaiToday();var di=document.getElementById('qaDate');if(di){di.value=today;di.max=today}renderQA();document.getElementById('qaM').classList.add('open');setTimeout(function(){var i=document.getElementById('qaAmt');if(i)i.focus()},300)}
+function openQuickAdd(){qaCat=null;qaWallet=getLastWallet();window._qaA='';window._qaN='';var today=getThaiToday();var di=document.getElementById('qaDate');if(di){di.value=today;di.max=today}renderQA();document.getElementById('qaM').classList.add('open');var i=document.getElementById('qaAmt');if(i){try{i.focus({preventScroll:true})}catch(e){i.focus()}requestAnimationFrame(function(){var j=document.getElementById('qaAmt');if(j&&document.activeElement!==j){try{j.focus({preventScroll:true})}catch(e){j.focus()}}})}}
 function closeQA(){document.getElementById('qaM').classList.remove('open');window._qaA='';window._qaN=''}
 function renderQA(){
     var cats = getAllDailyCats();
     var hasAmt = Number(window._qaA||0) > 0;
     // Amount + presets
     var h = '<div class="qa-amt-wrap">';
-    h += '<input class="qa-amt" type="number" id="qaAmt" placeholder="0" min="0" oninput="qaAmtChange()"'+(window._qaA?' value="'+window._qaA+'"':'')+' style="margin-bottom:6px">';
+    h += '<input class="qa-amt" type="number" inputmode="decimal" autofocus id="qaAmt" placeholder="0" min="0" oninput="qaAmtChange()"'+(window._qaA?' value="'+window._qaA+'"':'')+' style="margin-bottom:6px">';
     h += '<div class="qa-presets"><button onclick="quickAmt(5)">+5</button><button onclick="quickAmt(10)">+10</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(300)">+300</button><button onclick="quickAmt(1000)">+1000</button></div>';
     h += '</div>';
     // Wallet (centered)
