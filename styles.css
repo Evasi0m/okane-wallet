@@ -845,3 +845,9 @@
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
 @keyframes spin{to{transform:rotate(360deg)}}.spin-ic{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:5px}
 #manualSyncBtn.sync-ok{background:var(--gn)!important}#manualSyncBtn.sync-err{background:var(--rd)!important}#manualSyncBtn:disabled{opacity:.75;cursor:not-allowed}
+
+.color-palette{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 14px}
+.color-dot{width:34px;height:34px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .18s;outline:none;flex-shrink:0}
+.color-dot:hover{transform:scale(1.1)}
+.color-dot.on{border-color:var(--tx1);transform:scale(1.1);box-shadow:0 0 0 1.5px var(--card),0 0 0 3px var(--tx1)}
+.income-preview{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--bg2);border-radius:10px;font-size:13px;font-weight:600;margin-top:4px}

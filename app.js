@@ -79,7 +79,7 @@ var THEMES=[
     {id:'slate',name:'Minimal Slate',dots:['#F8FAFC','#475569','#FFFFFF'],free:false}
 ];
 var CLIENT_ID='933620688457-nqv6qs8381m46t8dn8sqv0qecbcuav82.apps.googleusercontent.com';
-var APP_VER='0.1.0';
+var APP_VER='0.1.4';
 function getBangkokNow(){return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}))}
 function getSafeImageSrc(src){var v=String(src||'').trim();return /^(data:image\/|https?:\/\/)/i.test(v)?v:''}
 var NOW=getBangkokNow();
@@ -196,7 +196,12 @@ function enhanceNumericInputs(root){
         }
         el.setAttribute('inputmode',integerOnly?'numeric':'decimal');
         el.setAttribute('pattern',integerOnly?'[0-9]*':'[0-9]*[.]?[0-9]*');
-        el.setAttribute('autocomplete','off')
+        el.setAttribute('autocomplete','off');
+        if(!el._focusClearBound){
+            el._focusClearBound=true;
+            el.addEventListener('focus',function(){if(this.value==='0'||this.value==='0.00'||this.value==='0.0')this.value=''});
+            el.addEventListener('blur',function(){if(this.value==='')this.value='0'})
+        }
     })
 }
 function guardNumericInput(el){
@@ -1687,13 +1692,20 @@ function incomeItem(x,i){
     if(color.charAt(0)==='#'){var r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);bg='rgba('+r+','+g+','+b+',.12)'}
     return '<div class="ci income-ci" id="ci_I'+i+'"><div class="income-chip" style="background:'+bg+';color:'+color+'">'+IC.inc+'</div><div class="rn"><div class="rn-t" style="font-size:12.5px">'+esc(x.n||'รายรับเพิ่มเติม')+'</div><div class="rn-s">'+fmt(x.a)+'.-</div></div><div class="row-actions">'+(editInc?'<button class="mini-btn" onclick="openIncomePopup(\''+esc(x.id)+'\')" aria-label="แก้ไขรายรับ">'+SVG_PENCIL+'</button>':'')+'<button class="cd" onclick="deleteIncome(\''+esc(x.id)+'\')">'+IC.dl+'</button></div></div>'
 }
-function pickIncomeColor(color){_incomeColor=color;openIncomePopup(_incomeEditId)}
+function pickIncomeColor(color){
+    _incomeColor=color;
+    document.querySelectorAll('.color-dot').forEach(function(btn){
+        btn.classList.toggle('on',btn.getAttribute('data-color')===color)
+    });
+    var prev=document.querySelector('.income-preview');
+    if(prev)prev.style.color=color
+}
 function openIncomePopup(id){
     _incomeEditId=id||null;
     var cur=id?gm(cY,sM_).oI.find(function(x){return x.id===id}):null;
     _incomeColor=cur&&cur.color?cur.color:INCOME_COLORS[0];
-    var h='<div class="mbd"><input class="inp" id="incName" placeholder="ที่มาของรายรับ" style="margin-bottom:12px;width:100%" value="'+esc(cur&&cur.n||'')+'"><input class="inp" type="number" id="incAmount" placeholder="จำนวนเงิน" min="0" style="margin-bottom:12px;width:100%" value="'+Number(cur&&cur.a||0)+'"><div style="font-size:12px;font-weight:700;margin:12px 0 8px">สีไอคอน</div><div class="color-palette">';
-    INCOME_COLORS.forEach(function(color){h+='<button class="color-dot'+(_incomeColor===color?' on':'')+'" type="button" style="background:'+color+'" onclick="pickIncomeColor(\''+color+'\')"></button>'});
+    var h='<div class="mbd"><input class="inp" id="incName" placeholder="ที่มาของรายรับ" style="margin-bottom:12px;width:100%" value="'+esc(cur&&cur.n||'')+'"><input class="inp" type="number" id="incAmount" placeholder="จำนวนเงิน" inputmode="decimal" min="0" style="margin-bottom:12px;width:100%" value="'+Number(cur&&cur.a||0)+'" onfocus="if(this.value==\'0\'||this.value===\'0\')this.value=\'\'" onblur="if(this.value===\'\')this.value=\'0\'"><div style="font-size:12px;font-weight:700;margin:12px 0 8px">สีไอคอน</div><div class="color-palette">';
+    INCOME_COLORS.forEach(function(color){h+='<button class="color-dot'+(_incomeColor===color?' on':'')+'" type="button" data-color="'+color+'" style="background:'+color+'" onclick="pickIncomeColor(\''+color+'\')"></button>'});
     h+='</div><div class="income-preview" style="color:'+esc(_incomeColor)+'">'+IC.inc+'<span>ตัวอย่างไอคอนรายรับ</span></div></div><div class="mft" style="padding:16px 18px 0;display:flex;gap:10px"><button class="btn btn-gh btn-full" onclick="closeIncomePopup()">ยกเลิก</button><button class="btn btn-ac btn-full" onclick="saveIncomePopup()">'+(_incomeEditId?'บันทึก':'เพิ่มรายรับ')+'</button></div>';
     document.getElementById('incBody').innerHTML=h;
     document.getElementById('incPopup').classList.add('open')
