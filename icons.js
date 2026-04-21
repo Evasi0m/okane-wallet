@@ -7,7 +7,7 @@
    While it reads '__SETUP__', the page runs in setup mode
    so you can generate the hash without touching source code.
    ════════════════════════════════════════════ */
-const ADMIN_PASS_HASH = '__SETUP__';
+const ADMIN_PASS_HASH = '2d0fe4c99c6311a2bd15e5a2f4153c9928e9450e826a3f243e122c632180716f';
 
 /* ── SVG base attrs (matches app.js _s) ── */
 const _sa = 'width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
@@ -116,7 +116,7 @@ async function doLogin() {
   if (h === ADMIN_PASS_HASH) {
     setSession();
     document.getElementById('gate').style.display   = 'none';
-    document.getElementById('editor').style.display = '';
+    document.getElementById('editor').style.display = 'block';
     initEditor();
   } else {
     inp.value = '';
@@ -408,7 +408,7 @@ function resetAll() {
   /* If already authenticated this session, go straight to editor */
   if (isAuthed()) {
     document.getElementById('gate').style.display   = 'none';
-    document.getElementById('editor').style.display = '';
+    document.getElementById('editor').style.display = 'block';
     initEditor();
   }
 })();
