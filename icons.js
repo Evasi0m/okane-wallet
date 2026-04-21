@@ -83,6 +83,8 @@ let customIcons  = {};
 let editingKey   = null;
 let currentTab   = 'svg';
 let pendingFile  = null; // file upload result waiting to be saved
+let indexDefaults = {};  // { 'INDEX.<id>': '<svg ...>' } — populated from fetched index.html
+let indexKeys     = [];  // ordered list of 'INDEX.<id>' keys discovered in index.html
 
 /* ════════════════════════════════════════════
    AUTH
@@ -154,19 +156,50 @@ function applyTheme() {
 }
 
 /* ════════════════════════════════════════════
+   INDEX.HTML SVG DISCOVERY
+   — Fetch index.html and collect every <svg data-icon-id="...">
+     so the editor stays in sync whenever someone adds a new SVG
+     (just tag it with data-icon-id and it appears here automatically).
+   ════════════════════════════════════════════ */
+async function loadIndexDefaults() {
+  try {
+    const res  = await fetch('./index.html', { cache: 'no-store' });
+    const text = await res.text();
+    const doc  = new DOMParser().parseFromString(text, 'text/html');
+    const svgs = doc.querySelectorAll('svg[data-icon-id]');
+    indexDefaults = {};
+    indexKeys     = [];
+    svgs.forEach(svg => {
+      const id  = svg.getAttribute('data-icon-id');
+      if (!id) return;
+      const key = 'INDEX.' + id;
+      if (key in indexDefaults) return; // keep first occurrence
+      indexDefaults[key] = svg.outerHTML;
+      indexKeys.push(key);
+    });
+  } catch (e) {
+    console.error('[icons] loadIndexDefaults failed', e);
+    indexDefaults = {};
+    indexKeys     = [];
+  }
+}
+
+/* ════════════════════════════════════════════
    EDITOR INIT
    ════════════════════════════════════════════ */
-function initEditor() {
+async function initEditor() {
   applyTheme();
   readStore();
   renderGrid();
+  await loadIndexDefaults();
+  renderIndexGrid();
 }
 
 /* ════════════════════════════════════════════
    GRID
    ════════════════════════════════════════════ */
 function currentSvg(key) {
-  return customIcons[key] || DEFAULTS[key] || '';
+  return customIcons[key] || DEFAULTS[key] || indexDefaults[key] || '';
 }
 
 function makeCard(key, label) {
@@ -184,6 +217,18 @@ function renderGrid() {
     CAT_KEYS.map(k => makeCard('ICON_LIST.' + k, k)).join('');
   document.getElementById('gridSys').innerHTML =
     SYS_KEYS.map(k => makeCard('IC.' + k, 'IC.' + k)).join('');
+}
+
+function renderIndexGrid() {
+  const host = document.getElementById('gridIndex');
+  if (!host) return;
+  if (indexKeys.length === 0) {
+    host.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:16px;color:var(--tx3);font-size:12px">ไม่พบ SVG ที่มี <code>data-icon-id</code> ใน index.html</div>';
+    return;
+  }
+  host.innerHTML = indexKeys
+    .map(k => makeCard(k, k.replace(/^INDEX\./, '')))
+    .join('');
 }
 
 /* ════════════════════════════════════════════
@@ -283,6 +328,22 @@ function handleFile(input) {
 /* ════════════════════════════════════════════
    SAVE / RESET
    ════════════════════════════════════════════ */
+/* Ensure a saved SVG string keeps (or gains) data-icon-id="<id>" so that
+   the runtime scanner in app.js can still match it after replaceWith(). */
+function ensureIconIdAttr(svgCode, iconId) {
+  if (!svgCode || !iconId) return svgCode;
+  try {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = svgCode.trim();
+    const el = wrap.querySelector('svg');
+    if (!el) return svgCode; // raw image/html — leave as-is
+    el.setAttribute('data-icon-id', iconId);
+    return el.outerHTML;
+  } catch (e) {
+    return svgCode;
+  }
+}
+
 function saveOne() {
   let svgCode;
 
@@ -300,9 +361,14 @@ function saveOne() {
     svgCode = pendingFile;
   }
 
+  if (editingKey && editingKey.startsWith('INDEX.')) {
+    svgCode = ensureIconIdAttr(svgCode, editingKey.slice('INDEX.'.length));
+  }
+
   customIcons[editingKey] = svgCode;
   writeCustomIcons();
   renderGrid();
+  renderIndexGrid();
   closeModal();
 }
 
@@ -311,6 +377,7 @@ function resetOne() {
   delete customIcons[editingKey];
   writeCustomIcons();
   renderGrid();
+  renderIndexGrid();
   closeModal();
 }
 
@@ -319,6 +386,7 @@ function resetAll() {
   customIcons = {};
   writeCustomIcons();
   renderGrid();
+  renderIndexGrid();
 }
 
 /* ════════════════════════════════════════════
