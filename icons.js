@@ -116,7 +116,7 @@ async function doLogin() {
   if (h === ADMIN_PASS_HASH) {
     setSession();
     document.getElementById('gate').style.display   = 'none';
-    document.getElementById('editor').style.display = '';
+    document.getElementById('editor').style.display = 'block';
     initEditor();
   } else {
     inp.value = '';
@@ -408,7 +408,7 @@ function resetAll() {
   /* If already authenticated this session, go straight to editor */
   if (isAuthed()) {
     document.getElementById('gate').style.display   = 'none';
-    document.getElementById('editor').style.display = '';
+    document.getElementById('editor').style.display = 'block';
     initEditor();
   }
 })();
