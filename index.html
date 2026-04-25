@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Okane Wallet</title>
 <meta name="apple-mobile-web-app-title" content="Okane">
+<link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#E0712B">
@@ -32,6 +33,7 @@
 <div class="tip" id="tip"></div>
 <div id="pinLock" class="pin-lock"><div class="pin-box"><div class="pin-title">ใส่ PIN เพื่อปลดล็อก</div><div class="pin-sub" id="pinSub">เพื่อความปลอดภัยของข้อมูล</div><div class="pin-dots" id="pinDots"><span></span><span></span><span></span><span></span></div><input id="pinInput" class="pin-input" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••" oninput="onPinInput(this.value)"><div class="pin-actions"><button class="btn btn-gh btn-full" onclick="pinCancel()">ยกเลิก</button><button class="btn btn-ac btn-full" onclick="pinSubmit()">ปลดล็อก</button></div></div></div>
 <div id="undoToast" class="undo-toast"><div class="undo-msg" id="undoMsg">ลบแล้ว</div><button class="undo-btn" onclick="undoLastDelete()">Undo</button></div>
+<div id="streakToast" class="streak-toast"></div>
 <!-- Quick Add -->
 <div class="mbg" id="qaM"><div class="mbox"><div class="mbar"></div><div class="mhd"><h2><svg data-icon-id="modal-qa-plus" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ac)" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>บันทึกรายจ่าย</h2><input class="qa-hd-date" type="date" id="qaDate"></div><div class="mbd" id="qaB"></div><div class="mft"><button class="btn btn-gh btn-full" onclick="closeQA()">ยกเลิก</button><button class="btn btn-ac btn-full" onclick="saveQA()">บันทึก</button></div></div></div>
 <!-- Edit Entry -->
@@ -74,5 +76,6 @@
 <!-- Filter Popup -->
 <div class="cal-popup" id="filterPop"><div class="cal-box"><div class="cal-hd"><span>ตัวกรอง</span><button onclick="closeFilterPop()"><svg data-icon-id="filter-close" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div id="filterBody"></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-gh btn-full" onclick="resetFilters()">ล้าง</button><button class="btn btn-ac btn-full" onclick="applyFilters()">ใช้ตัวกรอง</button></div></div></div>
 <script src="app.js?v=20260420s"></script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})}</script>
 </body>
 </html>

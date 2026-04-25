@@ -738,6 +738,8 @@ var savBal=getSavings().balance;
 var h=pillMonthH();
 h+=heroH('\u0E40\u0E07\u0E34\u0E19\u0E04\u0E07\u0E40\u0E2B\u0E25\u0E37\u0E2D '+TMF[m]+' '+cY,c.r,c.tI,c.tE);
 h+=savTabH(savBal);
+var streak=getStreak();
+if(streak.current>0)h+='<div class="streak-bar"><span>บันทึกต่อเนื่อง '+streak.current+' วัน</span><span class="streak-best">สถิติดีสุด '+streak.best+' วัน</span></div>';
 var carryTotal=(c.carryIn?Number(c.carryIn.rem||0)+sumMap(c.carryIn.cat):0);
 if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:JetBrains Mono,monospace">-'+fmt(carryTotal)+'</span></div>';
 if(isNewUser())h+='<div class="setup-banner"><div class="setup-banner-ic">'+IC.cal+'</div><div><div class="setup-banner-t">เริ่มต้นใช้งานครั้งแรก</div><div class="setup-banner-s">เพิ่มเงินเดือนและสร้างหมวดค่าใช้จ่ายก่อน เพื่อให้รายเดือน รายวัน และรายปีคำนวณได้ครบ</div></div><div class="setup-banner-actions"><button class="btn btn-ac" onclick="openCat()">เพิ่มหมวดค่าใช้จ่าย</button><button class="btn btn-gh" onclick="editInc=true;render()">ใส่เงินเดือน</button></div></div>';
@@ -1326,7 +1328,7 @@ moData[cat]=budget;sm_(yr,mo,moData);
 var now2b=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));
 var log=getDayLog(dateKey);
 log.push({id:genId('dl'),a:amt,cat:cat,n:note,w:qaWallet,t:String(now2b.getHours()).padStart(2,'0')+':'+String(now2b.getMinutes()).padStart(2,'0')});
-saveDayLog(dateKey,log);closeQA();showUndo('บันทึกสำเร็จ!',true);if(vw==='d')render();else setV('d')}
+saveDayLog(dateKey,log);updateStreakForDate(dateKey);closeQA();showUndo('บันทึกสำเร็จ!',true);if(vw==='d')render();else setV('d')}
 function getCatName(id){return getCatMeta(id).name||id}
 document.getElementById('qaM').addEventListener('click',function(e){if(e.target===this)closeQA()});
 function showUndo(msg,isSuccess){var t=document.getElementById('undoToast');if(!t)return;document.getElementById('undoMsg').textContent=msg||'ลบแล้ว';t.classList.toggle('success',!!isSuccess);t.classList.add('show');clearTimeout(_undoTimer);_undoTimer=setTimeout(function(){t.classList.remove('show');if(!isSuccess)_lastDelete=null},isSuccess?3000:5000)}
@@ -2153,6 +2155,31 @@ function saveTemplate(){var name=(document.getElementById('tName').value||'').tr
 function applyTemplate(id){var s=gs();if(!s.templates)return;var t=s.templates.find(function(x){return x.id===id});if(!t)return;if(!confirm('ใช้ Template นี้กับเดือนนี้?'))return;var d=gm(cY,sM_);var merged=Object.assign({},d,t.data||{});sm_(cY,sM_,merged);render();renderSettings()}
 function delTemplate(id){var s=gs();if(!s.templates)return;s.templates=s.templates.filter(function(x){return x.id!==id});syncNow(s);renderSettings()}
 
+/* ===== STREAK TRACKING ===== */
+function getStreak(){var s=gs();return s.streak||{current:0,best:0,lastDate:''}}
+function updateStreakForDate(dateKey){
+    if(!dateKey)return;
+    var s=gs();
+    if(!s.streak)s.streak={current:0,best:0,lastDate:''};
+    var last=s.streak.lastDate||'';
+    if(last===dateKey||last>dateKey)return;
+    var prev=new Date(dateKey+'T00:00:00');
+    prev.setDate(prev.getDate()-1);
+    var yesterday=dKey(prev);
+    s.streak.current=last===yesterday?Number(s.streak.current||0)+1:1;
+    s.streak.lastDate=dateKey;
+    if(s.streak.current>Number(s.streak.best||0))s.streak.best=s.streak.current;
+    syncNow(s);
+    if([3,7,14,30,60,100].indexOf(s.streak.current)>=0)showStreakToast(s.streak.current)
+}
+function showStreakToast(days){
+    var el=document.getElementById('streakToast');
+    if(!el)return;
+    el.textContent='บันทึกครบ '+days+' วันต่อเนื่อง';
+    el.classList.add('show');
+    setTimeout(function(){el.classList.remove('show')},3500)
+}
+
 /* ===== INIT ===== */
 document.addEventListener('input',function(e){
     var t=e.target;
@@ -2172,5 +2199,4 @@ window.addEventListener('load',function(){
     checkSession()
 });
 window.addEventListener('storage',function(e){if(e.key==='okane_v3'){applyCustomIcons();applyIndexSvgOverrides();if(typeof render==='function')render();}});
-
 
