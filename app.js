@@ -1106,6 +1106,21 @@ var carryTotal=(c.carryIn?Number(c.carryIn.rem||0)+sumMap(c.carryIn.cat):0);
 if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:Taviraj,sans-serif">-'+fmt(carryTotal)+'</span></div>';
 if(isNewUser())h+='<div class="setup-banner"><div class="setup-banner-ic">'+IC.cal+'</div><div><div class="setup-banner-t">เริ่มต้นใช้งานครั้งแรก</div><div class="setup-banner-s">เพิ่มเงินเดือนและสร้างหมวดค่าใช้จ่ายก่อน เพื่อให้รายเดือน รายวัน และรายปีคำนวณได้ครบ</div></div><div class="setup-banner-actions"><button class="btn btn-ac" onclick="openCat()">เพิ่มหมวดค่าใช้จ่าย</button><button class="btn btn-gh" onclick="editInc=true;render()">ใส่เงินเดือน</button></div></div>';
 
+// INSIGHTS — moved up for visibility
+var prev=prevYM(y,m),pc=calc(prev.y,prev.m);
+var delta=c.r-pc.r;
+var topCats=[];
+Object.keys(c.spentMap||{}).forEach(function(k){if(k==='other')return;topCats.push({k:k,v:Number(c.spentMap[k]||0)})});
+topCats.sort(function(a,b){return b.v-a.v});
+var peak={d:'',v:0};
+var sLog=gs().dLog||{},prefix=mk(y,m);
+Object.keys(sLog).forEach(function(dk){if(!dk.startsWith(prefix))return;var v=sLog[dk].reduce(function(ss,x){return ss+Number(x.a||0)},0);if(v>peak.v){peak={d:dk,v:v}}});
+h+='<div class="sec ins-card insight-panel" style="animation-delay:.03s"><div class="ic-mesh"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div><div class="ip-hd"><div class="ip-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/></svg><span>Insights</span></div></div><div class="sc"><div class="ip-grid">';
+h+='<div class="ip-item"><div class="ip-meta"><div class="ri inc">'+IC.inc+'</div><div class="ip-lb"><div class="ip-t">เทียบกับเดือนก่อน</div><div class="ip-s">'+TMF[prev.m]+' '+prev.y+'</div></div></div><div class="ip-val '+(delta>=0?'pos':'neg')+'">'+(delta>=0?'+':'')+fmt(delta)+'</div></div>';
+if(topCats.length>0)h+='<div class="ip-item"><div class="ip-meta"><div class="ri shopee">'+IC.cal+'</div><div class="ip-lb"><div class="ip-t">Top หมวด</div><div class="ip-s">'+topCats.slice(0,3).map(function(x){return esc(getCatName(x.k))+' '+fmt(x.v)}).join(' • ')+'</div></div></div><div class="ip-val ip-muted">•</div></div>';
+if(peak.v>0)h+='<div class="ip-item"><div class="ip-meta"><div class="ri rd">'+IC.dl+'</div><div class="ip-lb"><div class="ip-t">วันที่ใช้จ่ายสูงสุด</div><div class="ip-s">'+peak.d+'</div></div></div><div class="ip-val neg">-'+fmt(peak.v)+'</div></div>';
+h+='</div></div></div>';
+
 // INCOME
 h+='<div class="sec" style="animation-delay:.04s"><div class="sec-t">'+secTitle(IC.inc,'รายรับ')+'<button class="edit-btn'+(editInc?' editing':'')+'" onclick="editInc=!editInc;render()" aria-label="'+(editInc?'บันทึก':'แก้ไข')+'">'+(editInc?SVG_CHECK:SVG_PENCIL)+'</button></div><div class="sc">';
 h+='<div class="row"><div class="ri inc">'+IC.inc+'</div><div class="rn"><div class="rn-t">\u0E40\u0E07\u0E34\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19</div><div class="rn-s">รายรับประจำของเดือนนี้</div></div>';
@@ -1119,7 +1134,7 @@ h+='</div></div>';
 var st=ensureSettings();
 var otherItems=getDailyOther(y,m);
 
-// EXPENSES
+// EXPENSES + CHART (combined)
 h+='<div class="sec" style="animation-delay:.08s"><div class="sec-t">'+secTitle(IC.dl,'รายจ่าย')+'<div style="display:inline-flex;gap:6px;align-items:center"><button class="edit-btn" onclick="openCat(\'manage\')" aria-label="จัดการหมวด" title="จัดการหมวดค่าใช้จ่าย"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button><button class="edit-btn'+(editExp?' editing':'')+'" onclick="toggleExpenseEdit()" aria-label="'+(editExp?'บันทึก':'แก้ไข')+'">'+(editExp?SVG_CHECK:SVG_PENCIL)+'</button></div></div><div class="sc">';
 var exps=getAllExpCats(d,y,m,c.spentMap,c.recurMap);
 if(exps.length===0)h+=emptyStateH({icon:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h18l-2 13H5L3 3z"/><path d="M16 21a2 2 0 100-4 2 2 0 000 4zM8 21a2 2 0 100-4 2 2 0 000 4z"/></svg>',title:'ยังไม่มีหมวดค่าใช้จ่าย',desc:'สร้างหมวด เช่น ค่ากิน ค่าเดินทาง เพื่อเริ่มจัดงบและบันทึกรายจ่าย',cta:{text:'+ สร้างหมวดแรก',onclick:"openCat('add')"}});
@@ -1145,6 +1160,9 @@ rec.forEach(function(r){h+='<div class="ci"><div class="rn"><div class="rn-t" st
 if(otherItems.length>0||c.otherTotal>0){
 h+='<div class="sub-lb">\u0E04\u0E48\u0E32\u0E43\u0E0A\u0E49\u0E08\u0E48\u0E32\u0E22\u0E2D\u0E37\u0E48\u0E19\u0E46 (\u0E08\u0E32\u0E01\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E23\u0E32\u0E22\u0E27\u0E31\u0E19) <span style="font-family:Taviraj,sans-serif;font-size:11px;font-weight:700;color:var(--rd)">'+fmt(c.otherTotal)+'</span></div>';
 otherItems.forEach(function(x){h+='<div class="ci"><div class="rn"><div class="rn-t" style="font-size:12px;color:var(--rd)">'+fmt(x.a)+' '+(x.n?'<span style="color:var(--tx2);font-weight:500">'+esc(x.n)+'</span>':'')+'</div><div class="rn-s">'+x.date+' '+x.t+'</div></div></div>'})}
+
+// Chart inside expense section
+h+='<div style="padding:14px 10px;border-top:1px solid var(--cb);margin-top:8px"><div class="sec-t" style="padding:0 0 8px;margin:0">'+secTitle(IC.cal,'สัดส่วนค่าใช้จ่าย')+'</div><div class="cw"><canvas id="mC"></canvas><div id="mC-center" class="chart-center"></div></div><div id="mC-legend" class="chart-legend"></div></div>';
 h+='</div></div>';
 
 var lowRem=st.lowRemaining!==undefined?Number(st.lowRemaining||0):1000;
@@ -1167,25 +1185,6 @@ var cardSet=(st.card||{cycleDay:25,dueDay:10});
 h+='<div class="sec" style="animation-delay:.11s"><div class="sec-t">'+secTitle(IC.cal,'บัตร (รอบบิล)')+'</div><div class="sc"><div class="row"><div class="ri shopee">'+IC.cal+'</div><div class="rn"><div class="rn-t">ยอดบัตรรวม</div><div class="rn-s">รอบตัด '+Number(cardSet.cycleDay||25)+' • ครบกำหนด '+Number(cardSet.dueDay||10)+'</div></div><div class="rv neg">'+fmt(cardSum)+'</div></div></div></div>';
 }
 
-var prev=prevYM(y,m),pc=calc(prev.y,prev.m);
-var delta=c.r-pc.r;
-var topCats=[];
-Object.keys(c.spentMap||{}).forEach(function(k){if(k==='other')return;topCats.push({k:k,v:Number(c.spentMap[k]||0)})});
-topCats.sort(function(a,b){return b.v-a.v});
-var peak={d:'',v:0};
-var sLog=gs().dLog||{},prefix=mk(y,m);
-Object.keys(sLog).forEach(function(dk){if(!dk.startsWith(prefix))return;var v=sLog[dk].reduce(function(ss,x){return ss+Number(x.a||0)},0);if(v>peak.v){peak={d:dk,v:v}}});
-h+='<div class="sec ins-card insight-panel" style="animation-delay:.115s"><div class="ic-mesh"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div><div class="ip-hd"><div class="ip-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/></svg><span>Insights</span></div></div><div class="sc"><div class="ip-grid">';
-h+='<div class="ip-item"><div class="ip-meta"><div class="ri inc">'+IC.inc+'</div><div class="ip-lb"><div class="ip-t">เทียบกับเดือนก่อน</div><div class="ip-s">'+TMF[prev.m]+' '+prev.y+'</div></div></div><div class="ip-val '+(delta>=0?'pos':'neg')+'">'+(delta>=0?'+':'')+fmt(delta)+'</div></div>';
-if(topCats.length>0)h+='<div class="ip-item"><div class="ip-meta"><div class="ri shopee">'+IC.cal+'</div><div class="ip-lb"><div class="ip-t">Top หมวด</div><div class="ip-s">'+topCats.slice(0,3).map(function(x){return esc(getCatName(x.k))+' '+fmt(x.v)}).join(' • ')+'</div></div></div><div class="ip-val ip-muted">•</div></div>';
-if(peak.v>0)h+='<div class="ip-item"><div class="ip-meta"><div class="ri rd">'+IC.dl+'</div><div class="ip-lb"><div class="ip-t">วันที่ใช้จ่ายสูงสุด</div><div class="ip-s">'+peak.d+'</div></div></div><div class="ip-val neg">-'+fmt(peak.v)+'</div></div>';
-h+='</div></div></div>';
-
-// Savings goal
-
-
-h+='<div class="sec glass-chart" style="animation-delay:.12s"><div class="sec-t">'+secTitle(IC.cal,'สัดส่วนค่าใช้จ่ายประจำเดือน')+'</div><div class="sc" style="padding:14px 10px"><div class="cw"><canvas id="mC"></canvas><div id="mC-center" class="chart-center"></div></div><div id="mC-legend" class="chart-legend"></div></div>';
-h+='</div>';
 h+='<div class="reset-area"><button class="reset-btn" onclick="resetMonth()">ล้างเดือน '+TM[m]+'</button><div class="credit">Credit : Opus 4.6 & Jarasrawee</div></div>';
 
 el.innerHTML=h;drawMC(d,y,m)
@@ -1213,7 +1212,7 @@ var filteredLog = log.filter(function(x){
     return n.indexOf(sq.toLowerCase()) >= 0 || cat.indexOf(sq.toLowerCase()) >= 0;
 });
 
-h+='<div class="sec day-hero"><div class="dh-mesh"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div><div class="dh-head"><span class="dh-title">\u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49</span><span class="dh-amt">-'+fmt(total)+'</span></div>';
+h+='<div class="sec day-hero"><div class="dh-head"><span class="dh-title">\u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49</span><span class="dh-amt">-'+fmt(total)+'</span></div>';
 
 // Search Bar
 h+='<div class="search-wrap"><svg class="svg-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="ค้นหารายการหรือ #แท็ก..." oninput="sq=this.value;rDailyList()" id="sqI" value="'+sq+'"><button class="ib" style="width:32px;height:32px;border-radius:10px" onclick="openFilterPop()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg></button></div>';
@@ -1222,62 +1221,70 @@ h+='<div id="dailyList">';
 h+=dailyListH(filteredLog, dk);
 h+='</div></div>';
 
-// 2. Swapped: Budget overview with progress - inside Collapsible Accordion!
-if(window._budgetOpen === undefined) window._budgetOpen = false;
-var chevronClass = window._budgetOpen ? 'budget-chevron open' : 'budget-chevron';
-var accordionClass = window._budgetOpen ? 'budget-accordion-content open' : 'budget-accordion-content';
-
-h+='<div class="sec"><div class="sec-t collapsible-budget" onclick="window._budgetOpen=!window._budgetOpen;render();">' +
-   secTitle(IC.cal, 'งบรายเดือน (แตะเพื่อกาง/พับ)') +
-   '<svg class="' + chevronClass + '" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>' +
-   '<div class="' + accordionClass + '"><div class="sc" style="padding:14px;padding-top:0">';
-
+// Mini budget cards — top 3 categories sorted by % used (highest first)
 var exps=getAllExpCats(d,vy,vm,c.spentMap,c.recurMap);
+var budgetCards=[];
 exps.forEach(function(e){
   var budget=Number(d[e.k]||0);
-  if(budget<=0)return;
+  if(budget<=0||e.k==='shopee')return;
   var rec=Number((c.recurMap||{})[e.k]||0);
   var spent=Number((c.dailySpentMap||{})[e.k]||0);
   var carryCat=(c.carryIn&&c.carryIn.cat&&c.carryIn.cat[e.k])?Number(c.carryIn.cat[e.k]||0):0;
   var effSpent=spent+rec+carryCat;
-  var left=budget-effSpent;
-  var isShopee=e.k==='shopee';
-  h+='<div class="row'+((!isShopee)?' has-prog':'')+'"'+((!isShopee)?' onclick="openCatDetail(\''+e.k+'\')" style="cursor:pointer"':'')+'>'+catBadge(e.k)+'<div class="rn"><div class="rn-t" style="font-size:12px">'+e.n+'</div>'+((!isShopee)?'<div class="rn-s">\u0E40\u0E2B\u0E25\u0E37\u0E2D '+fmt(left)+' / '+fmt(budget)+(rec>0?' \u2022 \u0E1B\u0E23\u0E30\u0E08\u0E33 '+fmt(rec):'')+(carryCat>0?' \u2022 \u0E04\u0E49\u0E32\u0E07 '+fmt(carryCat):'')+'</div>':'')+'</div><div class="rv '+(left>=0?'':'neg')+'" style="font-size:13px">'+fmt(left)+'</div></div>';
-  if(!isShopee)h+=progBar(effSpent,budget);
+  var pct=Math.min((effSpent/budget)*100,100);
+  budgetCards.push({k:e.k,n:e.n,budget:budget,spent:effSpent,left:budget-effSpent,pct:pct});
 });
-h+='</div></div></div>';
+budgetCards.sort(function(a,b){return b.pct-a.pct});
+if(budgetCards.length>0){
+h+='<div class="sec" style="animation-delay:.02s"><div class="sec-t">'+secTitle(IC.cal,'งบรายเดือน')+'</div><div class="sc" style="padding:8px 12px">';
+h+='<div class="budget-mini-grid">';
+budgetCards.slice(0,3).forEach(function(bc){
+  var cls=bc.pct>=90?'pf-rd':bc.pct>=70?'pf-or':'pf-gn';
+  h+='<div class="budget-mini-card" onclick="openCatDetail(\''+bc.k+'\')">';
+  h+='<div class="bmc-top">'+catBadge(bc.k)+'<span class="bmc-name">'+esc(bc.n)+'</span></div>';
+  h+='<div class="bmc-bar"><div class="prog-fill '+cls+'" style="width:'+bc.pct.toFixed(0)+'%"></div></div>';
+  h+='<div class="bmc-nums"><span>เหลือ '+fmt(bc.left)+'</span><span>'+bc.pct.toFixed(0)+'%</span></div>';
+  h+='</div>';
+});
+h+='</div>';
+if(budgetCards.length>3){
+h+='<div style="text-align:center;padding:6px 0"><button class="btn btn-gh" style="font-size:11px;padding:6px 16px" onclick="window._budgetOpen=true;setV(\'m\')">ดูงบทั้งหมด →</button></div>';
+}
+h+='</div></div>';
+}
 
-// Weekly + Monthly summary (stays at bottom)
+// Weekly summary — moved up (more relevant in daily view)
 var weekT=0,weekD=0,weekItems=[];
 for(var wi=0;wi<7;wi++){var wd=new Date(viewDate);wd.setDate(wd.getDate()-wd.getDay()+wi);var wdk=dKey(wd);var wl=getDayLog(wdk);var wt=wl.reduce(function(s2,x){return s2+Number(x.a||0)},0);if(wt>0)weekD++;weekT+=wt;wl.forEach(function(x){weekItems.push(Object.assign({date:wdk},x))})}
 weekItems.sort(function(a,b){return (a.date+a.t)<(b.date+b.t)?1:-1});
-var mDays=new Date(vy,vm+1,0).getDate(),mT=0,mC2=0,monthItems=[];
-for(var d2=1;d2<=mDays;d2++){var mdk2=vy+'-'+String(vm+1).padStart(2,'0')+'-'+String(d2).padStart(2,'0');var ml=getDayLog(mdk2);ml.forEach(function(x){mT+=Number(x.a||0);mC2++;monthItems.push(Object.assign({date:mdk2},x))})}
-monthItems.sort(function(a,b){return (a.date+a.t)<(b.date+b.t)?1:-1});
-window._sumData={week:weekItems,month:monthItems,cats:getAllDailyCats()};
-window._sumView=window._sumView||{week:'time',month:'time'};
-h+='<div class="sec"><div class="sec-t">'+secTitle(IC.cal,'สรุป')+'</div><div class="sc" style="padding:14px">';
-// Week row
-h+='<div class="sum-hd" onclick="toggleSumExp(\'week\')">';
-h+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600"><span>สัปดาห์นี้ <span class="sum-arr" id="sum-arr-week">▾</span></span><span class="rv neg" style="font-size:14px">-'+fmt(weekT)+'</span></div>';
-h+='<div style="font-size:11px;color:var(--tx3);margin-top:3px">'+weekD+' วัน'+(weekD>0?' เฉลี่ย '+fmt(Math.round(weekT/weekD))+'.-/วัน':'')+'</div>';
-h+='</div>';
-h+='<div id="sum-exp-week" class="sum-exp"><div class="sum-vbar"><span class="sum-vbar-lb">เรียงโดย</span><div class="sum-vtog" id="sum-vtog-week" onclick="event.stopPropagation();toggleSumView(\'week\')"><span id="sum-vopt-week-time" class="sum-vopt'+(window._sumView.week==='time'?' on':'')+'">เวลา</span><span id="sum-vopt-week-cat" class="sum-vopt'+(window._sumView.week==='cat'?' on':'')+'">หมวดหมู่</span></div></div><div id="sum-exp-content-week">'+buildSumRows('week')+'</div></div>';
 var st=ensureSettings();
+h+='<div class="sec" style="animation-delay:.04s"><div class="sec-t">'+secTitle(IC.cal,'สัปดาห์นี้')+'</div><div class="sc" style="padding:14px">';
+h+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600"><span>'+weekD+' วัน'+(weekD>0?' เฉลี่ย '+fmt(Math.round(weekT/weekD))+'.-/วัน':'')+'</span><span class="rv neg" style="font-size:14px">-'+fmt(weekT)+'</span></div>';
 if(st.weeklyOn){
     var md=gm(vy,vm),wb=0;
     var ex=getAllExpCats(md,vy,vm);
     ex.forEach(function(e){var b=Number(md[e.k]||0);if(b>0)wb+=b});
     wb=Math.max(0,Math.round(wb/4));
     var leftW=wb-weekT;
-    h+='<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--cb)"><div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700"><span>งบสัปดาห์นี้</span><span class="rv '+(leftW>=0?'pos':'neg')+'" style="font-size:14px">'+(leftW>=0?'+':'')+fmt(leftW)+'</span></div><div style="font-size:11px;color:var(--tx3);margin-top:4px">งบ '+fmt(wb)+'</div></div>';
-    h+=progBar(weekT,wb);
+    h+='<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--tx2)"><span>งบสัปดาห์</span><span class="rv '+(leftW>=0?'pos':'neg')+'">เหลือ '+fmt(leftW)+' / '+fmt(wb)+'</span></div>';
+    h+=progBar(weekT,wb)+'</div>';
 }
-// Month row
-h+='<div class="sum-hd" onclick="toggleSumExp(\'month\')" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--cb)">';
-h+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600"><span>เดือน '+TMF[vm]+' <span class="sum-arr" id="sum-arr-month">▾</span></span><span class="rv neg" style="font-size:14px">-'+fmt(mT)+'</span></div>';
-h+='<div style="font-size:11px;color:var(--tx3);margin-top:3px">'+mC2+' รายการ</div>';
-h+='</div>';
+window._sumData=window._sumData||{};window._sumData.week=weekItems;window._sumData.cats=getAllDailyCats();
+window._sumView=window._sumView||{week:'time',month:'time'};
+h+='<div class="sum-hd" onclick="toggleSumExp(\'week\')" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--cb)">';
+h+='<div style="font-size:11px;color:var(--tx3)">รายละเอียด <span class="sum-arr" id="sum-arr-week">▾</span></div></div>';
+h+='<div id="sum-exp-week" class="sum-exp"><div class="sum-vbar"><span class="sum-vbar-lb">เรียงโดย</span><div class="sum-vtog" id="sum-vtog-week" onclick="event.stopPropagation();toggleSumView(\'week\')"><span id="sum-vopt-week-time" class="sum-vopt'+(window._sumView.week==='time'?' on':'')+'">เวลา</span><span id="sum-vopt-week-cat" class="sum-vopt'+(window._sumView.week==='cat'?' on':'')+'">หมวดหมู่</span></div></div><div id="sum-exp-content-week">'+buildSumRows('week')+'</div></div>';
+h+='</div></div>';
+
+// Monthly summary
+var mDays=new Date(vy,vm+1,0).getDate(),mT=0,mC2=0,monthItems=[];
+for(var d2=1;d2<=mDays;d2++){var mdk2=vy+'-'+String(vm+1).padStart(2,'0')+'-'+String(d2).padStart(2,'0');var ml=getDayLog(mdk2);ml.forEach(function(x){mT+=Number(x.a||0);mC2++;monthItems.push(Object.assign({date:mdk2},x))})}
+monthItems.sort(function(a,b){return (a.date+a.t)<(b.date+b.t)?1:-1});
+window._sumData.month=monthItems;
+h+='<div class="sec" style="animation-delay:.06s"><div class="sec-t">'+secTitle(IC.cal,'เดือน '+TMF[vm])+'</div><div class="sc" style="padding:14px">';
+h+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600"><span>'+mC2+' รายการ</span><span class="rv neg" style="font-size:14px">-'+fmt(mT)+'</span></div>';
+h+='<div class="sum-hd" onclick="toggleSumExp(\'month\')" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--cb)">';
+h+='<div style="font-size:11px;color:var(--tx3)">รายละเอียด <span class="sum-arr" id="sum-arr-month">▾</span></div></div>';
 h+='<div id="sum-exp-month" class="sum-exp"><div class="sum-vbar"><span class="sum-vbar-lb">เรียงโดย</span><div class="sum-vtog" id="sum-vtog-month" onclick="event.stopPropagation();toggleSumView(\'month\')"><span id="sum-vopt-month-time" class="sum-vopt'+(window._sumView.month==='time'?' on':'')+'">เวลา</span><span id="sum-vopt-month-cat" class="sum-vopt'+(window._sumView.month==='cat'?' on':'')+'">หมวดหมู่</span></div></div><div id="sum-exp-content-month">'+buildSumRows('month')+'</div></div>';
 h+='</div></div>';
 h+='<div class="credit">Credit : Opus 4.6 & Jarasrawee</div>';
@@ -1422,7 +1429,7 @@ function rYear(el){var h='',ti=0,te=0,ts=getYearSavedTotal(cY),rows=[];for(var m
 var prevTE=0;for(var pm=0;pm<12;pm++){prevTE+=calc(cY-1,pm).tE}
 h+=heroH('\u0E2A\u0E23\u0E38\u0E1B\u0E23\u0E32\u0E22\u0E1B\u0E35 '+cY,tr,ti,te,{key:'yhero',prevExp:prevTE,prevLabel:'จากปีก่อน'});
 h+=savTabH(getSavings().balance);
-h+='<div class="sec"><div class="sec-t">'+secTitle(IC.save,'เป้าหมายออมรายปี')+'<span class="rv pos" style="font-size:12px">'+prog.toFixed(0)+'%</span></div><div class="sc"><div style="padding:4px 16px 0;font-size:11px;color:var(--tx3)">ออมแล้ว '+fmt(ts)+' / '+fmt(goal)+'</div><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill pf-gn" style="width:'+Math.min(prog,100)+'%"></div></div></div><div style="padding:8px 16px 0;font-size:11px;color:var(--tx2)">เงินเก็บสะสมปัจจุบัน '+fmt(getSavings().balance)+'</div></div></div>';
+if(goal>0){h+='<div class="sav-goal-inline"><div class="sav-goal-info"><span class="sav-goal-lb">เป้าหมายออม '+cY+'</span><span class="sav-goal-val">'+fmt(ts)+' / '+fmt(goal)+' ('+prog.toFixed(0)+'%)</span></div><div class="bmc-bar" style="margin-top:4px"><div class="prog-fill pf-gn" style="width:'+Math.min(prog,100)+'%"></div></div></div>'}
 h+='<div class="sec year-board"><div class="sec-t">'+secTitle(IC.cal,'สรุปรายเดือน')+'</div><div class="sc" style="padding:0 10px 14px">';
 h+='<div class="ym-grid">';
 var mxI=Math.max.apply(null,rows.map(function(c){return c.tI}))||1;
@@ -1649,40 +1656,78 @@ var qaCat=null,qaWallet='cash';
 function getAllDailyCats(){var cats=gCats().map(function(c){return{id:c.id,name:c.name,c:'custom',ic:c.icon,color:c.color}});cats.push({id:'other',name:'\u0E2D\u0E37\u0E48\u0E19\u0E46',c:'other'});return cats}
 function getLastCat(){var s=gs();if(s.dLog){var ks=Object.keys(s.dLog).sort();for(var i=ks.length-1;i>=0;i--){var l=s.dLog[ks[i]];if(l&&l.length){return l[l.length-1].cat||'other'}}}var cats=getAllDailyCats().filter(function(x){return x.id!=='other'});return cats.length?cats[0].id:'other'}
 function getThaiToday(){var now=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));return dKey(now)}
-function openQuickAdd(){qaCat=null;qaWallet=getLastWallet();window._qaA='';window._qaN='';var today=getThaiToday();var di=document.getElementById('qaDate');if(di){di.value=today;di.max=today}renderQA();document.getElementById('qaM').classList.add('open');var i=document.getElementById('qaAmt');if(i){try{i.focus({preventScroll:true})}catch(e){i.focus()}requestAnimationFrame(function(){var j=document.getElementById('qaAmt');if(j&&document.activeElement!==j){try{j.focus({preventScroll:true})}catch(e){j.focus()}}})}}
+function openQuickAdd(){qaCat=null;qaWallet=getLastWallet();window._qaA='';window._qaN='';window._qaShowAll=false;var today=getThaiToday();var di=document.getElementById('qaDate');if(di){di.value=today;di.max=today}renderQA();document.getElementById('qaM').classList.add('open');var i=document.getElementById('qaAmt');if(i){try{i.focus({preventScroll:true})}catch(e){i.focus()}requestAnimationFrame(function(){var j=document.getElementById('qaAmt');if(j&&document.activeElement!==j){try{j.focus({preventScroll:true})}catch(e){j.focus()}}})}}
 function closeQA(){document.getElementById('qaM').classList.remove('open');window._qaA='';window._qaN=''}
+function getFrequentCats(limit){
+    var s=gs(),counts={};limit=limit||4;
+    if(s.dLog){Object.keys(s.dLog).sort().reverse().slice(0,60).forEach(function(dk){(s.dLog[dk]||[]).forEach(function(x){var c=x.cat||'other';counts[c]=(counts[c]||0)+1})})}
+    return Object.keys(counts).sort(function(a,b){return counts[b]-counts[a]}).slice(0,limit)
+}
 function renderQA(){
     var cats = getAllDailyCats();
     var hasAmt = Number(window._qaA||0) > 0;
-    // Amount + presets
+    var freqIds = getFrequentCats(4);
+    var freqCats = freqIds.map(function(id){return cats.find(function(c){return c.id===id})}).filter(Boolean);
+    var restCats = cats.filter(function(c){return freqIds.indexOf(c.id)<0});
+    if(!window._qaShowAll) window._qaShowAll=false;
+
+    // Amount + compact presets
     var h = '<div class="qa-amt-wrap">';
     h += '<input class="qa-amt" type="number" inputmode="decimal" autofocus id="qaAmt" placeholder="0" min="0" oninput="qaAmtChange()"'+(window._qaA?' value="'+window._qaA+'"':'')+' style="margin-bottom:6px">';
-    h += '<div class="qa-presets"><button onclick="quickAmt(5)">+5</button><button onclick="quickAmt(10)">+10</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(300)">+300</button><button onclick="quickAmt(1000)">+1000</button></div>';
+    h += '<div class="qa-presets"><button onclick="quickAmt(10)">+10</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(500)">+500</button></div>';
     h += '</div>';
-    // Wallet (centered)
-    var w=getWallets();
-    h += '<div class="qa-meta-lb" style="text-align:center;margin:8px 0 4px">กระเป๋า</div>';
-    h += '<div class="qa-presets" style="margin-bottom:10px">';
-    w.forEach(function(x){h+='<button onclick="qaPickWallet(\''+x.id+'\')" style="'+(qaWallet===x.id?'background:var(--acBg2);color:var(--ac);border-color:var(--ac)':'')+'">'+esc(x.name)+'</button>'});
-    h += '</div>';
-    // Category section
-    h += '<div class="qa-meta-lb" style="margin:8px 0 6px">หมวดหมู่ <span style="color:var(--rd)">*</span></div>';
+
+    // Category — frequent first
+    h += '<div class="qa-meta-lb" style="margin:6px 0 6px">หมวดหมู่ <span style="color:var(--rd)">*</span></div>';
     if(cats.length===1&&cats[0].id==='other')h += '<div class="empty-section-note" style="margin:0 4px 8px;font-size:12px">ยังไม่มีหมวดค่าใช้จ่าย สร้างหมวดก่อนแล้วค่อยบันทึกได้</div>';
     h += '<div class="qa-cats"'+(hasAmt?'':' style="opacity:0.4;pointer-events:none"')+'>';
-    cats.forEach(function(c){
-        h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
-        h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
-        h += '<span>'+esc(c.name)+'</span>';
-        h += '</div>';
-    });
-    // Manage button as grid cell
+    // Frequent cats (always visible)
+    if(freqCats.length>0){
+        freqCats.forEach(function(c){
+            h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
+            h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
+            h += '<span>'+esc(c.name)+'</span></div>';
+        });
+    }
+    // Rest cats (expandable)
+    if(restCats.length>0){
+        if(!window._qaShowAll&&freqCats.length>0){
+            h += '<div class="qa-cat qa-cat-more" onclick="window._qaShowAll=true;renderQA()">';
+            h += '<div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></div>';
+            h += '<span>อีก '+restCats.length+'</span></div>';
+        } else {
+            restCats.forEach(function(c){
+                h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
+                h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
+                h += '<span>'+esc(c.name)+'</span></div>';
+            });
+        }
+    }
+    // No frequent cats → show all directly
+    if(freqCats.length===0){
+        cats.forEach(function(c){
+            h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
+            h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
+            h += '<span>'+esc(c.name)+'</span></div>';
+        });
+    }
+    // Manage button
     h += '<div class="qa-cat qa-cat-manage" onclick="closeQA();openCat()">';
     h += '<div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>';
-    h += '<span>จัดการ</span>';
+    h += '<span>จัดการ</span></div>';
     h += '</div>';
-    h += '</div>';
+
     // Note
     h += '<input class="qa-note" id="qaNote" placeholder="บันทึกช่วยจำ (ไม่บังคับ)" oninput="qaNoteChange()"'+(window._qaN?' value="'+esc(window._qaN)+'"':'')+' style="margin-top:8px">';
+
+    // Wallet — collapsible
+    var w=getWallets();
+    if(w.length>1){
+        h += '<div class="qa-wallet-row">';
+        w.forEach(function(x){h+='<button class="qa-wal-btn'+(qaWallet===x.id?' on':'')+'" onclick="qaPickWallet(\''+x.id+'\')">'+esc(x.name)+'</button>'});
+        h += '</div>';
+    }
+
     document.getElementById('qaB').innerHTML = h;
     requestAnimationFrame(function(){try{qaNoteChange()}catch(e){}});
 }
@@ -1775,13 +1820,15 @@ function openCatDetail(catId){
     items.sort(function(a,b){return (a.date+a.x.t)<(b.date+b.x.t)?1:-1});
     document.getElementById('cdTitle').innerHTML='<span style="display:inline-flex;align-items:center;gap:8px">'+catBadge(catId)+esc(meta.name||catId)+'</span>';
     var h='';
-    h+='<div style="padding:14px 0 10px">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><span style="font-size:12px;color:var(--tx3);font-weight:600">ใช้ไป</span><span style="font-family:Taviraj,sans-serif;font-size:13px;font-weight:800">'+fmt(effSpent)+' / '+fmt(budget)+'</span></div>';
+    var ringPct=pct;var ringR=26,ringC=2*Math.PI*ringR;var ringOff=ringC-(ringPct/100)*ringC;
+    var ringClr=pct>=90?'var(--rd)':pct>=70?'var(--or,#f59e0b)':'var(--gn)';
+    h+='<div class="cd-ring-wrap">';
+    h+='<div class="cd-ring"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="'+ringR+'" fill="none" stroke="var(--cb)" stroke-width="6"/><circle cx="32" cy="32" r="'+ringR+'" fill="none" stroke="'+ringClr+'" stroke-width="6" stroke-dasharray="'+ringC.toFixed(1)+'" stroke-dashoffset="'+ringOff.toFixed(1)+'" stroke-linecap="round"/></svg><div class="cd-ring-pct" style="color:'+ringClr+'">'+pct.toFixed(0)+'%</div></div>';
+    h+='<div class="cd-ring-stats"><div>ใช้ไป <strong style="color:var(--rd)">'+fmt(effSpent)+'</strong></div><div>งบ <strong>'+fmt(budget)+'</strong></div><div>เหลือ <strong class="'+(left>=0?'pos':'neg')+'">'+fmt(left)+'</strong></div>';
+    if(rec>0)h+='<div>ประจำ <strong>'+fmt(rec)+'</strong></div>';
+    if(carryCat>0)h+='<div>ค้าง <strong>'+fmt(carryCat)+'</strong></div>';
+    h+='</div></div>';
     h+=progBar(effSpent,budget);
-    h+='<div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px"><span style="color:var(--tx3);font-weight:600">คงเหลือ</span><span class="'+(left>=0?'pos':'neg')+'" style="font-family:Taviraj,sans-serif;font-weight:800">'+fmt(left)+'</span></div>';
-    if(rec>0)h+='<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--tx3)"><span>รายการประจำ</span><span style="font-family:Taviraj,sans-serif">'+fmt(rec)+'</span></div>';
-    if(carryCat>0)h+='<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--tx3)"><span>ค้างจากเดือนก่อน</span><span style="font-family:Taviraj,sans-serif">'+fmt(carryCat)+'</span></div>';
-    h+='</div>';
     h+='<div class="sub-lb" style="padding:12px 0 8px">รายการใช้จ่าย ('+items.length+')</div>';
     if(items.length===0){
         h+='<div class="dl-empty" style="padding:20px 0">ยังไม่มีรายการใช้จ่ายในหมวดนี้</div>';
@@ -2539,6 +2586,15 @@ var weeklyOn=!!st.weeklyOn;
 var card=st.card||{cycleDay:25,dueDay:10};
 
 h+='<div style="padding:12px 0">';
+
+// Function tiles — moved to top as navigation
+h+='<div class="sec st-sec tone-bl" style="margin-bottom:14px"><div class="st-tiles">';
+h+='<button class="st-tile tone-sh" onclick="openSettingsPage(\'recurring\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 019-9 9 9 0 019 9"/><path d="M21 12a9 9 0 01-9 9 9 9 0 01-9-9"/><path d="M12 7v5l3 2"/></svg></span><span class="st-tile-t">รายการประจำ</span></button>';
+h+='<button class="st-tile tone-gn" onclick="openSettingsPage(\'goals\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 5V3"/><path d="M8 3h8"/><path d="M12 13l3-3"/></svg></span><span class="st-tile-t">Goals</span></button>';
+h+='<button class="st-tile tone-ac" onclick="openSettingsPage(\'wallets\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H5a2 2 0 00-2 2v10a2 2 0 002 2h15V7z"/><path d="M20 7V5a2 2 0 00-2-2H7"/><circle cx="17" cy="14" r="1.5"/></svg></span><span class="st-tile-t">กระเป๋า</span></button>';
+h+='<button class="st-tile tone-pr" onclick="openSettingsPage(\'templates\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h6"/></svg></span><span class="st-tile-t">Template งบ</span></button>';
+h+='</div></div>';
+
 h+='<div class="sec st-sec tone-ac"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1"/><path d="M12 20v1"/><path d="M3 12h1"/><path d="M20 12h1"/><path d="M5.6 5.6l.7.7"/><path d="M17.7 17.7l.7.7"/><path d="M5.6 18.4l.7-.7"/><path d="M17.7 6.3l.7-.7"/><circle cx="12" cy="12" r="4"/></svg></div><div class="st-ht"><div class="st-ttl">การแสดงผล</div><div class="st-sub">ทศนิยม และโหมด Privacy</div></div></div><div class="st-body">';
 h+='<div class="sr"><div class="sl">แสดงทศนิยม<small>เช่น 3,000.00 หรือ 3,000</small></div><button class="tgl'+(showDec?' on':'')+'" onclick="toggleDecimal()"></button></div>';
 h+='<div class="sr" style="border-bottom:none"><div class="sl">ซ่อนยอดทั้งหมด<small>เหมาะสำหรับโหมด Privacy</small></div><button class="tgl'+(st.hideAmt?' on':'')+'" onclick="toggleHideAmt()"></button></div>';
@@ -2549,32 +2605,16 @@ h+='<div class="sr"><div class="sl">ล็อกด้วย PIN</div><button cl
 h+='<div style="display:flex;gap:8px;margin:10px 0 2px"><button class="btn btn-gh btn-full" onclick="changePin()" '+(pin.enabled?'':'style="opacity:.35;pointer-events:none"')+'>เปลี่ยน PIN</button><button class="btn btn-rd btn-full" onclick="disablePin()" '+(pin.enabled?'':'style="opacity:.35;pointer-events:none"')+'>ปิด PIN</button></div>';
 h+='</div></div>';
 
-h+='<div class="sec st-sec tone-gn"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5"/><path d="M9 17a3 3 0 006 0"/></svg></div><div class="st-ht"><div class="st-ttl">งบ/แจ้งเตือน</div><div class="st-sub">เตือนเงินคงเหลือ และใกล้เต็มงบ</div></div></div><div class="st-body">';
+h+='<div class="sec st-sec tone-gn"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5"/><path d="M9 17a3 3 0 006 0"/></svg></div><div class="st-ht"><div class="st-ttl">งบ/แจ้งเตือน</div><div class="st-sub">บันทึกอัตโนมัติเมื่อเปลี่ยนค่า</div></div></div><div class="st-body">';
 h+='<div class="sr"><div class="sl">งบรายสัปดาห์<small>คำนวณจากงบรายเดือน / 4</small></div><button class="tgl'+(weeklyOn?' on':'')+'" onclick="toggleWeekly()"></button></div>';
-h+='<div class="sr"><div class="sl">เตือนเงินคงเหลือน้อยกว่า<small>บาท</small></div><input class="si" style="width:120px" id="stLowRem" value="'+lowRem+'"></div>';
-h+='<div class="sr" style="border-bottom:none"><div class="sl">เตือนใกล้เต็มงบ<small>เปอร์เซ็นต์</small></div><input class="si" style="width:120px" id="stWarnPct" value="'+warnPct+'"></div>';
-h+='<div style="margin-top:10px"><button class="btn btn-ac btn-full" onclick="saveAlertSettings()">บันทึกการแจ้งเตือน</button></div>';
-h+='</div></div>';
-h+='<div class="sec st-sec tone-gn"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 000 7H14.5a3.5 3.5 0 010 7H6"/></svg></div><div class="st-ht"><div class="st-ttl">เป้าหมายออมรายปี</div><div class="st-sub">กำหนดยอดเป้าหมายสำหรับ progress ในหน้ารายปี</div></div></div><div class="st-body">';
-h+='<div class="sr" style="border-bottom:none"><div class="sl">เป้าหมายออมรายปี<small>ใช้คำนวณ progress รายปี</small></div><input class="si" style="width:120px" id="stSavGoal" value="'+Number(st.savGoal||50000)+'"></div>';
-h+='<div style="margin-top:10px"><button class="btn btn-ac btn-full" onclick="saveSavGoal(&#39;stSavGoal&#39;)">บันทึกเป้าหมายออมรายปี</button></div>';
-h+='</div></div>';
-
-
-
-h+='</div></div>';
-
-h+='<div class="sec st-sec tone-bl"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div><div class="st-ht"><div class="st-ttl">ฟังก์ชัน</div><div class="st-sub">รายการประจำ Goals กระเป๋า และ Template</div></div></div><div class="st-tiles">';
-h+='<button class="st-tile tone-sh" onclick="openSettingsPage(\'recurring\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 019-9 9 9 0 019 9"/><path d="M21 12a9 9 0 01-9 9 9 9 0 01-9-9"/><path d="M12 7v5l3 2"/></svg></span><span class="st-tile-t">รายการประจำ</span></button>';
-h+='<button class="st-tile tone-gn" onclick="openSettingsPage(\'goals\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 5V3"/><path d="M8 3h8"/><path d="M12 13l3-3"/></svg></span><span class="st-tile-t">Goals</span></button>';
-h+='<button class="st-tile tone-ac" onclick="openSettingsPage(\'wallets\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H5a2 2 0 00-2 2v10a2 2 0 002 2h15V7z"/><path d="M20 7V5a2 2 0 00-2-2H7"/><circle cx="17" cy="14" r="1.5"/></svg></span><span class="st-tile-t">กระเป๋า</span></button>';
-h+='<button class="st-tile tone-pr" onclick="openSettingsPage(\'templates\')"><span class="st-tile-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h6"/></svg></span><span class="st-tile-t">Template งบ</span></button>';
+h+='<div class="sr"><div class="sl">เตือนเงินคงเหลือน้อยกว่า<small>บาท</small></div><input class="si" style="width:120px" id="stLowRem" value="'+lowRem+'" onchange="saveAlertSettings()"></div>';
+h+='<div class="sr"><div class="sl">เตือนใกล้เต็มงบ<small>เปอร์เซ็นต์</small></div><input class="si" style="width:120px" id="stWarnPct" value="'+warnPct+'" onchange="saveAlertSettings()"></div>';
+h+='<div class="sr" style="border-bottom:none"><div class="sl">เป้าหมายออมรายปี<small>ใช้คำนวณ progress รายปี</small></div><input class="si" style="width:120px" id="stSavGoal" value="'+Number(st.savGoal||50000)+'" onchange="saveSavGoal(\'stSavGoal\')"></div>';
 h+='</div></div>';
 
 h+='<div class="sec st-sec tone-ac"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/><path d="M6 14h2"/></svg></div><div class="st-ht"><div class="st-ttl">บัตร/รอบบิล</div><div class="st-sub">กำหนดวันตัดรอบและวันครบกำหนด</div></div></div><div class="st-body">';
-h+='<div class="sr"><div class="sl">วันตัดรอบ<small>1-28</small></div><input class="si" style="width:120px" id="stCycle" value="'+Number(card.cycleDay||25)+'"></div>';
-h+='<div class="sr" style="border-bottom:none"><div class="sl">วันครบกำหนด<small>1-28</small></div><input class="si" style="width:120px" id="stDue" value="'+Number(card.dueDay||10)+'"></div>';
-h+='<div style="margin-top:10px"><button class="btn btn-ac btn-full" onclick="saveCardSettings()">บันทึกบัตร</button></div>';
+h+='<div class="sr"><div class="sl">วันตัดรอบ<small>1-28</small></div><input class="si" style="width:120px" id="stCycle" value="'+Number(card.cycleDay||25)+'" onchange="saveCardSettings()"></div>';
+h+='<div class="sr" style="border-bottom:none"><div class="sl">วันครบกำหนด<small>1-28</small></div><input class="si" style="width:120px" id="stDue" value="'+Number(card.dueDay||10)+'" onchange="saveCardSettings()"></div>';
 h+='</div></div>';
 h+='<div class="prof-ver">เวอร์ชัน <b>'+esc(APP_VER||'')+'</b><br><span>Okane Wallet</span></div>';
 h+='</div>';
