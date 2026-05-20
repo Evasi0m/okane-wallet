@@ -1,4 +1,4 @@
-const CACHE_NAME = 'okane-v7';
+const CACHE_NAME = 'okane-v10';
 const CACHE_URLS = [
   '/',
   '/index.html',
