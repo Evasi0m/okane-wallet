@@ -1,10 +1,10 @@
-const CACHE_NAME = 'okane-v4';
+const CACHE_NAME = 'okane-v7';
 const CACHE_URLS = [
   '/',
   '/index.html',
   '/app.js',
   '/styles.css',
-  'https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap',
+  'https://fonts.googleapis.com/css2?family=Taviraj:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js'
 ];
 

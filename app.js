@@ -168,6 +168,7 @@ function getSavings(){var s=gs();if(!s.savings)s.savings={balance:0,history:[]};
 function refreshCurrentContext(){var prevMonthKey=mk(NOW.getFullYear(),NOW.getMonth()),prevDayKey=dKey(NOW),now=getBangkokNow();if(mk(cY,sM_)===prevMonthKey){cY=now.getFullYear();sM_=now.getMonth()}if(dKey(viewDate)===prevDayKey)viewDate=new Date(now);NOW=now}
 function isP(y,m){var now=getBangkokNow();return y<now.getFullYear()||(y===now.getFullYear()&&m<now.getMonth())}
 function fmt(n){var s=gs();var showDec=s.settings&&s.settings.showDecimal!==undefined?s.settings.showDecimal:true;if(showDec)return Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});return Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:2})}
+function fmtSh(n){var v=Math.abs(Number(n||0));if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e4)return(v/1000).toFixed(0)+'K';if(v>=1000)return(v/1000).toFixed(1)+'K';return String(Math.round(v))}
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 function dKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function sanitizeNumericValue(val,allowDecimal){
@@ -1085,7 +1086,7 @@ h+=savTabH(savBal);
 var streak=getStreak();
 if(streak.current>0)h+='<div class="streak-bar"><span>บันทึกต่อเนื่อง '+streak.current+' วัน</span><span class="streak-best">สถิติดีสุด '+streak.best+' วัน</span></div>';
 var carryTotal=(c.carryIn?Number(c.carryIn.rem||0)+sumMap(c.carryIn.cat):0);
-if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:JetBrains Mono,monospace">-'+fmt(carryTotal)+'</span></div>';
+if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:Taviraj,sans-serif">-'+fmt(carryTotal)+'</span></div>';
 if(isNewUser())h+='<div class="setup-banner"><div class="setup-banner-ic">'+IC.cal+'</div><div><div class="setup-banner-t">เริ่มต้นใช้งานครั้งแรก</div><div class="setup-banner-s">เพิ่มเงินเดือนและสร้างหมวดค่าใช้จ่ายก่อน เพื่อให้รายเดือน รายวัน และรายปีคำนวณได้ครบ</div></div><div class="setup-banner-actions"><button class="btn btn-ac" onclick="openCat()">เพิ่มหมวดค่าใช้จ่าย</button><button class="btn btn-gh" onclick="editInc=true;render()">ใส่เงินเดือน</button></div></div>';
 
 // INCOME
@@ -1120,18 +1121,18 @@ h+='<div style="padding:4px 10px 8px"><button class="add-cat-btn" onclick="openC
 
 var rec=(gs().recur||[]).filter(function(r){return r&&r.on});
 if(rec.length>0){
-h+='<div class="sub-lb">รายการประจำ <span style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;color:var(--rd)">'+fmt(getRecurringTotal(y,m))+'</span></div>';
+h+='<div class="sub-lb">รายการประจำ <span style="font-family:Taviraj,sans-serif;font-size:11px;font-weight:700;color:var(--rd)">'+fmt(getRecurringTotal(y,m))+'</span></div>';
 rec.forEach(function(r){h+='<div class="ci"><div class="rn"><div class="rn-t" style="font-size:12px">'+esc(r.name||'-')+' <span style="color:var(--tx2);font-weight:600">('+esc(getCatName(r.cat||'other'))+')</span></div><div class="rn-s">'+fmt(r.amount||0)+' / เดือน</div></div></div>'})
 }
 
 if(otherItems.length>0||c.otherTotal>0){
-h+='<div class="sub-lb">\u0E04\u0E48\u0E32\u0E43\u0E0A\u0E49\u0E08\u0E48\u0E32\u0E22\u0E2D\u0E37\u0E48\u0E19\u0E46 (\u0E08\u0E32\u0E01\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E23\u0E32\u0E22\u0E27\u0E31\u0E19) <span style="font-family:JetBrains Mono,monospace;font-size:11px;font-weight:700;color:var(--rd)">'+fmt(c.otherTotal)+'</span></div>';
+h+='<div class="sub-lb">\u0E04\u0E48\u0E32\u0E43\u0E0A\u0E49\u0E08\u0E48\u0E32\u0E22\u0E2D\u0E37\u0E48\u0E19\u0E46 (\u0E08\u0E32\u0E01\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E23\u0E32\u0E22\u0E27\u0E31\u0E19) <span style="font-family:Taviraj,sans-serif;font-size:11px;font-weight:700;color:var(--rd)">'+fmt(c.otherTotal)+'</span></div>';
 otherItems.forEach(function(x){h+='<div class="ci"><div class="rn"><div class="rn-t" style="font-size:12px;color:var(--rd)">'+fmt(x.a)+' '+(x.n?'<span style="color:var(--tx2);font-weight:500">'+esc(x.n)+'</span>':'')+'</div><div class="rn-s">'+x.date+' '+x.t+'</div></div></div>'})}
 h+='</div></div>';
 
 var lowRem=st.lowRemaining!==undefined?Number(st.lowRemaining||0):1000;
 var warnPct=st.warnPct!==undefined?Number(st.warnPct||0):90;
-if(lowRem>0&&c.r<lowRem)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>เงินคงเหลือต่ำ</span><span style="font-family:JetBrains Mono,monospace">'+fmt(c.r)+'</span></div>';
+if(lowRem>0&&c.r<lowRem)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>เงินคงเหลือต่ำ</span><span style="font-family:Taviraj,sans-serif">'+fmt(c.r)+'</span></div>';
 var warnCats=[];
 getAllExpCats(d,y,m,c.spentMap,c.recurMap).forEach(function(e){var bud=Number(d[e.k]||0);if(bud<=0||e.k==='shopee')return;var sp=Number((c.spentMap||{})[e.k]||0)+((c.carryIn&&c.carryIn.cat&&c.carryIn.cat[e.k])?Number(c.carryIn.cat[e.k]||0):0);var pct=bud>0?(sp/bud)*100:0;if(pct>=warnPct)warnCats.push({n:e.n,p:pct})});
 if(warnCats.length>0)h+='<div class="abar" style="background:var(--acBg);border-color:var(--ac);color:var(--ac)"><span>ใกล้เต็มงบ: '+warnCats.slice(0,2).map(function(x){return x.n+' '+x.p.toFixed(0)+'%'}).join(', ')+'</span><span></span></div>';
@@ -1185,17 +1186,9 @@ var h=pillDateH();
 h+=heroH('\u0E40\u0E07\u0E34\u0E19\u0E04\u0E07\u0E40\u0E2B\u0E25\u0E37\u0E2D '+TMF[vm]+' '+vy,c.r,c.tI,c.tE);
 h+=savTabH(savBal);
 var carryTotal=(c.carryIn?Number(c.carryIn.rem||0)+sumMap(c.carryIn.cat):0);
-if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:JetBrains Mono,monospace">-'+fmt(carryTotal)+'</span></div>';
+if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:Taviraj,sans-serif">-'+fmt(carryTotal)+'</span></div>';
 
-// Budget overview with progress
-h+='<div class="sec"><div class="sec-t">'+secTitle(IC.cal,'งบรายเดือน')+'</div><div class="sc">';
-var exps=getAllExpCats(d,vy,vm,c.spentMap,c.recurMap);
-exps.forEach(function(e){var budget=Number(d[e.k]||0);if(budget<=0)return;var rec=Number((c.recurMap||{})[e.k]||0);var spent=Number((c.dailySpentMap||{})[e.k]||0);var carryCat=(c.carryIn&&c.carryIn.cat&&c.carryIn.cat[e.k])?Number(c.carryIn.cat[e.k]||0):0;var effSpent=spent+rec+carryCat;var left=budget-effSpent;var isShopee=e.k==='shopee';
-h+='<div class="row'+((!isShopee)?' has-prog':'')+'"'+((!isShopee)?' onclick="openCatDetail(\''+e.k+'\')" style="cursor:pointer"':'')+'>'+catBadge(e.k)+'<div class="rn"><div class="rn-t" style="font-size:12px">'+e.n+'</div>'+((!isShopee)?'<div class="rn-s">\u0E40\u0E2B\u0E25\u0E37\u0E2D '+fmt(left)+' / '+fmt(budget)+(rec>0?' \u2022 \u0E1B\u0E23\u0E30\u0E08\u0E33 '+fmt(rec):'')+(carryCat>0?' \u2022 \u0E04\u0E49\u0E32\u0E07 '+fmt(carryCat):'')+'</div>':'')+'</div><div class="rv '+(left>=0?'':'neg')+'" style="font-size:13px">'+fmt(left)+'</div></div>';
-if(!isShopee)h+=progBar(effSpent,budget)});
-h+='</div></div>';
-
-// Today's entries
+// 1. Swapped: Today's entries (รายจ่ายวันนี้) comes FIRST!
 var filteredLog = log.filter(function(x){
     if(!sq) return true;
     var n = (x.n||'').toLowerCase();
@@ -1206,13 +1199,38 @@ var filteredLog = log.filter(function(x){
 h+='<div class="sec day-hero"><div class="dh-mesh"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div><div class="dh-head"><span class="dh-title">\u0E23\u0E32\u0E22\u0E08\u0E48\u0E32\u0E22\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49</span><span class="dh-amt">-'+fmt(total)+'</span></div>';
 
 // Search Bar
-h+='<div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="ค้นหารายการหรือ #แท็ก..." oninput="sq=this.value;rDailyList()" id="sqI" value="'+sq+'"><button class="ib" style="width:32px;height:32px;border-radius:10px" onclick="openFilterPop()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg></button></div>';
+h+='<div class="search-wrap"><svg class="svg-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="ค้นหารายการหรือ #แท็ก..." oninput="sq=this.value;rDailyList()" id="sqI" value="'+sq+'"><button class="ib" style="width:32px;height:32px;border-radius:10px" onclick="openFilterPop()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18l-7 8v6l-4 2v-8z"/></svg></button></div>';
 
 h+='<div id="dailyList">';
 h+=dailyListH(filteredLog, dk);
 h+='</div></div>';
 
-// Weekly + Monthly summary
+// 2. Swapped: Budget overview with progress - inside Collapsible Accordion!
+if(window._budgetOpen === undefined) window._budgetOpen = false;
+var chevronClass = window._budgetOpen ? 'budget-chevron open' : 'budget-chevron';
+var accordionClass = window._budgetOpen ? 'budget-accordion-content open' : 'budget-accordion-content';
+
+h+='<div class="sec"><div class="sec-t collapsible-budget" onclick="window._budgetOpen=!window._budgetOpen;render();">' +
+   secTitle(IC.cal, 'งบรายเดือน (แตะเพื่อกาง/พับ)') +
+   '<svg class="' + chevronClass + '" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>' +
+   '<div class="' + accordionClass + '"><div class="sc" style="padding:14px;padding-top:0">';
+
+var exps=getAllExpCats(d,vy,vm,c.spentMap,c.recurMap);
+exps.forEach(function(e){
+  var budget=Number(d[e.k]||0);
+  if(budget<=0)return;
+  var rec=Number((c.recurMap||{})[e.k]||0);
+  var spent=Number((c.dailySpentMap||{})[e.k]||0);
+  var carryCat=(c.carryIn&&c.carryIn.cat&&c.carryIn.cat[e.k])?Number(c.carryIn.cat[e.k]||0):0;
+  var effSpent=spent+rec+carryCat;
+  var left=budget-effSpent;
+  var isShopee=e.k==='shopee';
+  h+='<div class="row'+((!isShopee)?' has-prog':'')+'"'+((!isShopee)?' onclick="openCatDetail(\''+e.k+'\')" style="cursor:pointer"':'')+'>'+catBadge(e.k)+'<div class="rn"><div class="rn-t" style="font-size:12px">'+e.n+'</div>'+((!isShopee)?'<div class="rn-s">\u0E40\u0E2B\u0E25\u0E37\u0E2D '+fmt(left)+' / '+fmt(budget)+(rec>0?' \u2022 \u0E1B\u0E23\u0E30\u0E08\u0E33 '+fmt(rec):'')+(carryCat>0?' \u2022 \u0E04\u0E49\u0E32\u0E07 '+fmt(carryCat):'')+'</div>':'')+'</div><div class="rv '+(left>=0?'':'neg')+'" style="font-size:13px">'+fmt(left)+'</div></div>';
+  if(!isShopee)h+=progBar(effSpent,budget);
+});
+h+='</div></div></div>';
+
+// Weekly + Monthly summary (stays at bottom)
 var weekT=0,weekD=0,weekItems=[];
 for(var wi=0;wi<7;wi++){var wd=new Date(viewDate);wd.setDate(wd.getDate()-wd.getDay()+wi);var wdk=dKey(wd);var wl=getDayLog(wdk);var wt=wl.reduce(function(s2,x){return s2+Number(x.a||0)},0);if(wt>0)weekD++;weekT+=wt;wl.forEach(function(x){weekItems.push(Object.assign({date:wdk},x))})}
 weekItems.sort(function(a,b){return (a.date+a.t)<(b.date+b.t)?1:-1});
@@ -1247,6 +1265,7 @@ h+='<div id="sum-exp-month" class="sum-exp"><div class="sum-vbar"><span class="s
 h+='</div></div>';
 h+='<div class="credit">Credit : Opus 4.6 & Jarasrawee</div>';
 el.innerHTML=h}
+
 function buildSumRows(type){
     var items=window._sumData&&window._sumData[type]||[];
     var cats=window._sumData&&window._sumData.cats||[];
@@ -1385,13 +1404,27 @@ function rYear(el){var h='',ti=0,te=0,ts=getYearSavedTotal(cY),rows=[];for(var m
 h+=heroH('\u0E2A\u0E23\u0E38\u0E1B\u0E23\u0E32\u0E22\u0E1B\u0E35 '+cY,tr,ti,te);
 h+=savTabH(getSavings().balance);
 h+='<div class="sec"><div class="sec-t">'+secTitle(IC.save,'เป้าหมายออมรายปี')+'<span class="rv pos" style="font-size:12px">'+prog.toFixed(0)+'%</span></div><div class="sc"><div style="padding:4px 16px 0;font-size:11px;color:var(--tx3)">ออมแล้ว '+fmt(ts)+' / '+fmt(goal)+'</div><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill pf-gn" style="width:'+Math.min(prog,100)+'%"></div></div></div><div style="padding:8px 16px 0;font-size:11px;color:var(--tx2)">เงินเก็บสะสมปัจจุบัน '+fmt(getSavings().balance)+'</div></div></div>';
-h+='<div class="sec year-board"><div class="sec-t">'+secTitle(IC.cal,'สรุปรายเดือน')+'</div><div class="sc" style="padding:0 10px 14px"><div class="year-card-list">';
+h+='<div class="sec year-board"><div class="sec-t">'+secTitle(IC.cal,'สรุปรายเดือน')+'</div><div class="sc" style="padding:0 10px 14px">';
+h+='<div class="ym-grid">';
+var mxI=Math.max.apply(null,rows.map(function(c){return c.tI}))||1;
 rows.forEach(function(c,i){
-    var pct=ti>0?(c.tI/Math.max(ti,1))*100:0;
-    h+='<article class="year-card"><div class="year-card-top"><div><div class="year-card-month">'+TMF[i]+'</div><div class="year-card-sub">รายรับคิดเป็น '+pct.toFixed(0)+'% ของทั้งปี</div></div><div class="year-card-net '+(c.r>=0?'year-pos':'year-neg')+'">'+(c.r>=0?'+':'-')+fmt(Math.abs(c.r))+'</div></div><div class="year-card-metrics"><div class="year-metric"><span>รายรับ</span><strong class="year-pos">+'+fmt(c.tI)+'</strong></div><div class="year-metric"><span>รายจ่าย</span><strong class="year-neg">-'+fmt(c.tE)+'</strong></div></div></article>'
+    var barW=Math.min((c.tI/mxI)*100,100).toFixed(0);
+    var isPos=c.r>=0;
+    h+='<div class="ym-tile'+(isPos?'':' ym-tile-neg')+'" onclick="pickMonth('+cY+','+i+')" role="button" aria-label="'+TMF[i]+'">';
+    h+='<div class="ym-name">'+TM[i]+'</div>';
+    h+='<div class="ym-bar"><div class="ym-bar-fill" style="width:'+barW+'%"></div></div>';
+    h+='<div class="ym-net '+(isPos?'year-pos':'year-neg')+'">'+(isPos?'+':'\u2212')+fmtSh(Math.abs(c.r))+'</div>';
+    h+='<div class="ym-io"><span class="year-pos">+'+fmtSh(c.tI)+'</span><span class="year-neg">\u2212'+fmtSh(c.tE)+'</span></div>';
+    h+='</div>';
 });
-h+='<article class="year-card year-card-total"><div class="year-card-top"><div><div class="year-card-month">รวมทั้งปี</div><div class="year-card-sub">ภาพรวมของปี '+cY+'</div></div><div class="year-card-net '+(tr>=0?'year-pos':'year-neg')+'">'+(tr>=0?'+':'-')+fmt(Math.abs(tr))+'</div></div><div class="year-card-metrics"><div class="year-metric"><span>รายรับรวม</span><strong class="year-pos">+'+fmt(ti)+'</strong></div><div class="year-metric"><span>รายจ่ายรวม</span><strong class="year-neg">-'+fmt(te)+'</strong></div></div></article>';
-h+='</div></div></div>';
+h+='</div>';
+h+='<div class="ym-total">';
+h+='<div class="ym-total-top"><span class="ym-total-lbl">รวมทั้งปี '+cY+'</span><span class="ym-total-net '+(tr>=0?'year-pos':'year-neg')+'">'+(tr>=0?'+':'\u2212')+fmt(Math.abs(tr))+'</span></div>';
+h+='<div class="ym-total-row">';
+h+='<div class="ym-total-col"><div class="ym-total-key">รายรับรวม</div><div class="ym-total-val year-pos">+'+fmt(ti)+'</div></div>';
+h+='<div class="ym-total-col"><div class="ym-total-key">รายจ่ายรวม</div><div class="ym-total-val year-neg">\u2212'+fmt(te)+'</div></div>';
+h+='</div></div>';
+h+='</div></div>';
 h+='<div class="sec"><div class="sec-t">'+secTitle(IC.cal,'กราฟ')+'</div><div class="sc" style="padding:14px 10px"><div class="cw year-cw"><canvas id="yC"></canvas></div></div></div>';
 h+='<div class="reset-area"><button class="reset-btn" onclick="resetYear()">\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E35 '+cY+'</button><div class="credit">Credit : Opus 4.6 & Jarasrawee</div></div>';
 el.innerHTML=h;drawYC(rows)}
@@ -1579,7 +1612,7 @@ var savTab='history';
 function openSavings(){savTab='history';renderSavings();document.getElementById('svM').classList.add('open')}
 function closeSavings(){document.getElementById('svM').classList.remove('open')}
 document.getElementById('svM').addEventListener('click',function(e){if(e.target===this)closeSavings()});
-function renderSavings(){var sav=getSavings();var h='<div style="text-align:center;padding:16px 0"><div style="font-size:11px;color:var(--tx3)">\u0E22\u0E2D\u0E14\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19</div><div style="font-size:28px;font-weight:800;font-family:JetBrains Mono,monospace;color:var(--gn)">'+fmt(sav.balance)+'</div></div>';
+function renderSavings(){var sav=getSavings();var h='<div style="text-align:center;padding:16px 0"><div style="font-size:11px;color:var(--tx3)">\u0E22\u0E2D\u0E14\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19</div><div style="font-size:28px;font-weight:800;font-family:Taviraj,sans-serif;color:var(--gn)">'+fmt(sav.balance)+'</div></div>';
 h+='<div style="display:flex;gap:6px;margin-bottom:14px"><button class="btn btn-gn btn-full" onclick="savTab=\'add\';renderSavings()">+ \u0E40\u0E1E\u0E34\u0E48\u0E21</button><button class="btn btn-rd btn-full" onclick="savTab=\'wd\';renderSavings()">- \u0E16\u0E2D\u0E19</button></div>';
 if(savTab==='add'){h+='<div style="padding:12px;background:var(--card2);border-radius:10px;margin-bottom:14px"><div style="font-size:13px;font-weight:700;margin-bottom:8px">\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E40\u0E07\u0E34\u0E19\u0E40\u0E01\u0E47\u0E1A</div><input class="inp" type="number" id="svAmt" placeholder="\u0E08\u0E33\u0E19\u0E27\u0E19\u0E40\u0E07\u0E34\u0E19" min="0" style="margin-bottom:8px"><div style="font-size:12px;font-weight:600;margin-bottom:6px">\u0E41\u0E2B\u0E25\u0E48\u0E07\u0E17\u0E35\u0E48\u0E21\u0E32:</div><label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:4px;cursor:pointer"><input type="radio" name="svSrc" value="remaining" checked>\u0E08\u0E32\u0E01\u0E40\u0E07\u0E34\u0E19\u0E04\u0E07\u0E40\u0E2B\u0E25\u0E37\u0E2D\u0E40\u0E14\u0E37\u0E2D\u0E19\u0E19\u0E35\u0E49</label><label style="display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:8px;cursor:pointer"><input type="radio" name="svSrc" value="income">\u0E08\u0E32\u0E01\u0E23\u0E32\u0E22\u0E44\u0E14\u0E49\u0E2D\u0E37\u0E48\u0E19</label><input class="inp" id="svNote" placeholder="\u0E42\u0E19\u0E49\u0E15" style="margin-bottom:8px"><button class="btn btn-gn btn-full" onclick="doSavAdd()">\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01</button></div>'}
 if(savTab==='wd'){h+='<div style="padding:12px;background:var(--card2);border-radius:10px;margin-bottom:14px"><div style="font-size:13px;font-weight:700;margin-bottom:8px">\u0E16\u0E2D\u0E19\u0E40\u0E07\u0E34\u0E19\u0E40\u0E01\u0E47\u0E1A</div><input class="inp" type="number" id="svWAmt" placeholder="\u0E08\u0E33\u0E19\u0E27\u0E19" min="0" style="margin-bottom:8px"><input class="inp" id="svWNote" placeholder="\u0E40\u0E2D\u0E32\u0E44\u0E1B\u0E43\u0E0A\u0E49\u0E08\u0E48\u0E32\u0E22\u0E04\u0E48\u0E32\u0E2D\u0E30\u0E44\u0E23" style="margin-bottom:8px"><button class="btn btn-rd btn-full" onclick="doSavWd()">\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01</button></div>'}
@@ -1717,11 +1750,11 @@ function openCatDetail(catId){
     document.getElementById('cdTitle').innerHTML='<span style="display:inline-flex;align-items:center;gap:8px">'+catBadge(catId)+esc(meta.name||catId)+'</span>';
     var h='';
     h+='<div style="padding:14px 0 10px">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><span style="font-size:12px;color:var(--tx3);font-weight:600">ใช้ไป</span><span style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:800">'+fmt(effSpent)+' / '+fmt(budget)+'</span></div>';
+    h+='<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px"><span style="font-size:12px;color:var(--tx3);font-weight:600">ใช้ไป</span><span style="font-family:Taviraj,sans-serif;font-size:13px;font-weight:800">'+fmt(effSpent)+' / '+fmt(budget)+'</span></div>';
     h+=progBar(effSpent,budget);
-    h+='<div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px"><span style="color:var(--tx3);font-weight:600">คงเหลือ</span><span class="'+(left>=0?'pos':'neg')+'" style="font-family:JetBrains Mono,monospace;font-weight:800">'+fmt(left)+'</span></div>';
-    if(rec>0)h+='<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--tx3)"><span>รายการประจำ</span><span style="font-family:JetBrains Mono,monospace">'+fmt(rec)+'</span></div>';
-    if(carryCat>0)h+='<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--tx3)"><span>ค้างจากเดือนก่อน</span><span style="font-family:JetBrains Mono,monospace">'+fmt(carryCat)+'</span></div>';
+    h+='<div style="display:flex;justify-content:space-between;margin-top:8px;font-size:12px"><span style="color:var(--tx3);font-weight:600">คงเหลือ</span><span class="'+(left>=0?'pos':'neg')+'" style="font-family:Taviraj,sans-serif;font-weight:800">'+fmt(left)+'</span></div>';
+    if(rec>0)h+='<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--tx3)"><span>รายการประจำ</span><span style="font-family:Taviraj,sans-serif">'+fmt(rec)+'</span></div>';
+    if(carryCat>0)h+='<div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--tx3)"><span>ค้างจากเดือนก่อน</span><span style="font-family:Taviraj,sans-serif">'+fmt(carryCat)+'</span></div>';
     h+='</div>';
     h+='<div class="sub-lb" style="padding:12px 0 8px">รายการใช้จ่าย ('+items.length+')</div>';
     if(items.length===0){
@@ -1731,8 +1764,8 @@ function openCatDetail(catId){
         items.forEach(function(it){
             var x=it.x;var dp=it.date.split('-');var ds=dp[2]+'/'+dp[1];
             h+='<div class="ci" onclick="closeCatDetail();openEditEntry(\''+it.date+'\','+it.idx+')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px">';
-            h+='<div style="font-size:11px;color:var(--tx3);font-weight:700;font-family:JetBrains Mono,monospace;min-width:52px">'+ds+' '+(x.t||'')+'</div>';
-            h+='<div class="rn" style="flex:1"><div class="rn-t" style="font-size:13px;font-weight:700;font-family:JetBrains Mono,monospace;color:var(--rd)">-'+fmt(x.a)+'</div>';
+            h+='<div style="font-size:11px;color:var(--tx3);font-weight:700;font-family:Taviraj,sans-serif;min-width:52px">'+ds+' '+(x.t||'')+'</div>';
+            h+='<div class="rn" style="flex:1"><div class="rn-t" style="font-size:13px;font-weight:700;font-family:Taviraj,sans-serif;color:var(--rd)">-'+fmt(x.a)+'</div>';
             if(x.n)h+='<div class="rn-s" style="font-size:11px">'+esc(x.n)+'</div>';
             h+='</div>';
             h+='</div>';
@@ -1755,7 +1788,7 @@ function openEditEntry(dk,idx){
     var h='';
     h+='<div style="padding:14px 0 8px;text-align:center">';
     h+='<div style="font-size:11px;font-weight:700;color:var(--tx3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px">จำนวนเงิน</div>';
-    h+='<input class="inp" type="number" id="edAmt" placeholder="0" min="0" value="'+Number(it.a||0)+'" style="width:100%;text-align:center;font-size:28px;font-weight:800;font-family:JetBrains Mono,monospace;color:var(--rd);border:none;background:transparent;padding:4px 0">';
+    h+='<input class="inp" type="number" id="edAmt" placeholder="0" min="0" value="'+Number(it.a||0)+'" style="width:100%;text-align:center;font-size:28px;font-weight:800;font-family:Taviraj,sans-serif;color:var(--rd);border:none;background:transparent;padding:4px 0">';
     h+='</div>';
     h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">';
     h+='<div><div class="sub-lb" style="padding:0 0 6px">หมวด</div><select class="inp" id="edCat" style="appearance:auto;width:100%"><option value="other">อื่นๆ</option>'+cats.filter(function(c){return c.id!=='other'}).map(function(c){return '<option value="'+c.id+'"'+((it.cat||'other')===c.id?' selected':'')+'>'+esc(c.name)+'</option>'}).join('')+'</select></div>';
@@ -1949,7 +1982,7 @@ function openUser(){
     h+='<div class="prof-sec-t">สถิติ</div>';
     h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px">';
     h+='<div class="sr"><div class="sl">รายจ่ายเดือนนี้</div><span class="rv neg" style="font-size:13px">-'+fmt(monthExp)+'</span></div>';
-    h+='<div class="sr"><div class="sl">รายการที่บันทึกทั้งหมด</div><span style="font-size:13px;font-weight:700;font-family:\'JetBrains Mono\',monospace">'+totalEntries+' รายการ</span></div>';
+    h+='<div class="sr"><div class="sl">รายการที่บันทึกทั้งหมด</div><span style="font-size:13px;font-weight:700;font-family:\'Taviraj\',sans-serif">'+totalEntries+' รายการ</span></div>';
     h+='<div class="sr" style="border-bottom:none"><div class="sl">ใช้งานตั้งแต่</div><span style="font-size:13px;font-weight:700">'+firstDate+'</span></div>';
     h+='</div></div>';
     // Theme
@@ -2315,8 +2348,8 @@ function drawMC(d,y,m){
                 tooltip:{
                     backgroundColor:'rgba(0,0,0,0.82)',
                     padding:12,
-                    titleFont:{size:13,family:'Sarabun'},
-                    bodyFont:{size:13,family:'JetBrains Mono'},
+                    titleFont:{size:13,family:'Taviraj'},
+                    bodyFont:{size:13,family:'Taviraj'},
                     callbacks:{
                         label:function(ctx){
                             var pct=((ctx.raw/total)*100).toFixed(1);
@@ -2394,7 +2427,7 @@ function drawYC(rows){
                 y:{
                     ticks:{
                         color:tx,
-                        font:{size:12,family:'Sarabun',weight:'700'},
+                        font:{size:12,family:'Taviraj',weight:'700'},
                         maxRotation:0,
                         minRotation:0,
                         padding:6
@@ -2405,7 +2438,7 @@ function drawYC(rows){
                 x:{
                     ticks:{
                         color:tx3,
-                        font:{size:10,family:'JetBrains Mono'},
+                        font:{size:10,family:'Taviraj'},
                         maxTicksLimit:5,
                         callback:function(v){
                             if(v>=1000000)return(v/1000000).toFixed(1)+'M';
@@ -2423,7 +2456,7 @@ function drawYC(rows){
                     reverse:true,
                     labels:{
                         color:tx,
-                        font:{family:'Sarabun',size:12,weight:'bold'},
+                        font:{family:'Taviraj',size:12,weight:'bold'},
                         usePointStyle:true,
                         pointStyle:'rectRounded',
                         pointStyleWidth:14,
@@ -2538,7 +2571,7 @@ function togRecur(id){var s=gs();if(!s.recur)return;var it=s.recur.find(function
 function delRecur(id){var s=gs();if(!s.recur)return;s.recur=s.recur.filter(function(x){return x.id!==id});addTombstone(s,'recur',id);syncNow(s);renderSettings();render()}
 
 function getGoals(){var s=gs();if(!s.goals)s.goals=[];return s.goals}
-function renderSettingsGoals(){var s=gs();var g=getGoals();var h='<div style="padding:12px 0"><div class="cal-hd" style="margin:0 0 10px"><button onclick="backSettings()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg></button><span>Goals</span><div style="width:30px"></div></div>';if(g.length>0){g.forEach(function(it){var pct=it.target>0?Math.min((Number(it.cur||0)/Number(it.target||0))*100,100):0;h+='<div class="sec" style="margin:0 0 12px"><div class="sec-t"><span>'+esc(it.name||'-')+'</span><span style="font-family:JetBrains Mono,monospace;font-size:11px;color:var(--tx3)">'+pct.toFixed(0)+'%</span></div><div class="sc"><div style="display:flex;justify-content:space-between;padding:4px 16px 10px"><span style="font-size:12px;color:var(--tx3)">'+fmt(it.cur||0)+' / '+fmt(it.target||0)+'</span><button class="cd" onclick="delGoal(\''+it.id+'\')">'+IC.dl+'</button></div><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill pf-gn" style="width:'+pct+'%"></div></div></div><div class="ar" style="padding:10px 16px 0"><input class="inp" type="number" id="gAdd_'+it.id+'" placeholder="เพิ่มยอด" min="0"><button class="btn btn-ac" style="padding:8px 12px" onclick="addGoalAmt(\''+it.id+'\')">เพิ่ม</button></div></div></div>'})}else{h+='<div class="dl-empty" style="padding:18px 0">ยังไม่มี Goals</div>'}h+='<div class="prof-sec-t">สร้าง Goal</div>';h+='<div class="ar" style="padding:0"><input class="inp" id="gName" placeholder="ชื่อเป้าหมาย"><input class="inp" type="number" id="gTarget" placeholder="เป้าหมาย" min="0" style="flex:.6"></div>';h+='<div style="margin-top:10px"><button class="btn btn-ac btn-full" onclick="addGoal()">เพิ่ม Goal</button></div>';h+='</div>';return h}
+function renderSettingsGoals(){var s=gs();var g=getGoals();var h='<div style="padding:12px 0"><div class="cal-hd" style="margin:0 0 10px"><button onclick="backSettings()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg></button><span>Goals</span><div style="width:30px"></div></div>';if(g.length>0){g.forEach(function(it){var pct=it.target>0?Math.min((Number(it.cur||0)/Number(it.target||0))*100,100):0;h+='<div class="sec" style="margin:0 0 12px"><div class="sec-t"><span>'+esc(it.name||'-')+'</span><span style="font-family:Taviraj,sans-serif;font-size:11px;color:var(--tx3)">'+pct.toFixed(0)+'%</span></div><div class="sc"><div style="display:flex;justify-content:space-between;padding:4px 16px 10px"><span style="font-size:12px;color:var(--tx3)">'+fmt(it.cur||0)+' / '+fmt(it.target||0)+'</span><button class="cd" onclick="delGoal(\''+it.id+'\')">'+IC.dl+'</button></div><div class="prog-wrap"><div class="prog-bar"><div class="prog-fill pf-gn" style="width:'+pct+'%"></div></div></div><div class="ar" style="padding:10px 16px 0"><input class="inp" type="number" id="gAdd_'+it.id+'" placeholder="เพิ่มยอด" min="0"><button class="btn btn-ac" style="padding:8px 12px" onclick="addGoalAmt(\''+it.id+'\')">เพิ่ม</button></div></div></div>'})}else{h+='<div class="dl-empty" style="padding:18px 0">ยังไม่มี Goals</div>'}h+='<div class="prof-sec-t">สร้าง Goal</div>';h+='<div class="ar" style="padding:0"><input class="inp" id="gName" placeholder="ชื่อเป้าหมาย"><input class="inp" type="number" id="gTarget" placeholder="เป้าหมาย" min="0" style="flex:.6"></div>';h+='<div style="margin-top:10px"><button class="btn btn-ac btn-full" onclick="addGoal()">เพิ่ม Goal</button></div>';h+='</div>';return h}
 function addGoal(){var name=(document.getElementById('gName').value||'').trim();var tgt=Number(document.getElementById('gTarget').value)||0;if(!name||tgt<=0)return;var s=gs();if(!s.goals)s.goals=[];s.goals.push({id:genId('g'),name:name,target:tgt,cur:0});syncNow(s);renderSettings();render()}
 function addGoalAmt(id){var inp=document.getElementById('gAdd_'+id);if(!inp)return;var a=Number(inp.value)||0;if(a<=0)return;var s=gs();if(!s.goals)return;var it=s.goals.find(function(x){return x.id===id});if(!it)return;it.cur=Number(it.cur||0)+a;syncNow(s);renderSettings();render()}
 function delGoal(id){var s=gs();if(!s.goals)return;s.goals=s.goals.filter(function(x){return x.id!==id});addTombstone(s,'goals',id);syncNow(s);renderSettings();render()}
