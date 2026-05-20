@@ -70,15 +70,9 @@ var PRESET_CAT_COLORS={pet:'#F59E0B',game:'#6366F1',travel:'#06B6D4',health:'#EC
 var CAT_PALETTE=['#F59E0B','#6366F1','#06B6D4','#EC4899','#10B981','#84CC16','#F97316','#A855F7','#14B8A6','#FB7185','#0EA5E9','#A3E635'];
 var INCOME_COLORS=['#16A34A','#22C55E','#0EA5E9','#7C3AED','#F97316','#EC4899'];
 var THEMES=[
-    {id:'light',name:'Light',dots:['#FAF4EE','#e33900','#FFF'],free:true},
-    {id:'dark',name:'Dark',dots:['#141110','#F08030','#221C17'],free:true},
-    {id:'basics',name:'The Basics',dots:['#1A1A1A','#A1A1A1','#4A4A4A'],free:true},
-    {id:'rose',name:'Rose Quartz',dots:['#FFF5F7','#F472B6','#FFFFFF'],free:true},
-    {id:'forest',name:'Forest',dots:['#F1EDEA','#4CB572','#135E4B'],free:false},
-    {id:'emerald',name:'Emerald',dots:['#F1EDEA','#05B084','#015A84'],free:false},
-    {id:'ocean',name:'Midnight Ocean',dots:['#0A1118','#38BDF8','#1E293B'],free:false},
-    {id:'cyber',name:'Cyber Neon',dots:['#050505','#A855F7','#121212'],free:false},
-    {id:'slate',name:'Minimal Slate',dots:['#F8FAFC','#475569','#FFFFFF'],free:false}
+    {id:'light',name:'Claude Cream',dots:['#FAF9F5','#CC785C','#EFE9DE'],free:true},
+    {id:'dark',name:'Claude Navy',dots:['#181715','#CC785C','#252320'],free:true},
+    {id:'rose',name:'Rose Quartz',dots:['#FAF4F5','#CC785C','#EBDBE0'],free:true}
 ];
 var CLIENT_ID='933620688457-nqv6qs8381m46t8dn8sqv0qecbcuav82.apps.googleusercontent.com';
 var APP_VER='0.2.2';
@@ -568,7 +562,7 @@ function checkSession(){
 }
 
 /* ===== THEME ===== */
-function applyTheme(id){document.documentElement.setAttribute('data-theme',id);var s=gs();s.theme=id;persistStore(s,false)}
+function applyTheme(id){var valid=THEMES.some(function(t){return t.id===id});if(!valid)id='light';document.documentElement.setAttribute('data-theme',id);var s=gs();s.theme=id;persistStore(s,false)}
 function toggleThemeDD(){document.getElementById('themeDD').classList.toggle('open')}
 document.addEventListener('click',function(e){if(!e.target.closest('.theme-dd'))document.getElementById('themeDD').classList.remove('open')});
 function renderThemeDD(){var cur=gs().theme||'light';var h='';THEMES.forEach(function(t){h+='<div class="theme-item'+(cur===t.id?' active':'')+'" onclick="pickTheme(\''+t.id+'\',0)"><div class="theme-dots">';t.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});h+='</div>'+t.name+'</div>'});document.getElementById('themeDD').innerHTML=h}
@@ -1845,7 +1839,7 @@ var tipTimer;function showTip(e){var t=e.currentTarget.dataset.tip;if(!t)return;
 /* ===== CHARTS ===== */
 function cCl(){
     var theme=document.documentElement.getAttribute('data-theme')||'light';
-    var dk=['dark','basics','ocean','cyber'].indexOf(theme)>=0;
+    var dk=theme==='dark';
     return{dk:dk,t:dk?'rgba(255,255,255,.75)':'rgba(0,0,0,.65)',g:dk?'rgba(255,255,255,.07)':'rgba(0,0,0,.07)'}
 }
 function drawMC(d,y,m){

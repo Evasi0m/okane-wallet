@@ -1,4 +1,4 @@
-const CACHE_NAME = 'okane-v1';
+const CACHE_NAME = 'okane-v4';
 const CACHE_URLS = [
   '/',
   '/index.html',
@@ -29,15 +29,14 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('fetch', function(e) {
   if (e.request.method !== 'GET') return;
   e.respondWith(
-    caches.match(e.request).then(function(cached) {
-      var fetchPromise = fetch(e.request).then(function(response) {
-        if (response && response.status === 200 && response.type !== 'opaque') {
-          var clone = response.clone();
-          caches.open(CACHE_NAME).then(function(cache) { cache.put(e.request, clone); });
-        }
-        return response;
-      }).catch(function() { return cached; });
-      return cached || fetchPromise;
+    fetch(e.request).then(function(response) {
+      if (response && response.status === 200 && response.type !== 'opaque') {
+        var clone = response.clone();
+        caches.open(CACHE_NAME).then(function(cache) { cache.put(e.request, clone); });
+      }
+      return response;
+    }).catch(function() {
+      return caches.match(e.request);
     })
   );
 });
