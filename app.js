@@ -1147,6 +1147,34 @@ function manualSync(){
             setTimeout(function(){btn.innerHTML='⇕ ซิงค์กับ Supabase';btn.classList.remove('sync-err');btn.disabled=false},3000);
         });
 }
+
+async function forcePullFromCloud() {
+    if (isGuest || !supabaseUserId) return;
+    var btn = document.getElementById('forcePullBtn');
+    if (!btn) return;
+    
+    if (!confirm('⚠️ คำเตือน: คุณต้องการดึงข้อมูลทั้งหมดจากระบบคลาวด์เพื่อเขียนทับข้อมูลบนเครื่องนี้ใช่หรือไม่?\n\nการกู้คืนวิธีนี้จะเขียนทับข้อมูลในเครื่องปัจจุบันของคุณทันที ข้อมูลที่ยังไม่ได้ซิงค์จากเครื่องนี้จะสูญหาย')) return;
+    
+    btn.disabled = true;
+    var originalHTML = btn.innerHTML;
+    btn.innerHTML = '<span class="spin-ic"></span>กำลังดึงข้อมูลล่าสุด...';
+    
+    try {
+        await pullFromSupabaseToLocal(supabaseUserId);
+        _lastSyncSuccess = Date.now();
+        _syncPending = false;
+        updateSyncIndicator();
+        alert('ดึงข้อมูลล่าสุดจากระบบคลาวด์และเขียนทับเสร็จสิ้น!');
+        closeUser();
+        render();
+    } catch(err) {
+        console.error("Force pull failed:", err);
+        alert('เกิดข้อผิดพลาดในการดึงข้อมูล: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+    }
+}
 function guestLogin(){isGuest=true;var s=gs();s.isLoggedIn=false;s.guestUsed=true;ss(s);enterApp()}
 function enterApp(){
     refreshCurrentContext();
@@ -2321,7 +2349,15 @@ function openUser(){
     h+='</div><span style="font-size:13px;font-weight:600;color:var(--tx2)">'+curTheme.name+'</span>';
     h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div></div></div></div>';
     // Sync
-    if(!isGuest){var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';var pendingBadge=_syncPending?'<div id="syncPendingBadge" style="font-size:11px;color:var(--accent);margin-top:4px;text-align:center">⏳ มีข้อมูลรอ sync...</div>':'<div id="syncPendingBadge" style="display:none;font-size:11px;color:var(--accent);margin-top:4px;text-align:center">⏳ มีข้อมูลรอ sync...</div>';h+='<div class="prof-sec-t">Supabase Cloud</div><div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px"><button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Supabase</button><div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);margin-top:6px;text-align:center">'+syncLbl+'</div>'+pendingBadge+'</div></div>'}
+    if(!isGuest){
+        var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';
+        var pendingBadge=_syncPending?'<div id="syncPendingBadge" style="font-size:11px;color:var(--accent);margin-top:4px;text-align:center">⏳ มีข้อมูลรอ sync...</div>':'<div id="syncPendingBadge" style="display:none;font-size:11px;color:var(--accent);margin-top:4px;text-align:center">⏳ มีข้อมูลรอ sync...</div>';
+        h+='<div class="prof-sec-t">Supabase Cloud</div><div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">';
+        h+='<button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Supabase</button>';
+        h+='<button class="btn btn-gh btn-full" id="forcePullBtn" onclick="forcePullFromCloud()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>ดึงข้อมูลจากระบบคลาวด์ใหม่ทั้งหมด (Force Overwrite)</button>';
+        h+='<div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);text-align:center;margin-top:2px">'+syncLbl+'</div>'+pendingBadge;
+        h+='</div></div>';
+    }
     // Import / Export
     h+='<div class="prof-sec-t">Backup & Restore</div>';
     h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">';
