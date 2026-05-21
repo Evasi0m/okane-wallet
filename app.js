@@ -1939,30 +1939,26 @@ function renderQA(){
     h += '<div class="qa-meta-lb" style="margin:6px 0 6px">หมวดหมู่ <span style="color:var(--rd)">*</span></div>';
     if(cats.length===1&&cats[0].id==='other')h += '<div class="empty-section-note" style="margin:0 4px 8px;font-size:12px">ยังไม่มีหมวดค่าใช้จ่าย สร้างหมวดก่อนแล้วค่อยบันทึกได้</div>';
     h += '<div class="qa-cats"'+(hasAmt?'':' style="opacity:0.4;pointer-events:none"')+'>';
-    // Frequent cats (always visible)
     if(freqCats.length>0){
         freqCats.forEach(function(c){
             h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
             h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
             h += '<span>'+esc(c.name)+'</span></div>';
         });
-    }
-    // Rest cats (expandable)
-    if(restCats.length>0){
-        if(!window._qaShowAll&&freqCats.length>0){
-            h += '<div class="qa-cat qa-cat-more" onclick="window._qaShowAll=true;renderQA()">';
-            h += '<div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></div>';
-            h += '<span>อีก '+restCats.length+'</span></div>';
-        } else {
-            restCats.forEach(function(c){
-                h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
-                h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
-                h += '<span>'+esc(c.name)+'</span></div>';
-            });
+        if(restCats.length>0){
+            if(!window._qaShowAll){
+                h += '<div class="qa-cat qa-cat-more" onclick="window._qaShowAll=true;renderQA()">';
+                h += '<div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></div>';
+                h += '<span>อีก '+restCats.length+'</span></div>';
+            } else {
+                restCats.forEach(function(c){
+                    h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
+                    h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
+                    h += '<span>'+esc(c.name)+'</span></div>';
+                });
+            }
         }
-    }
-    // No frequent cats → show all directly
-    if(freqCats.length===0){
+    } else {
         cats.forEach(function(c){
             h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
             h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
