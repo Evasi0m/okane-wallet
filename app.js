@@ -1978,12 +1978,14 @@ function renderQA(){
     h += '</div>';
 
     // Note
-    h += '<input class="qa-note" id="qaNote" placeholder="บันทึกช่วยจำ (ไม่บังคับ)" oninput="qaNoteChange()"'+(window._qaN?' value="'+esc(window._qaN)+'"':'')+' style="margin-top:8px">';
+    h += '<div class="qa-meta-lb" style="margin:12px 0 6px">บันทึกช่วยจำ</div>';
+    h += '<input class="qa-note" id="qaNote" placeholder="บันทึกช่วยจำ (ไม่บังคับ)" oninput="qaNoteChange()"'+(window._qaN?' value="'+esc(window._qaN)+'"':'')+' style="margin-top:0">';
 
     // Wallet — collapsible
     var w=getWallets();
     if(w.length>1){
-        h += '<div class="qa-wallet-row">';
+        h += '<div class="qa-meta-lb" style="margin:14px 0 6px">จ่ายจากกระเป๋า</div>';
+        h += '<div class="qa-wallet-row" style="border-top:none;margin-top:0;padding-top:0">';
         w.forEach(function(x){h+='<button class="qa-wal-btn'+(qaWallet===x.id?' on':'')+'" onclick="qaPickWallet(\''+x.id+'\')">'+esc(x.name)+'</button>'});
         h += '</div>';
     }
