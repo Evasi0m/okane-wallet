@@ -475,7 +475,8 @@
 .ni:active{transform:scale(.88);transition-duration:.1s}
 .ni svg{width:21px;height:21px;flex-shrink:0;transition:transform .38s cubic-bezier(.34,1.56,.64,1)}
 .ni-lb{max-width:0;opacity:0;overflow:hidden;transition:max-width .38s cubic-bezier(.34,1.56,.64,1),opacity .28s ease,margin .38s ease;margin-left:0;font-size:11px;font-weight:800}
-.ni.on{flex:1.8;background:linear-gradient(145deg,var(--ac) 0%,var(--ac2) 100%);color:#fff;padding:12px 18px;box-shadow:0 6px 20px var(--acBg2),0 1px 0 rgba(255,255,255,.35) inset}
+.ni.on{flex:1.8;background:linear-gradient(145deg,var(--ac) 0%,var(--ac2) 100%);color:#fff;padding:12px 18px;border:1px solid rgba(255,255,255,.38);box-shadow:0 6px 20px var(--acBg2),0 1px 0 rgba(255,255,255,.45) inset,0 -1px 0 rgba(0,0,0,.08) inset}
+.ni.on::after{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7) 50%,transparent);border-radius:50%;pointer-events:none}
 .ni.on svg{transform:scale(1.12)}
 .ni.on .ni-lb{max-width:90px;opacity:1;margin-left:7px}
 /* FAB — Liquid Glass circle */
