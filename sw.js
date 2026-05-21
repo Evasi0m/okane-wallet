@@ -1,4 +1,4 @@
-const CACHE_NAME = 'glass-v48';
+const CACHE_NAME = 'glass-v49';
 const CACHE_URLS = [
   './',
   './index.html',
