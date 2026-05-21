@@ -2824,59 +2824,76 @@ function drawYC(rows){
     var tx3=(cs.getPropertyValue('--tx3')||'').trim()||'#B8A090';
     var cb=(cs.getPropertyValue('--cb')||'').trim()||'rgba(190,160,130,.18)';
 
-    // เธเธณเธเธงเธ“ net (เน€เธซเธฅเธทเธญ) เธชเธณเธซเธฃเธฑเธเนเธ•เนเธฅเธฐเน€เธ”เธทเธญเธ
-    var netData=rows.map(function(r){return Math.max(0,r.tI-r.tE)});
+    var ctx2d = cv.getContext('2d');
+    var gradientInc = ctx2d.createLinearGradient(0, 0, 0, 300);
+    gradientInc.addColorStop(0, gn + '40');
+    gradientInc.addColorStop(1, gn + '00');
+
+    var gradientExp = ctx2d.createLinearGradient(0, 0, 0, 300);
+    gradientExp.addColorStop(0, rd + '40');
+    gradientExp.addColorStop(1, rd + '00');
 
     ch=new Chart(cv,{
-        type:'bar',
+        type:'line',
         data:{
             labels:TM,
             datasets:[
                 {
-                    label:'\u0E08\u0E48\u0E32\u0E22',
-                    data:rows.map(function(r){return r.tE}),
-                    backgroundColor:rd+'BB',
-                    borderColor:rd,
-                    borderWidth:0,
-                    borderRadius:{topRight:5,bottomRight:5,topLeft:0,bottomLeft:0},
-                    borderSkipped:'left',
-                    barPercentage:.65,
-                    categoryPercentage:.88
-                },
-                {
                     label:'\u0E23\u0E31\u0E1A',
                     data:rows.map(function(r){return r.tI}),
-                    backgroundColor:gn+'BB',
                     borderColor:gn,
-                    borderWidth:0,
-                    borderRadius:{topRight:5,bottomRight:5,topLeft:0,bottomLeft:0},
-                    borderSkipped:'left',
-                    barPercentage:.65,
-                    categoryPercentage:.88
+                    borderWidth:3.5,
+                    backgroundColor:gradientInc,
+                    fill:true,
+                    tension:0.4,
+                    pointBackgroundColor:gn,
+                    pointBorderColor:'#fff',
+                    pointBorderWidth:2,
+                    pointRadius:3.5,
+                    pointHoverRadius:6,
+                    pointHoverBorderWidth:2.5
+                },
+                {
+                    label:'\u0E08\u0E48\u0E32\u0E22',
+                    data:rows.map(function(r){return r.tE}),
+                    borderColor:rd,
+                    borderWidth:3.5,
+                    backgroundColor:gradientExp,
+                    fill:true,
+                    tension:0.4,
+                    pointBackgroundColor:rd,
+                    pointBorderColor:'#fff',
+                    pointBorderWidth:2,
+                    pointRadius:3.5,
+                    pointHoverRadius:6,
+                    pointHoverBorderWidth:2.5
                 }
             ]
         },
         options:{
-            indexAxis:'y',
             responsive:true,
             maintainAspectRatio:false,
-            layout:{padding:{top:4,right:12,bottom:4,left:0}},
+            interaction:{
+                intersect:false,
+                mode:'index'
+            },
+            layout:{padding:{top:8,right:12,bottom:4,left:4}},
             scales:{
-                y:{
+                x:{
                     ticks:{
                         color:tx,
-                        font:{size:12,family:'Taviraj',weight:'700'},
+                        font:{size:11,family:'Taviraj',weight:'700'},
                         maxRotation:0,
                         minRotation:0,
-                        padding:6
+                        padding:8
                     },
                     grid:{display:false},
                     border:{display:false}
                 },
-                x:{
+                y:{
                     ticks:{
                         color:tx3,
-                        font:{size:10,family:'Taviraj'},
+                        font:{size:10,family:'JetBrains Mono'},
                         maxTicksLimit:5,
                         callback:function(v){
                             if(v>=1000000)return(v/1000000).toFixed(1)+'M';
@@ -2891,21 +2908,23 @@ function drawYC(rows){
             plugins:{
                 legend:{
                     position:'bottom',
-                    reverse:true,
                     labels:{
                         color:tx,
                         font:{family:'Taviraj',size:12,weight:'bold'},
                         usePointStyle:true,
-                        pointStyle:'rectRounded',
-                        pointStyleWidth:14,
-                        padding:20,
-                        boxHeight:10
+                        pointStyle:'circle',
+                        padding:16,
+                        boxHeight:8
                     }
                 },
                 tooltip:{
-                    backgroundColor:'rgba(0,0,0,0.78)',
-                    titleColor:'#fff',
-                    bodyColor:'rgba(255,255,255,0.85)',
+                    backgroundColor:'rgba(255, 255, 255, 0.94)',
+                    titleColor:'#2C1810',
+                    titleFont:{family:'Taviraj',weight:'bold',size:13},
+                    bodyColor:'#2C1810',
+                    bodyFont:{family:'Taviraj',size:12},
+                    borderColor:cb,
+                    borderWidth:1,
                     padding:12,
                     cornerRadius:12,
                     callbacks:{
