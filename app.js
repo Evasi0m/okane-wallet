@@ -1136,8 +1136,31 @@ function manualSync(){
     btn.innerHTML='<span class="spin-ic"></span>กำลังซิงค์…';
     lbl.textContent='';
     
-    pullFromSupabaseToLocal(supabaseUserId)
-        .then(function(){ return supabaseSync() })
+    supabase.from('profiles').select('updated_at').eq('id', supabaseUserId).maybeSingle()
+        .then(function(resp){
+            var prof = resp.data;
+            var remoteTime = (prof && prof.updated_at) ? new Date(prof.updated_at).getTime() : 0;
+            var local = gs();
+            var localTime = local.meta ? Number(local.meta.updatedAt || 0) : 0;
+            
+            if (localTime > remoteTime) {
+                console.log("Local is newer. Uploading local data to Supabase...");
+                return supabaseSync();
+            } else if (remoteTime > localTime) {
+                console.log("Remote is newer. Merging remote data with local...");
+                return fetchRemoteData(supabaseUserId).then(function(remote) {
+                    if (!remote) return supabaseSync();
+                    var localNow = gs();
+                    var merged = smartMergeStores(localNow, remote);
+                    persistStore(merged, false);
+                    render();
+                    return supabaseSync();
+                });
+            } else {
+                console.log("Timestamps are identical. Forcing upload to be safe...");
+                return supabaseSync();
+            }
+        })
         .then(function(){
             btn.disabled=false;
             btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ซิงค์สำเร็จ';
@@ -2515,10 +2538,38 @@ function handleImport(input){
                 else{bal+=Number(h.amount||0)}
             });
             imported.savings.balance=bal;
-            syncNow(imported);
+            
+            // Set local storage and update local updatedAt timestamp to now
+            imported.meta = imported.meta || {};
+            imported.meta.updatedAt = Date.now();
+            persistStore(imported, true);
+            render();
+            
+            if (supabaseUserId) {
+                // If logged in, block standard queue sync and force push direct overwrite
+                _syncing = true;
+                updateSyncIndicator();
+                
+                syncLocalToSupabase(supabaseUserId).then(function() {
+                    _lastUploadTime = Date.now();
+                    _lastSyncSuccess = Date.now();
+                    _syncPending = false;
+                    _syncing = false;
+                    updateSyncIndicator();
+                    alert('นำเข้าข้อมูลสำเร็จ และบันทึกทับข้อมูลบนระบบคลาวด์เรียบร้อยแล้ว!');
+                }).catch(function(err) {
+                    console.error("Direct upload after import failed:", err);
+                    _syncing = false;
+                    _syncPending = true;
+                    updateSyncIndicator();
+                    alert('นำเข้าข้อมูลสำเร็จในเครื่องแล้ว แต่การอัปโหลดขึ้นระบบคลาวด์ขัดข้อง (ระบบจะพยายามซิงค์ใหม่อัตโนมัติเมื่อเครือข่ายพร้อม)');
+                });
+            } else {
+                alert('นำเข้าข้อมูลสำเร็จทั้งหมด '+txCount+' รายการ (บันทึกอยู่ในเครื่องนี้เท่านั้น)');
+            }
+            
             input.value='';
             closeUser();
-            setTimeout(function(){render();alert('นำเข้าข้อมูลสำเร็จ '+txCount+' รายการ')},200);
         }catch(ex){
             alert('อ่านไฟล์ไม่ได้ กรุณาตรวจสอบไฟล์แล้วลองใหม่');
             input.value='';
