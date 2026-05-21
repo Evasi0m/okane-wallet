@@ -1,9 +1,9 @@
-const CACHE_NAME = 'glass-v47';
+const CACHE_NAME = 'glass-v48';
 const CACHE_URLS = [
-  '/',
-  '/index.html',
-  '/app.js',
-  '/styles.css',
+  './',
+  './index.html',
+  './app.js?v=20260420s',
+  './styles.css',
   'https://fonts.googleapis.com/css2?family=Taviraj:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js'
 ];
@@ -11,7 +11,7 @@ const CACHE_URLS = [
 self.addEventListener('install', function(e) {
   e.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(CACHE_URLS.filter(u => u.startsWith('/')));
+      return cache.addAll(CACHE_URLS.filter(u => u.startsWith('./')));
     })
   );
   self.skipWaiting();
