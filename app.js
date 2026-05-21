@@ -1446,7 +1446,7 @@ var cardSet=(st.card||{cycleDay:25,dueDay:10});
 h+='<div class="sec" style="animation-delay:.11s"><div class="sec-t">'+secTitle(IC.cal,'บัตร (รอบบิล)')+'</div><div class="sc"><div class="row"><div class="ri shopee">'+IC.cal+'</div><div class="rn"><div class="rn-t">ยอดบัตรรวม</div><div class="rn-s">รอบตัด '+Number(cardSet.cycleDay||25)+' • ครบกำหนด '+Number(cardSet.dueDay||10)+'</div></div><div class="rv neg">'+fmt(cardSum)+'</div></div></div></div>';
 }
 
-h+='<div class="reset-area"><button class="reset-btn" onclick="resetMonth()">ล้างเดือน '+TM[m]+'</button><div class="credit">Credit : Opus 4.6 & Jarasrawee</div></div>';
+h+='<div class="reset-area"><button class="reset-btn" onclick="resetMonth()">ล้างเดือน '+TM[m]+'</button></div>';
 
 el.innerHTML=h;drawMC(d,y,m)
 }
@@ -1548,7 +1548,6 @@ h+='<div class="sum-hd" onclick="toggleSumExp(\'month\')" style="margin-top:8px;
 h+='<div style="font-size:11px;color:var(--tx3)">รายละเอียด <span class="sum-arr" id="sum-arr-month">▾</span></div></div>';
 h+='<div id="sum-exp-month" class="sum-exp"><div class="sum-vbar"><span class="sum-vbar-lb">เรียงโดย</span><div class="sum-vtog" id="sum-vtog-month" onclick="event.stopPropagation();toggleSumView(\'month\')"><span id="sum-vopt-month-time" class="sum-vopt'+(window._sumView.month==='time'?' on':'')+'">เวลา</span><span id="sum-vopt-month-cat" class="sum-vopt'+(window._sumView.month==='cat'?' on':'')+'">หมวดหมู่</span></div></div><div id="sum-exp-content-month">'+buildSumRows('month')+'</div></div>';
 h+='</div></div>';
-h+='<div class="credit">Credit : Opus 4.6 & Jarasrawee</div>';
 el.innerHTML=h}
 
 function buildSumRows(type){
@@ -1713,7 +1712,7 @@ h+='<div class="ym-total-col"><div class="ym-total-key">รายจ่ายร
 h+='</div></div>';
 h+='</div></div>';
 h+='<div class="sec"><div class="sec-t">'+secTitle(IC.cal,'กราฟ')+'</div><div class="sc" style="padding:14px 10px"><div class="cw year-cw"><canvas id="yC"></canvas></div></div></div>';
-h+='<div class="reset-area"><button class="reset-btn" onclick="resetYear()">\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E35 '+cY+'</button><div class="credit">Credit : Opus 4.6 & Jarasrawee</div></div>';
+h+='<div class="reset-area"><button class="reset-btn" onclick="resetYear()">\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E35 '+cY+'</button></div>';
 el.innerHTML=h;drawYC(rows)}
 
 /* ===== RENDER SIMULATOR ===== */
@@ -1857,7 +1856,6 @@ function rSim(el){
     if(res&&Number(res.per||0)>0&&Number(res.months||0)>0){
         h+='<div class="sim-overlay'+(simOverlayOpen?' open':'')+'" id="simOverlay" onclick="if(event.target===this)closeSimOverlay()"><div class="sim-overlay-box"><div class="sim-overlay-hd"><div class="sim-overlay-ttl">ตารางจำลองการผ่อน</div><button class="mini-btn" onclick="closeSimOverlay()" title="ปิด"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="sim-overlay-sub">ยอดผ่อน '+fmt(res.per)+' x '+Number(res.months||0)+' เดือน = รวม '+fmt(Number(res.per||0)*Number(res.months||0))+'</div><div class="sim-table-wrap">'+simResultTableH(res)+'</div></div></div>'
     }
-    h+='<div class="credit" style="margin-top:16px">Credit : Opus 4.6 & Jarasrawee</div>';
     el.innerHTML=h;
 }
 
@@ -2387,7 +2385,7 @@ function openUser(){
     h+='<div class="sr" style="border-bottom:none"><div class="sl"><div>ล้างข้อมูลทั้งหมด</div><div style="font-size:11px;color:var(--tx3);margin-top:2px">ลบข้อมูลทุกอย่างถาวร</div></div><button class="btn btn-rd" onclick="resetAll()">ล้างทั้งหมด</button></div>';
     h+='</div></div>';
     // Version
-    h+='<div class="prof-ver">Okane Wallet v'+APP_VER+'<br><span>Credit : Claude Opus 4.6 & Jarasrawee</span></div>';
+    h+='<div class="prof-ver">Okane Wallet v'+APP_VER+'</div>';
     // Logout
     h+='<div style="margin-top:16px"><button class="btn btn-rd btn-full" onclick="logout()">ออกจากระบบ</button></div>';
     document.getElementById('uB').innerHTML=h;
