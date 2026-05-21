@@ -1960,7 +1960,10 @@ function renderQA(){
 
     // Amount + compact presets
     var h = '<div class="qa-amt-wrap">';
-    h += '<input class="qa-amt" type="number" inputmode="decimal" autofocus id="qaAmt" placeholder="0" min="0" oninput="qaAmtChange()"'+(window._qaA?' value="'+window._qaA+'"':'')+' style="margin-bottom:6px">';
+    h += '<div class="qa-amt-container">';
+    h += '<span class="qa-amt-symbol">฿</span>';
+    h += '<input class="qa-amt" type="number" inputmode="decimal" autofocus id="qaAmt" placeholder="0" min="0" oninput="qaAmtChange()"'+(window._qaA?' value="'+window._qaA+'"':'')+'>';
+    h += '</div>';
     h += '<div class="qa-presets"><button onclick="quickAmt(10)">+10</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(500)">+500</button></div>';
     h += '</div>';
 
@@ -1970,7 +1973,7 @@ function renderQA(){
     h += '<div class="qa-cats"'+(hasAmt?'':' style="opacity:0.4;pointer-events:none"')+'>';
     if(freqCats.length>0){
         freqCats.forEach(function(c){
-            h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
+            h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'" style="--cat-color:'+(c.color||'var(--ac)')+'">';
             h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
             h += '<span>'+esc(c.name)+'</span></div>';
         });
@@ -1981,7 +1984,7 @@ function renderQA(){
                 h += '<span>อีก '+restCats.length+'</span></div>';
             } else {
                 restCats.forEach(function(c){
-                    h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
+                    h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'" style="--cat-color:'+(c.color||'var(--ac)')+'">';
                     h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
                     h += '<span>'+esc(c.name)+'</span></div>';
                 });
@@ -1989,7 +1992,7 @@ function renderQA(){
         }
     } else {
         cats.forEach(function(c){
-            h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'">';
+            h += '<div class="qa-cat'+(qaCat===c.id?' on':'')+'" onclick="pickQA(\''+c.id+'\')" data-cat="'+c.id+'" style="--cat-color:'+(c.color||'var(--ac)')+'">';
             h += '<div style="color:'+(c.color||'var(--tx2)')+'">'+getCatIcon(c.id)+'</div>';
             h += '<span>'+esc(c.name)+'</span></div>';
         });
@@ -2334,14 +2337,27 @@ function openUser(){
     h+='</div>';
     // Name
     h+='<div class="prof-sec-t">ข้อมูลส่วนตัว</div>';
-    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px"><div class="sr"><div class="sl">ชื่อที่แสดง</div><input class="si" style="width:160px" id="uName" value="'+esc(un)+'"></div></div></div>';
-    // Stats
-    h+='<div class="prof-sec-t">สถิติ</div>';
-    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px">';
-    h+='<div class="sr"><div class="sl">รายจ่ายเดือนนี้</div><span class="rv neg" style="font-size:13px">-'+fmt(monthExp)+'</span></div>';
-    h+='<div class="sr"><div class="sl">รายการที่บันทึกทั้งหมด</div><span style="font-size:13px;font-weight:700;font-family:\'Taviraj\',sans-serif">'+totalEntries+' รายการ</span></div>';
-    h+='<div class="sr" style="border-bottom:none"><div class="sl">ใช้งานตั้งแต่</div><span style="font-size:13px;font-weight:700">'+firstDate+'</span></div>';
-    h+='</div></div>';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px"><div class="sr" style="border-bottom:none"><div class="sl">ชื่อที่แสดง</div><input class="si" style="width:160px" id="uName" value="'+esc(un)+'"></div></div></div>';
+    // Stats Grid
+    h+='<div class="prof-sec-t">สถิติการใช้งาน</div>';
+    h+='<div class="prof-stats-grid">';
+    
+    h+='<div class="prof-stat-card tone-rd">';
+    h+='<span class="prof-stat-label">รายจ่ายเดือนนี้</span>';
+    h+='<span class="prof-stat-value neg">-'+fmt(monthExp)+'</span>';
+    h+='</div>';
+    
+    h+='<div class="prof-stat-card tone-bl">';
+    h+='<span class="prof-stat-label">บันทึกทั้งหมด</span>';
+    h+='<span class="prof-stat-value">'+totalEntries+' รายการ</span>';
+    h+='</div>';
+
+    h+='<div class="prof-stat-card tone-gn" style="grid-column: span 2">';
+    h+='<span class="prof-stat-label">เริ่มบันทึกครั้งแรก</span>';
+    h+='<span class="prof-stat-value">'+firstDate+'</span>';
+    h+='</div>';
+    
+    h+='</div>';
     // Theme
     h+='<div class="prof-sec-t">การแสดงผล</div>';
     h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px"><div class="sr" style="border-bottom:none;cursor:pointer" onclick="closeUser();setTimeout(toggleThemeDD,200)">';
