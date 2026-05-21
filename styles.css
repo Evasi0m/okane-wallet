@@ -532,9 +532,9 @@
 }
 .guest-lock{position:relative;pointer-events:none;user-select:none}.guest-lock>*{filter:blur(4px);opacity:.5}.guest-lock::after{content:'';position:absolute;inset:0;cursor:pointer;pointer-events:auto;z-index:5}.guest-lock-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:6;background:var(--card);border:1px solid var(--cb);border-radius:10px;padding:10px 18px;font-size:12px;font-weight:700;color:var(--ac);box-shadow:var(--s2);pointer-events:auto;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
 /* ── BOTTOM NAV — iOS 26 Pill TabBar ── */
-.bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;padding:6px 12px max(env(safe-area-inset-bottom),16px);display:flex;justify-content:center}
-.bnav-in{display:flex;gap:4px;align-items:center;background:var(--gl);backdrop-filter:blur(48px) saturate(2.4);-webkit-backdrop-filter:blur(48px) saturate(2.4);border:1px solid var(--glb);border-radius:32px;padding:8px 10px;box-shadow:0 20px 60px rgba(0,0,0,.14),0 8px 24px rgba(0,0,0,.08),0 1px 0 rgba(255,255,255,.6) inset,var(--navGlow);max-width:460px;width:100%;position:relative}
-.bnav-in::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7) 50%,transparent);border-radius:50%;pointer-events:none;z-index:1}
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;padding:0;display:flex;justify-content:center}
+.bnav-in{display:flex;gap:4px;align-items:center;background:var(--gl);backdrop-filter:blur(48px) saturate(2.4);-webkit-backdrop-filter:blur(48px) saturate(2.4);border:1px solid var(--glb);border-bottom:none;border-radius:44px 44px 0 0;padding:10px 16px max(env(safe-area-inset-bottom),12px);box-shadow:0 -4px 30px rgba(0,0,0,.08),0 1px 0 rgba(255,255,255,.6) inset,var(--navGlow);max-width:100%;width:100%;position:relative}
+.bnav-in::before{content:'';position:absolute;top:0;left:5%;right:5%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7) 50%,transparent);border-radius:50%;pointer-events:none;z-index:1}
 .ni{flex:1;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:0;padding:12px 10px;border-radius:24px;cursor:pointer;color:var(--tx3);font-size:11px;font-weight:700;transition:all .38s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;position:relative;overflow:hidden}
 .ni:active{transform:scale(.88);transition-duration:.1s}
 .ni svg{width:21px;height:21px;flex-shrink:0;transition:transform .38s cubic-bezier(.34,1.56,.64,1)}
@@ -1592,25 +1592,26 @@ body, input, button, select, textarea {
   box-shadow: 0 1px 8px rgba(0,0,0,0.02) !important;
 }
 
-/* ── LG Pill TabBar overrides ── */
+/* ── LG Dock TabBar overrides ── */
 .bnav-in {
   backdrop-filter: blur(52px) saturate(2.8) brightness(1.02) !important;
   -webkit-backdrop-filter: blur(52px) saturate(2.8) brightness(1.02) !important;
   background: linear-gradient(170deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.68) 100%) !important;
   border: 1px solid rgba(255,255,255,0.7) !important;
-  border-radius: 32px !important;
+  border-bottom: none !important;
+  border-radius: 44px 44px 0 0 !important;
   box-shadow:
-    0 24px 64px rgba(0,0,0,0.16),
-    0 10px 28px rgba(0,0,0,0.08),
+    0 -4px 30px rgba(0,0,0,0.06),
     0 1px 0 rgba(255,255,255,0.95) inset,
     var(--navGlow) !important;
 }
-[data-theme="dark"] .bnav-in {
+[data-theme="dark"] .bnav-in,
+[data-theme="midnight"] .bnav-in {
   background: linear-gradient(170deg, rgba(36,34,32,0.92) 0%, rgba(18,17,16,0.86) 100%) !important;
   border: 1px solid rgba(255,255,255,0.12) !important;
+  border-bottom: none !important;
   box-shadow:
-    0 24px 64px rgba(0,0,0,0.5),
-    0 10px 28px rgba(0,0,0,0.3),
+    0 -4px 30px rgba(0,0,0,0.3),
     0 1px 0 rgba(255,255,255,0.08) inset,
     var(--navGlow) !important;
 }
@@ -1954,10 +1955,57 @@ svg {
 #M > .sec:nth-child(n+7), .main > .sec:nth-child(n+7){animation-delay:.40s}
 #M > .hero, #M > .day-hero, #M > .ins-card, .main > .hero, .main > .day-hero, .main > .ins-card{animation:fadeUp .4s ease both}
 
+/* ── SVG Loop Animations ── */
+@keyframes ico-float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-2.5px)}
+}
+@keyframes ico-pulse{
+  0%,100%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.08);opacity:.85}
+}
+@keyframes ico-wiggle{
+  0%,100%{transform:rotate(0deg)}
+  25%{transform:rotate(3deg)}
+  75%{transform:rotate(-3deg)}
+}
+@keyframes ico-bounce{
+  0%,100%{transform:translateY(0) scale(1)}
+  40%{transform:translateY(-2px) scale(1.04)}
+  60%{transform:translateY(-1px) scale(1.02)}
+}
+@keyframes fab-breathe{
+  0%,100%{transform:scale(1) rotate(0)}
+  50%{transform:scale(1.06) rotate(45deg)}
+}
+/* Category icons in rows & Quick Add grid */
+.ri svg,.qa-cat svg,.cat-item svg{animation:ico-float 2.8s ease-in-out infinite;will-change:transform}
+.row:nth-child(2n) .ri svg,.qa-cat:nth-child(2n) svg{animation-delay:-.4s}
+.row:nth-child(3n) .ri svg,.qa-cat:nth-child(3n) svg{animation-delay:-.9s}
+.row:nth-child(4n) .ri svg,.qa-cat:nth-child(4n) svg{animation-delay:-1.4s}
+/* FAB + icon */
+.fab-c svg[data-icon-id="fab-add"]{animation:fab-breathe 3.5s ease-in-out infinite;will-change:transform}
+/* Income $ icon */
+.sec .row .ri svg path[d*="M17 5H9.5"],.sec .ri svg line[x1="12"][y1="2"],.ri:has(svg path[d*="M17 5H9.5"]) svg{animation:ico-bounce 2.4s ease-in-out infinite;animation-delay:-.3s}
+/* Calendar icon */
+svg[data-icon-id*="cal"] rect,svg[data-icon-id*="cal"]{animation:ico-wiggle 3s ease-in-out infinite}
+/* Save/floppy icon */
+.ri:has(svg path[d*="M19 21H5"]) svg,svg path[d*="M19 21H5"]{animation:ico-pulse 3s ease-in-out infinite}
+/* Close X icon — subtle rotate on hover only, no loop */
+/* Bottom nav icons (non-active) */
+.ni:not(.on) svg{animation:ico-float 3.2s ease-in-out infinite}
+.ni:nth-child(1) svg{animation-delay:0s}
+.ni:nth-child(2) svg{animation-delay:-.6s}
+.ni:nth-child(4) svg{animation-delay:-1.2s}
+.ni:nth-child(5) svg{animation-delay:-1.8s}
+/* Active nav icon — pulse */
+.ni.on svg{animation:ico-pulse 2s ease-in-out infinite}
+
 /* Reduced motion safety */
 @media (prefers-reduced-motion: reduce){
   .hero-chip, .empty-state, #M > .sec, .main > .sec,
   .qa-cat.suggested, .qa-cat.suggested::after,
   #M > .hero, .main > .hero{animation:none !important}
   .dl-item{transition:background .2s ease}
+  .ri svg,.qa-cat svg,.cat-item svg,.fab-c svg,.ni svg{animation:none !important}
 }
