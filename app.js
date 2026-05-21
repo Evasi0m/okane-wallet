@@ -83,7 +83,7 @@ var supabaseUserId = null;
 function getBangkokNow(){return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}))}
 function getSafeImageSrc(src){var v=String(src||'').trim();return /^(data:image\/|https?:\/\/)/i.test(v)?v:''}
 var NOW=getBangkokNow();
-var cY=NOW.getFullYear(),sM_=NOW.getMonth(),vw='m',ch=null,shY,tokenClient=null,accessToken=null,isGuest=true,userInfo={name:'',email:'',picture:''},driveFileId=null,sq='';
+var cY=NOW.getFullYear(),sM_=NOW.getMonth(),vw='m',ch=null,shY,tokenClient=null,accessToken=null,isGuest=false,userInfo={name:'',email:'',picture:''},driveFileId=null,sq='';
 var editInc=false,editExp=false,viewDate=new Date(NOW);
 var DF={salary:0,savGoal:0};
 var _syncing=false,_syncTimer=null,_syncPending=false;
@@ -146,7 +146,7 @@ function persistStore(d,markUpdated){
     clearCalcCache();
     return d;
 }
-function ss(d){persistStore(d,true);queueSync(false)}
+function ss(d){persistStore(d,true);queueSync(true)}
 function syncNow(d){persistStore(d,true);queueSync(true)}
 function gSet(){var s=gs();return s.settings||Object.assign({},DF)}
 function ensureSettings(){var s=gs();if(!s.settings)s.settings=Object.assign({},DF);return s.settings}
@@ -441,13 +441,12 @@ function initSupabaseAuth() {
             });
         } else {
             supabaseUserId = null;
-            isGuest = true;
+            isGuest = false;
             userInfo = { name: '', email: '', picture: '' };
             
-            var s = gs();
-            if (s.guestUsed && !document.getElementById('app').classList.contains('show')) {
-                enterApp();
-            }
+            // Stay locked on welcome screen, hide app
+            document.getElementById('welcome').classList.remove('hide');
+            document.getElementById('app').classList.remove('show');
         }
     });
 }
@@ -1054,7 +1053,7 @@ async function checkAndHandleMigration(userId) {
     persistStore(s, false);
 }
 function queueSync(immediate){
-    if(isGuest || !supabaseUserId) return;
+    if(!supabaseUserId) return;
     if(_syncing){_syncPending=true;return}
     clearTimeout(_syncTimer);
     if(immediate) supabaseSync();
@@ -1090,7 +1089,7 @@ function supabaseSync(){
     });
 }
 function supabasePollSync(){
-    if(isGuest||!supabaseUserId||_syncing)return;
+    if(!supabaseUserId||_syncing)return;
     if(Date.now()-_lastUploadTime<10000)return;
     supabase.from('profiles').select('updated_at').eq('id', supabaseUserId).maybeSingle().then(function(resp){
         var prof = resp.data;
@@ -1175,7 +1174,6 @@ async function forcePullFromCloud() {
         btn.innerHTML = originalHTML;
     }
 }
-function guestLogin(){isGuest=true;var s=gs();s.isLoggedIn=false;s.guestUsed=true;ss(s);enterApp()}
 function enterApp(){
     refreshCurrentContext();
     var app=document.getElementById('app'),wasShown=app.classList.contains('show');
@@ -1185,11 +1183,8 @@ function enterApp(){
     setV(vw||'m');
     updateUserBtn();
     if(!wasShown&&pinEnabled()){showPinLock('unlock',{title:'ใส่ PIN เพื่อปลดล็อก',sub:'เพื่อความปลอดภัยของข้อมูล',len:4,autoSubmit:true,canCancel:false})}
-    if(isGuest){setTimeout(function(){showGuestWarn()},400)}
-    if(!isGuest){
-        if(!_pollTimer)_pollTimer=setInterval(function(){supabasePollSync()},5*60*1000);
-        if(!_visListenerAdded){_visListenerAdded=true;document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')setTimeout(supabasePollSync,1000)})}
-    }
+    if(!_pollTimer)_pollTimer=setInterval(function(){supabasePollSync()},5*60*1000);
+    if(!_visListenerAdded){_visListenerAdded=true;document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')setTimeout(supabasePollSync,1000)})}
 }
 function showGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.add('open')}
 function closeGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.remove('open')}
@@ -2308,8 +2303,8 @@ document.getElementById('shM').addEventListener('click',function(e){if(e.target=
 
 /* ===== USER MODAL ===== */
 function openUser(){
-    var s=gs(),un=s.userName||userInfo.name||'Guest';
-    var pic=getSafeImageSrc(s.customPicture||((!isGuest&&userInfo.picture)?userInfo.picture:null));
+    var s=gs(),un=s.userName||userInfo.name||'User';
+    var pic=getSafeImageSrc(s.customPicture||(userInfo.picture?userInfo.picture:null));
     var curTheme=THEMES.find(function(t){return t.id===(s.theme||'light')})||THEMES[0];
     // Stats
     var d=gm(cY,sM_);
@@ -2328,8 +2323,8 @@ function openUser(){
     h+='</div>';
     h+='<input type="file" id="picFile" accept="image/*" style="display:none" onchange="handlePicUpload()">';
     h+='<div class="prof-name">'+esc(un)+'</div>';
-    h+='<div class="prof-email">'+esc(isGuest?'ผู้ใช้ทั่วไป':userInfo.email)+'</div>';
-    if(!isGuest)h+='<div class="prof-badge">Supabase</div>';
+    h+='<div class="prof-email">'+esc(userInfo.email)+'</div>';
+    h+='<div class="prof-badge">Supabase</div>';
     h+='</div>';
     // Name
     h+='<div class="prof-sec-t">ข้อมูลส่วนตัว</div>';
@@ -2349,15 +2344,13 @@ function openUser(){
     h+='</div><span style="font-size:13px;font-weight:600;color:var(--tx2)">'+curTheme.name+'</span>';
     h+='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></div></div></div></div>';
     // Sync
-    if(!isGuest){
-        var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';
-        var pendingBadge=_syncPending?'<div id="syncPendingBadge" style="font-size:11px;color:var(--accent);margin-top:4px;text-align:center">⏳ มีข้อมูลรอ sync...</div>':'<div id="syncPendingBadge" style="display:none;font-size:11px;color:var(--accent);margin-top:4px;text-align:center">⏳ มีข้อมูลรอ sync...</div>';
-        h+='<div class="prof-sec-t">Supabase Cloud</div><div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">';
-        h+='<button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Supabase</button>';
-        h+='<button class="btn btn-gh btn-full" id="forcePullBtn" onclick="forcePullFromCloud()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>ดึงข้อมูลจากระบบคลาวด์ใหม่ทั้งหมด (Force Overwrite)</button>';
-        h+='<div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);text-align:center;margin-top:2px">'+syncLbl+'</div>'+pendingBadge;
-        h+='</div></div>';
-    }
+    var syncLbl=_lastSyncSuccess?'sync ล่าสุด: '+fmtSyncAge():'ยังไม่เคย sync';
+    var pendingBadge=_syncPending?'<div id="syncPendingBadge" style="font-size:11px;color:var(--accent);margin-top:4px;text-align:center">⏳ มีข้อมูลรอ sync...</div>':'<div id="syncPendingBadge" style="display:none;font-size:11px;color:var(--accent);margin-top:4px;text-align:center">⏳ มีข้อมูลรอ sync...</div>';
+    h+='<div class="prof-sec-t">Supabase Cloud</div><div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">';
+    h+='<button class="btn btn-ac btn-full" id="manualSyncBtn" onclick="manualSync()">⇕ ซิงค์กับ Supabase</button>';
+    h+='<button class="btn btn-gh btn-full" id="forcePullBtn" onclick="forcePullFromCloud()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>ดึงข้อมูลจากระบบคลาวด์ใหม่ทั้งหมด (Force Overwrite)</button>';
+    h+='<div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);text-align:center;margin-top:2px">'+syncLbl+'</div>'+pendingBadge;
+    h+='</div></div>';
     // Import / Export
     h+='<div class="prof-sec-t">Backup & Restore</div>';
     h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">';
@@ -2398,8 +2391,7 @@ function openUser(){
     // Version
     h+='<div class="prof-ver">Okane Wallet v'+APP_VER+'<br><span>Credit : Claude Opus 4.6 & Jarasrawee</span></div>';
     // Logout
-    if(!isGuest)h+='<div style="margin-top:16px"><button class="btn btn-rd btn-full" onclick="logout()">ออกจากระบบ</button></div>';
-    else h+='<div style="margin-top:16px"><button class="btn btn-ac btn-full" onclick="closeUser();googleLogin()">เชื่อมต่อบัญชี Google (Supabase)</button></div>';
+    h+='<div style="margin-top:16px"><button class="btn btn-rd btn-full" onclick="logout()">ออกจากระบบ</button></div>';
     document.getElementById('uB').innerHTML=h;
     document.getElementById('uM').classList.add('open');
 }
@@ -2534,7 +2526,7 @@ async function deleteUserSupabaseData(userId) {
     }
 }
 function logout(){
-    if(_syncPending && !isGuest) {
+    if(_syncPending) {
         if(!confirm('⚠️ ยังมีข้อมูลที่แก้ไขล่าสุดแต่ยังไม่ได้ซิงค์ขึ้นระบบคลาวด์สำเร็จ\n\nหากคุณออกจากระบบตอนนี้ ข้อมูลล่าสุดอาจสูญหายจากเครื่องนี้ได้\n\nต้องการออกจากระบบจริงๆ หรือไม่?')) return;
     } else {
         if(!confirm('คุณต้องการออกจากระบบ Okane Wallet หรือไม่?\n(ข้อมูลของคุณบนระบบคลาวด์จะยังคงปลอดภัยอยู่เสมอ)')) return;
@@ -2544,7 +2536,7 @@ function logout(){
     localStorage.removeItem('okane_v3');
     clearCalcCache();
     supabaseUserId = null;
-    isGuest = true;
+    isGuest = false;
     if (supabase) {
         supabase.auth.signOut().then(function() {
             location.reload();
@@ -2562,7 +2554,7 @@ function resetAll(){
     clearCalcCache();
     var done=function(){
         supabaseUserId = null;
-        isGuest=true;
+        isGuest=false;
         location.reload();
     };
     if(!isGuest && supabaseUserId && supabase){
