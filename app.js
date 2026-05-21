@@ -2517,6 +2517,17 @@ function handleImport(input){
             });
             imported.savings.balance=bal;
             
+            // Populate category catalog from legacy usages (like 'other') BEFORE sync to prevent foreign key errors
+            var cats = imported.customCats || [];
+            var changed = false;
+            Object.keys(LEGACY_CATS).forEach(function(id){
+                if(cats.some(function(cat){return cat.id===id}))return;
+                if(!hasLegacyUsageInStore(imported,id))return;
+                cats.push(buildCatConfig(LEGACY_CATS[id]));
+                changed=true;
+            });
+            if(changed){imported.customCats=cats}
+            
             // Set local storage and update local updatedAt timestamp to now
             imported.meta = imported.meta || {};
             imported.meta.updatedAt = Date.now();
