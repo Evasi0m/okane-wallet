@@ -162,6 +162,10 @@ function getLegacyCat(id){return LEGACY_CATS[id]||null}
 function getPresetCat(id){return PRESET_CATS.find(function(x){return x.id===id})||null}
 function defaultCatColor(id){var lc=getLegacyCat(id);if(lc&&lc.color)return lc.color;return PRESET_CAT_COLORS[id]||CAT_PALETTE[Math.abs(String(id||'cat').split('').reduce(function(s,ch){return s+ch.charCodeAt(0)},0))%CAT_PALETTE.length]}
 function buildCatConfig(meta){return{id:meta.id,name:meta.name,icon:meta.icon||'wallet',color:meta.color||defaultCatColor(meta.id),budget:Number(meta.budget||0)}}
+function cloudSavingsSource(src){return 'manual'}
+function encodeSavingsNote(note,src){note=String(note||'');if(!src||src==='manual'||note.indexOf('[[okane_source:')>=0)return note;return '[[okane_source:'+src+']]'+note}
+function decodeSavingsSource(src,note){var m=String(note||'').match(/^\[\[okane_source:([a-z_]+)\]\]/);return m?m[1]:(src||'manual')}
+function decodeSavingsNote(note){return String(note||'').replace(/^\[\[okane_source:[a-z_]+\]\]/,'')}
 function iconSvgByKey(iconKey,fallbackKey){
     if(iconKey&&ICON_LIST[iconKey])return ICON_LIST[iconKey];
     if(iconKey&&IC[iconKey])return IC[iconKey];
@@ -560,8 +564,8 @@ async function syncLocalToSupabase(userId) {
             amount: Number(item.amount || 0),
             date: item.date || new Date().toISOString(),
             month_key: item.monthKey || mk(new Date().getFullYear(), new Date().getMonth()),
-            source: item.source || 'manual',
-            note: String(item.note || '')
+            source: cloudSavingsSource(item.source || 'manual'),
+            note: encodeSavingsNote(item.note,item.source)
         };
     });
     
@@ -749,8 +753,8 @@ async function fetchRemoteData(userId) {
             amount: Number(sh.amount || 0),
             date: sh.date,
             monthKey: sh.month_key,
-            source: sh.source,
-            note: sh.note || ''
+            source: decodeSavingsSource(sh.source,sh.note),
+            note: decodeSavingsNote(sh.note)
         };
     });
     
