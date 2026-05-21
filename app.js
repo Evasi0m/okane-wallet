@@ -1173,7 +1173,7 @@ function checkSession(){
 function applyTheme(id){var valid=THEMES.some(function(t){return t.id===id});if(!valid)id='light';document.documentElement.setAttribute('data-theme',id);var s=gs();s.theme=id;persistStore(s,false)}
 function toggleThemeDD(){document.getElementById('themeDD').classList.toggle('open')}
 document.addEventListener('click',function(e){if(!e.target.closest('.theme-dd'))document.getElementById('themeDD').classList.remove('open')});
-function renderThemeDD(){var cur=gs().theme||'light';var h='';THEMES.forEach(function(t){h+='<div class="theme-item'+(cur===t.id?' active':'')+'" onclick="pickTheme(\''+t.id+'\',0)"><div class="theme-dots">';t.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});h+='</div>'+t.name+'</div>'});document.getElementById('themeDD').innerHTML=h}
+function renderThemeDD(){var cur=gs().theme||'light';var h='';THEMES.forEach(function(t){h+='<div class="theme-item'+(cur===t.id?' active':'')+'" onclick="pickTheme(\''+t.id+'\',0)"><div class="theme-dots">';t.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});h+='</div><span>'+t.name+'</span><div class="theme-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>'});document.getElementById('themeDD').innerHTML=h}
 function pickTheme(id,lk){applyTheme(id);syncNow(gs());renderThemeDD();render();document.getElementById('themeDD').classList.remove('open')}
 function showPrem(){}
 function closePrem(){}
