@@ -1263,6 +1263,15 @@ body, input, button, select, textarea {
   font-size: 40px !important;
 }
 
+/* Sync LED Network Indicator */
+.sync-led-wrap{display:flex;align-items:center;justify-content:center;width:28px;height:28px;cursor:pointer;position:relative;border-radius:50%;transition:all .3s ease}
+.sync-led-wrap:hover{background:rgba(255,255,255,.08)}
+.sync-led{width:7px;height:7px;border-radius:50%;transition:all .35s cubic-bezier(.34,1.56,.64,1);position:relative}
+.sync-led.online{background:#10B981;box-shadow:0 0 8px #10B981}
+.sync-led.pending{background:#F59E0B;box-shadow:0 0 8px #F59E0B;animation:ledPulse 1.5s infinite ease-in-out}
+.sync-led.offline{background:#EF4444;box-shadow:0 0 8px #EF4444}
+@keyframes ledPulse{0%,100%{opacity:.5;transform:scale(0.85)}50%{opacity:1;transform:scale(1.15)}}
+
 /* ── 5. BOTTOM NAVIGATION & FAB ── */
 .hdr {
   backdrop-filter: blur(20px) saturate(1.6) !important;

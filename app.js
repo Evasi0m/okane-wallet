@@ -102,7 +102,50 @@ var _catPopupMode='add',_authRefreshStarted=false;
 function normalizeStore(d){if(!d||typeof d!=='object'||Array.isArray(d))d={};if(!d.meta||typeof d.meta!=='object'||Array.isArray(d.meta))d.meta={};if(typeof d.meta.updatedAt!=='number')d.meta.updatedAt=0;return d}
 function gs(){try{return normalizeStore(JSON.parse(localStorage.getItem('okane_v3')||'{}'))}catch(e){return normalizeStore({})}}
 function clearCalcCache(){_mCalcCache={}}
-function persistStore(d,markUpdated){d=normalizeStore(d);if(markUpdated!==false)d.meta.updatedAt=Date.now();localStorage.setItem('okane_v3',JSON.stringify(d));clearCalcCache();return d}
+
+function addAutoBackupSnapshot(d) {
+    try {
+        var backup = {
+            version: APP_VER,
+            exportedAt: new Date().toISOString(),
+            data: JSON.parse(JSON.stringify(d))
+        };
+        if (backup.data.userInfo) delete backup.data.userInfo;
+        if (backup.data.isLoggedIn) delete backup.data.isLoggedIn;
+        
+        var backups = [];
+        var raw = localStorage.getItem('okane_auto_backups');
+        if (raw) {
+            backups = JSON.parse(raw) || [];
+        }
+        
+        if (backups.length > 0) {
+            var last = backups[0];
+            if (JSON.stringify(last.data) === JSON.stringify(backup.data)) {
+                return;
+            }
+        }
+        
+        backups.unshift(backup);
+        if (backups.length > 5) {
+            backups = backups.slice(0, 5);
+        }
+        localStorage.setItem('okane_auto_backups', JSON.stringify(backups));
+    } catch(e) {
+        console.error("Auto backup failed:", e);
+    }
+}
+
+function persistStore(d,markUpdated){
+    d=normalizeStore(d);
+    if(markUpdated!==false) {
+        d.meta.updatedAt=Date.now();
+        addAutoBackupSnapshot(d);
+    }
+    localStorage.setItem('okane_v3',JSON.stringify(d));
+    clearCalcCache();
+    return d;
+}
 function ss(d){persistStore(d,true);queueSync(false)}
 function syncNow(d){persistStore(d,true);queueSync(true)}
 function gSet(){var s=gs();return s.settings||Object.assign({},DF)}
@@ -343,9 +386,35 @@ function activeCategoryIdsForMonth(d,y,m,spentMap,recurMap){
 function scheduleTokenRefresh(){}
 function updateSyncIndicator(){
     var el=document.getElementById('syncPendingBadge');
-    if(!el)return;
-    el.style.display=(!isGuest&&_syncPending)?'':'none'
+    if(el) {
+        el.style.display=(!isGuest&&_syncPending)?'':'none';
+    }
+    
+    var led = document.getElementById('syncLed');
+    var ledWrap = document.getElementById('syncLedWrap');
+    if (ledWrap) {
+        if (isGuest || !supabaseUserId) {
+            ledWrap.style.display = 'none';
+        } else {
+            ledWrap.style.display = 'flex';
+            if (led) {
+                led.className = 'sync-led';
+                if (!window.navigator.onLine) {
+                    led.classList.add('offline');
+                    ledWrap.title = 'ไม่มีการเชื่อมต่อเครือข่าย';
+                } else if (_syncing || _syncPending) {
+                    led.classList.add('pending');
+                    ledWrap.title = 'กำลังอัปเดตข้อมูลไปยังระบบคลาวด์...';
+                } else {
+                    led.classList.add('online');
+                    ledWrap.title = 'เชื่อมต่อและซิงค์ข้อมูลกับคลาวด์เรียบร้อย';
+                }
+            }
+        }
+    }
 }
+window.addEventListener('online', updateSyncIndicator);
+window.addEventListener('offline', updateSyncIndicator);
 function finishAuth(syncLocal){
     isGuest=false;
     _authRefreshStarted=false;
@@ -604,8 +673,8 @@ async function syncLocalToSupabase(userId) {
         persistStore(s, false);
     }
 }
-async function pullFromSupabaseToLocal(userId) {
-    if (!userId) return;
+async function fetchRemoteData(userId) {
+    if (!userId) return null;
     
     var queries = [
         supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
@@ -629,6 +698,7 @@ async function pullFromSupabaseToLocal(userId) {
     }
     
     var s = gs();
+    var userInfoObj = s.userInfo || { name: '', email: '', picture: '' };
     var newStore = {
         meta: { updatedAt: Date.now(), migratedToSupabase: true },
         settings: s.settings || {},
@@ -648,7 +718,7 @@ async function pullFromSupabaseToLocal(userId) {
         sims: s.sims || [],
         simDraft: s.simDraft || {},
         isLoggedIn: true,
-        userInfo: userInfo,
+        userInfo: userInfoObj,
         _tombstones: { customCats: {}, recur: {}, goals: {}, wallets: {} }
     };
     
@@ -670,6 +740,9 @@ async function pullFromSupabaseToLocal(userId) {
             salt: prof.pin_salt || ''
         };
         newStore.lastWallet = prof.last_wallet || 'cash';
+        if (prof.updated_at) {
+            newStore.meta.updatedAt = new Date(prof.updated_at).getTime();
+        }
     }
     
     newStore.wallets = (results[1].data || []).map(function(w) {
@@ -771,15 +844,180 @@ async function pullFromSupabaseToLocal(userId) {
     });
     
     recalcSavingsBalance(newStore);
-    persistStore(newStore, false);
+    return newStore;
+}
+
+function smartMergeStores(local, remote) {
+    if (!remote) return local;
+    
+    var s = JSON.parse(JSON.stringify(local));
+    var r = JSON.parse(JSON.stringify(remote));
+    
+    var localTime = s.meta ? Number(s.meta.updatedAt || 0) : 0;
+    var remoteTime = r.meta ? Number(r.meta.updatedAt || 0) : 0;
+    
+    if (remoteTime > localTime) {
+        s.settings = Object.assign({}, s.settings, r.settings);
+        s.theme = r.theme || s.theme;
+        s.pin = r.pin || s.pin;
+        s.lastWallet = r.lastWallet || s.lastWallet;
+        s.userName = r.userName || s.userName;
+    }
+    
+    var walletMap = {};
+    (r.wallets || []).forEach(function(w) { walletMap[w.id] = w; });
+    (s.wallets || []).forEach(function(w) {
+        if (!r._tombstones || !r._tombstones.wallets || !r._tombstones.wallets[w.id]) {
+            walletMap[w.id] = w;
+        }
+    });
+    s.wallets = Object.values(walletMap);
+    
+    var catMap = {};
+    (r.customCats || []).forEach(function(c) { catMap[c.id] = c; });
+    (s.customCats || []).forEach(function(c) {
+        if (!r._tombstones || !r._tombstones.customCats || !r._tombstones.customCats[c.id]) {
+            catMap[c.id] = c;
+        }
+    });
+    s.customCats = Object.values(catMap);
+    
+    var txMap = {};
+    Object.keys(r.dLog || {}).forEach(function(dk) {
+        (r.dLog[dk] || []).forEach(function(tx) {
+            txMap[tx.id] = Object.assign({ dateKey: dk }, tx);
+        });
+    });
+    Object.keys(s.dLog || {}).forEach(function(dk) {
+        (s.dLog[dk] || []).forEach(function(tx) {
+            if (!tx.id) tx.id = genId('dl');
+            if (!txMap[tx.id]) {
+                txMap[tx.id] = Object.assign({ dateKey: dk }, tx);
+            }
+        });
+    });
+    
+    s.dLog = {};
+    Object.values(txMap).forEach(function(tx) {
+        var dk = tx.dateKey;
+        delete tx.dateKey;
+        if (!s.dLog[dk]) s.dLog[dk] = [];
+        s.dLog[dk].push(tx);
+    });
+    Object.keys(s.dLog).forEach(function(dk) {
+        s.dLog[dk].sort(function(a, b) { return (a.t || '') < (b.t || '') ? -1 : 1; });
+    });
+    
+    var savMap = {};
+    ((r.savings && r.savings.history) || []).forEach(function(sh) { savMap[sh.id] = sh; });
+    ((s.savings && s.savings.history) || []).forEach(function(sh) {
+        if (!sh.id) sh.id = genId('sv');
+        savMap[sh.id] = sh;
+    });
+    s.savings = { history: Object.values(savMap) };
+    s.savings.history.sort(function(a, b) { return (a.date || '') < (b.date || '') ? 1 : -1; });
+    
+    if (!s.mo) s.mo = {};
+    if (!r.mo) r.mo = {};
+    var allMonthKeys = Array.from(new Set(Object.keys(s.mo).concat(Object.keys(r.mo))));
+    allMonthKeys.forEach(function(k) {
+        var localM = s.mo[k] || { sal: 0, savAutoTransfer: false, oI: [] };
+        var remoteM = r.mo[k] || { sal: 0, savAutoTransfer: false, oI: [] };
+        
+        var mSal = remoteTime > localTime ? (remoteM.sal || localM.sal || 0) : (localM.sal || remoteM.sal || 0);
+        var mSavAuto = remoteTime > localTime ? (remoteM.savAutoTransfer) : (localM.savAutoTransfer);
+        
+        var mergedM = {
+            sal: mSal,
+            savAutoTransfer: mSavAuto,
+            oI: []
+        };
+        
+        getBudgetKeys(localM).concat(getBudgetKeys(remoteM)).forEach(function(catId) {
+            mergedM[catId] = remoteTime > localTime ? (remoteM[catId] !== undefined ? remoteM[catId] : localM[catId]) : (localM[catId] !== undefined ? localM[catId] : remoteM[catId]);
+        });
+        
+        var incMap = {};
+        (remoteM.oI || []).forEach(function(item) { incMap[item.id] = item; });
+        (localM.oI || []).forEach(function(item) {
+            if (!item.id) item.id = genId('inc');
+            incMap[item.id] = item;
+        });
+        mergedM.oI = Object.values(incMap);
+        
+        s.mo[k] = mergedM;
+    });
+    
+    if (!s.shM) s.shM = {};
+    if (r.shM) {
+        Object.keys(r.shM).forEach(function(k) {
+            s.shM[k] = remoteTime > localTime ? (r.shM[k] || s.shM[k] || 0) : (s.shM[k] || r.shM[k] || 0);
+        });
+    }
+    
+    var recurMap = {};
+    (r.recur || []).forEach(function(item) { recurMap[item.id] = item; });
+    (s.recur || []).forEach(function(item) {
+        if (!r._tombstones || !r._tombstones.recur || !r._tombstones.recur[item.id]) {
+            recurMap[item.id] = item;
+        }
+    });
+    s.recur = Object.values(recurMap);
+    
+    var goalMap = {};
+    (r.goals || []).forEach(function(g) { goalMap[g.id] = g; });
+    (s.goals || []).forEach(function(g) {
+        if (!r._tombstones || !r._tombstones.goals || !r._tombstones.goals[g.id]) {
+            goalMap[g.id] = g;
+        }
+    });
+    s.goals = Object.values(goalMap);
+    
+    var tplMap = {};
+    (r.templates || []).forEach(function(t) { tplMap[t.id] = t; });
+    (s.templates || []).forEach(function(t) { tplMap[t.id] = t; });
+    s.templates = Object.values(tplMap);
+    
+    s.customIcons = Object.assign({}, r.customIcons, s.customIcons);
+    
+    recalcSavingsBalance(s);
+    s.meta.updatedAt = Date.now();
+    return s;
+}
+
+async function pullFromSupabaseToLocal(userId) {
+    if (!userId) return;
+    var remote = await fetchRemoteData(userId);
+    if (!remote) return;
+    persistStore(remote, false);
     applyCustomIcons();
     applyIndexSvgOverrides();
-    if (newStore.theme) applyTheme(newStore.theme);
+    if (remote.theme) applyTheme(remote.theme);
 }
+
 async function checkAndHandleMigration(userId) {
     var s = gs();
     if (s.meta.migratedToSupabase) {
-        await pullFromSupabaseToLocal(userId);
+        var remote = await fetchRemoteData(userId);
+        if (remote) {
+            var local = gs();
+            var localTime = local.meta ? Number(local.meta.updatedAt || 0) : 0;
+            var remoteTime = remote.meta ? Number(remote.meta.updatedAt || 0) : 0;
+            if (remoteTime !== localTime && _syncPending) {
+                console.log("Sync conflict detected during login. Smart merging...");
+                var merged = smartMergeStores(local, remote);
+                persistStore(merged, false);
+                applyCustomIcons();
+                applyIndexSvgOverrides();
+                if (merged.theme) applyTheme(merged.theme);
+                queueSync(true);
+            } else {
+                persistStore(remote, false);
+                applyCustomIcons();
+                applyIndexSvgOverrides();
+                if (remote.theme) applyTheme(remote.theme);
+            }
+        }
         return;
     }
     
@@ -797,6 +1035,15 @@ async function checkAndHandleMigration(userId) {
     if (guestHasData && count === 0) {
         console.log("Migrating local guest data to Supabase...");
         await syncLocalToSupabase(userId);
+    } else if (guestHasData && count > 0) {
+        console.log("Both guest data and Supabase data exist. Smart merging...");
+        var remote = await fetchRemoteData(userId);
+        var merged = smartMergeStores(s, remote);
+        persistStore(merged, false);
+        await syncLocalToSupabase(userId);
+        applyCustomIcons();
+        applyIndexSvgOverrides();
+        if (merged.theme) applyTheme(merged.theme);
     } else {
         console.log("Pulling data from Supabase...");
         await pullFromSupabaseToLocal(userId);
@@ -852,9 +1099,20 @@ function supabasePollSync(){
         var local = gs();
         var localTime = local.meta ? Number(local.meta.updatedAt || 0) : 0;
         if(remoteTime > localTime) {
-            pullFromSupabaseToLocal(supabaseUserId).then(function() {
-                render();
-            });
+            if (_syncPending) {
+                console.log("Sync conflict detected in poll! Smart merging...");
+                fetchRemoteData(supabaseUserId).then(function(remote) {
+                    if (!remote) return;
+                    var merged = smartMergeStores(local, remote);
+                    persistStore(merged, false);
+                    render();
+                    queueSync(true);
+                });
+            } else {
+                pullFromSupabaseToLocal(supabaseUserId).then(function() {
+                    render();
+                });
+            }
         }
     }).catch(function(){});
 }
@@ -2075,6 +2333,24 @@ function openUser(){
     h+='<button class="btn btn-gh btn-full" onclick="exportBackup()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Backup (.json)</button>';
     h+='<button class="btn btn-gh btn-full" onclick="triggerImport()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import Backup (.json)</button>';
     h+='<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(this)">';
+    
+    var rawHistory = localStorage.getItem('okane_auto_backups');
+    if (rawHistory) {
+        var backups = JSON.parse(rawHistory) || [];
+        if (backups.length > 0) {
+            h+='<div style="font-size:11px;color:var(--tx3);margin:10px 0 4px;font-weight:700">ประวัติสำรองข้อมูลอัตโนมัติ (ล่าสุด 5 ครั้ง)</div>';
+            h+='<div style="display:flex;flex-direction:column;gap:6px;background:var(--bg2);padding:6px;border-radius:10px;border:1px solid var(--cb)">';
+            backups.forEach(function(b, idx) {
+                var dStr = new Date(b.exportedAt).toLocaleString('th-TH', { hour12: false, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                h+='<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:4px 6px">';
+                h+='<span style="color:var(--tx2);font-weight:700">🕒 '+dStr+'</span>';
+                h+='<button class="btn btn-gh" style="height:24px;padding:0 8px;font-size:10px;border-radius:6px;margin:0" onclick="restoreAutoBackupSnapshot('+idx+')">กู้คืน</button>';
+                h+='</div>';
+            });
+            h+='</div>';
+        }
+    }
+    
     h+='</div></div>';
     h+='<div class="prof-sec-t">ดูข้อมูลใน Excel / Google Sheets</div>';
     h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:6px">';
@@ -2096,6 +2372,28 @@ function openUser(){
     document.getElementById('uM').classList.add('open');
 }
 function closeUser(){document.getElementById('uM').classList.remove('open')}
+function restoreAutoBackupSnapshot(idx) {
+    try {
+        var raw = localStorage.getItem('okane_auto_backups');
+        if (!raw) return;
+        var backups = JSON.parse(raw) || [];
+        var b = backups[idx];
+        if (!b) return;
+        if (!confirm('⚠️ คุณแน่ใจหรือไม่ว่าต้องการกู้คืนข้อมูลไปยังจุดนี้?\n\nข้อมูลปัจจุบันของคุณบนเครื่องจะถูกเขียนทับด้วยข้อมูลสำรองของวันที่ ' + new Date(b.exportedAt).toLocaleString('th-TH') + '\n\n(หากต้องการเซฟข้อมูลปัจจุบันไว้ก่อน แนะนำให้กด Export Backup ไว้ก่อนได้)')) return;
+        
+        persistStore(b.data, true);
+        applyCustomIcons();
+        applyIndexSvgOverrides();
+        if (b.data.theme) applyTheme(b.data.theme);
+        
+        alert('กู้คืนข้อมูลสำเร็จ!');
+        closeUser();
+        render();
+        queueSync(true);
+    } catch(e) {
+        alert('เกิดข้อผิดพลาดในการกู้คืน: ' + e.message);
+    }
+}
 function exportBackup(){
     var s=gs();
     var backup={
@@ -2204,6 +2502,11 @@ async function deleteUserSupabaseData(userId) {
     }
 }
 function logout(){
+    if(_syncPending && !isGuest) {
+        if(!confirm('⚠️ ยังมีข้อมูลที่แก้ไขล่าสุดแต่ยังไม่ได้ซิงค์ขึ้นระบบคลาวด์สำเร็จ\n\nหากคุณออกจากระบบตอนนี้ ข้อมูลล่าสุดอาจสูญหายจากเครื่องนี้ได้\n\nต้องการออกจากระบบจริงๆ หรือไม่?')) return;
+    } else {
+        if(!confirm('คุณต้องการออกจากระบบ Okane Wallet หรือไม่?\n(ข้อมูลของคุณบนระบบคลาวด์จะยังคงปลอดภัยอยู่เสมอ)')) return;
+    }
     clearTimeout(_syncTimer);
     clearInterval(_tokenRefreshTimer);
     localStorage.removeItem('okane_v3');
