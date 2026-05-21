@@ -91,7 +91,7 @@ function getSafeImageSrc(src){var v=String(src||'').trim();return /^(data:image\
 var NOW=getBangkokNow();
 var cY=NOW.getFullYear(),sM_=NOW.getMonth(),vw='m',ch=null,shY,tokenClient=null,accessToken=null,isGuest=false,userInfo={name:'',email:'',picture:''},driveFileId=null,sq='';
 var editInc=false,editExp=false,viewDate=new Date(NOW);
-var DF={salary:0,savGoal:0};
+var DF={salary:0,savGoal:0,showDecimal:true,hideAmount:false,lowRemaining:1000,warnPercent:90,weeklyOn:false};
 var _syncing=false,_syncTimer=null,_syncPending=false;
 var _tokenRefreshTimer=null;
 var _lastDriveModTime=null,_lastUploadTime=0,_pollTimer=null,_visListenerAdded=false,_lastSyncSuccess=0,_pendingManualSync=false;
@@ -105,7 +105,7 @@ var SVG_CHECK='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" strok
 var _catPopupMode='add',_authRefreshStarted=false;
 
 /* ===== STORAGE ===== */
-function normalizeStore(d){if(!d||typeof d!=='object'||Array.isArray(d))d={};if(!d.meta||typeof d.meta!=='object'||Array.isArray(d.meta))d.meta={};if(typeof d.meta.updatedAt!=='number')d.meta.updatedAt=0;return d}
+function normalizeStore(d){if(!d||typeof d!=='object'||Array.isArray(d))d={};if(!d.meta||typeof d.meta!=='object'||Array.isArray(d.meta))d.meta={};if(typeof d.meta.updatedAt!=='number')d.meta.updatedAt=0;var st=d.settings&&typeof d.settings==='object'&&!Array.isArray(d.settings)?d.settings:{};d.settings=Object.assign({},DF,st);if(st.hideAmt!==undefined&&st.hideAmount===undefined)d.settings.hideAmount=!!st.hideAmt;if(st.saving!==undefined&&st.savGoal===undefined)d.settings.savGoal=Number(st.saving||0);d.settings.salary=Number(d.settings.salary||0);d.settings.savGoal=Number(d.settings.savGoal||0);d.settings.lowRemaining=Number(d.settings.lowRemaining||1000);d.settings.warnPercent=Number(d.settings.warnPercent||90);d.settings.showDecimal=d.settings.showDecimal!==false;d.settings.hideAmount=!!d.settings.hideAmount;d.settings.weeklyOn=!!d.settings.weeklyOn;return d}
 function gs(){try{return normalizeStore(JSON.parse(localStorage.getItem('okane_v3')||'{}'))}catch(e){return normalizeStore({})}}
 function clearCalcCache(){_mCalcCache={}}
 
@@ -473,15 +473,16 @@ async function syncLocalToSupabase(userId) {
     ensureCategoryCatalog();
     s = gs();
     function ok(resp, label){if(resp&&resp.error)throw new Error(label + ': ' + resp.error.message)}
+    function safeNumber(v, fallback){var n=Number(v);return Number.isFinite(n)?n:fallback}
     
     var profileRow = {
         id: userId,
-        salary: Number(s.settings ? s.settings.salary : 0),
-        savings_goal: Number(s.settings ? s.settings.savGoal : 0),
+        salary: safeNumber(s.settings ? s.settings.salary : 0, 0),
+        savings_goal: safeNumber(s.settings ? s.settings.savGoal : 0, 0),
         show_decimal: s.settings ? !!s.settings.showDecimal : true,
         hide_amount: s.settings ? !!s.settings.hideAmount : false,
-        low_remaining: Number(s.settings ? s.settings.lowRemaining : 1000),
-        warn_percent: Number(s.settings ? s.settings.warnPercent : 90),
+        low_remaining: safeNumber(s.settings ? s.settings.lowRemaining : 1000, 1000),
+        warn_percent: safeNumber(s.settings ? s.settings.warnPercent : 90, 90),
         weekly_on: s.settings ? !!s.settings.weeklyOn : false,
         theme: s.theme || 'light',
         pin_enabled: s.pin ? !!s.pin.enabled : false,
