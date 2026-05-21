@@ -1359,14 +1359,15 @@ body, input, button, select, textarea {
   font-size: 40px !important;
 }
 
-/* Sync LED Network Indicator */
-.sync-led-wrap{display:flex;align-items:center;justify-content:center;width:28px;height:28px;cursor:pointer;position:relative;border-radius:50%;transition:all .3s ease}
-.sync-led-wrap:hover{background:rgba(255,255,255,.08)}
-.sync-led{width:7px;height:7px;border-radius:50%;transition:all .35s cubic-bezier(.34,1.56,.64,1);position:relative}
-.sync-led.online{background:#10B981;box-shadow:0 0 8px #10B981}
-.sync-led.pending{background:#F59E0B;box-shadow:0 0 8px #F59E0B;animation:ledPulse 1.5s infinite ease-in-out}
-.sync-led.offline{background:#EF4444;box-shadow:0 0 8px #EF4444}
-@keyframes ledPulse{0%,100%{opacity:.5;transform:scale(0.85)}50%{opacity:1;transform:scale(1.15)}}
+/* Sync Glow — profile avatar ring */
+.sync-led-wrap{display:none!important}
+#userBtn.sync-online img{box-shadow:0 0 0 2.5px #10B981,0 0 10px 3px rgba(16,185,129,.5);border-radius:50%;transition:box-shadow .4s ease}
+#userBtn.sync-pending img{box-shadow:0 0 0 2.5px #F59E0B,0 0 10px 3px rgba(245,158,11,.55);border-radius:50%;animation:syncGlowPulse 1.5s infinite ease-in-out}
+#userBtn.sync-offline img{box-shadow:0 0 0 2.5px #EF4444,0 0 8px 2px rgba(239,68,68,.4);border-radius:50%;transition:box-shadow .4s ease}
+#userBtn.sync-online svg{filter:drop-shadow(0 0 4px rgba(16,185,129,.7));transition:filter .4s ease}
+#userBtn.sync-pending svg{filter:drop-shadow(0 0 4px rgba(245,158,11,.7));animation:syncGlowPulse 1.5s infinite ease-in-out}
+#userBtn.sync-offline svg{filter:drop-shadow(0 0 4px rgba(239,68,68,.6));transition:filter .4s ease}
+@keyframes syncGlowPulse{0%,100%{opacity:.6;transform:scale(0.94)}50%{opacity:1;transform:scale(1)}}
 
 /* ── 5. BOTTOM NAVIGATION & FAB ── */
 .hdr {

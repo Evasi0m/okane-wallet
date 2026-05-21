@@ -400,26 +400,22 @@ function updateSyncIndicator(){
         el.style.display=(!isGuest&&_syncPending)?'':'none';
     }
     
-    var led = document.getElementById('syncLed');
     var ledWrap = document.getElementById('syncLedWrap');
-    if (ledWrap) {
-        if (isGuest || !supabaseUserId) {
-            ledWrap.style.display = 'none';
+    if (ledWrap) ledWrap.style.display = 'none';
+    
+    var btn = document.getElementById('userBtn');
+    if (!btn) return;
+    btn.classList.remove('sync-online','sync-pending','sync-offline');
+    if (!isGuest && supabaseUserId) {
+        if (!window.navigator.onLine) {
+            btn.classList.add('sync-offline');
+            btn.title = 'ไม่มีการเชื่อมต่อเครือข่าย';
+        } else if (_syncing || _syncPending) {
+            btn.classList.add('sync-pending');
+            btn.title = 'กำลังอัปเดตข้อมูลไปยังระบบคลาวด์...';
         } else {
-            ledWrap.style.display = 'flex';
-            if (led) {
-                led.className = 'sync-led';
-                if (!window.navigator.onLine) {
-                    led.classList.add('offline');
-                    ledWrap.title = 'ไม่มีการเชื่อมต่อเครือข่าย';
-                } else if (_syncing || _syncPending) {
-                    led.classList.add('pending');
-                    ledWrap.title = 'กำลังอัปเดตข้อมูลไปยังระบบคลาวด์...';
-                } else {
-                    led.classList.add('online');
-                    ledWrap.title = 'เชื่อมต่อและซิงค์ข้อมูลกับคลาวด์เรียบร้อย';
-                }
-            }
+            btn.classList.add('sync-online');
+            btn.title = 'เชื่อมต่อและซิงค์ข้อมูลกับคลาวด์เรียบร้อย';
         }
     }
 }
