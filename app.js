@@ -470,6 +470,9 @@ function fetchUserInfo(){
 async function syncLocalToSupabase(userId) {
     if (!userId) return;
     var s = gs();
+    ensureCategoryCatalog();
+    s = gs();
+    function ok(resp, label){if(resp&&resp.error)throw new Error(label + ': ' + resp.error.message)}
     
     var profileRow = {
         id: userId,
@@ -488,24 +491,15 @@ async function syncLocalToSupabase(userId) {
         updated_at: new Date().toISOString()
     };
     
-    var tomWallets = s._tombstones && s._tombstones.wallets ? Object.keys(s._tombstones.wallets) : [];
-    if (tomWallets.length > 0) {
-        await supabase.from('wallets').delete().eq('user_id', userId).in('id', tomWallets);
-    }
     var walletRows = (s.wallets || []).map(function(w) {
         return { user_id: userId, id: w.id, name: w.name, type: w.type || 'cash' };
     });
     
-    var tomCats = s._tombstones && s._tombstones.customCats ? Object.keys(s._tombstones.customCats) : [];
-    if (tomCats.length > 0) {
-        await supabase.from('categories').delete().eq('user_id', userId).in('id', tomCats);
-    }
     var categoryRows = (s.customCats || []).map(function(c) {
         return { user_id: userId, id: c.id, name: c.name, icon: c.icon || 'wallet', color: c.color || '#F59E0B', budget: Number(c.budget || 0) };
     });
     
-    // Delete all monthly budgets for this user first
-    await supabase.from('monthly_budgets').delete().eq('user_id', userId);
+    var localMonthKeys = Object.keys(s.mo || {});
     var budgetRows = localMonthKeys.map(function(k) {
         return {
             user_id: userId,
@@ -518,7 +512,6 @@ async function syncLocalToSupabase(userId) {
     
     var catBudgetRows = [];
     var incomeRows = [];
-    var activeIncomeIds = [];
     localMonthKeys.forEach(function(k) {
         var d = s.mo[k];
         getBudgetKeys(d).forEach(function(catId) {
@@ -530,7 +523,6 @@ async function syncLocalToSupabase(userId) {
             });
         });
         (d.oI || []).forEach(function(item) {
-            if (item.id) activeIncomeIds.push(item.id);
             incomeRows.push({
                 user_id: userId,
                 id: item.id || genId('inc'),
@@ -542,14 +534,10 @@ async function syncLocalToSupabase(userId) {
             });
         });
     });
-    // Delete all additional income for this user first
-    await supabase.from('additional_income').delete().eq('user_id', userId);
     
-    var activeTxIds = [];
     var txRows = [];
     Object.keys(s.dLog || {}).forEach(function(dk) {
         (s.dLog[dk] || []).forEach(function(tx) {
-            if (tx.id) activeTxIds.push(tx.id);
             txRows.push({
                 user_id: userId,
                 id: tx.id || genId('dl'),
@@ -562,12 +550,8 @@ async function syncLocalToSupabase(userId) {
             });
         });
     });
-    // Delete all transactions for this user first
-    await supabase.from('transactions').delete().eq('user_id', userId);
     
-    var activeSavIds = [];
     var savRows = ((s.savings && s.savings.history) || []).map(function(item) {
-        if (item.id) activeSavIds.push(item.id);
         return {
             user_id: userId,
             id: item.id || genId('sv'),
@@ -579,82 +563,60 @@ async function syncLocalToSupabase(userId) {
             note: String(item.note || '')
         };
     });
-    // Delete all savings history for this user first
-    await supabase.from('savings_history').delete().eq('user_id', userId);
     
     var activeShKeys = Object.keys(s.shM || {});
-    // Delete all shopee installments for this user first
-    await supabase.from('shopee_installments').delete().eq('user_id', userId);
     var shRows = activeShKeys.map(function(k) {
         return { user_id: userId, month_key: k, amount: Number(s.shM[k] || 0) };
     });
     
-    var tomRecur = s._tombstones && s._tombstones.recur ? Object.keys(s._tombstones.recur) : [];
-    if (tomRecur.length > 0) {
-        await supabase.from('recurring_expenses').delete().eq('user_id', userId).in('id', tomRecur);
-    }
     var recurRows = (s.recur || []).map(function(item) {
         return { user_id: userId, id: item.id, name: item.name, amount: Number(item.amount || 0), category_id: item.cat || 'other', is_on: item.on !== false };
     });
     
-    var tomGoals = s._tombstones && s._tombstones.goals ? Object.keys(s._tombstones.goals) : [];
-    if (tomGoals.length > 0) {
-        await supabase.from('savings_goals').delete().eq('user_id', userId).in('id', tomGoals);
-    }
     var goalRows = (s.goals || []).map(function(item) {
         return { user_id: userId, id: item.id, name: item.name, target_amount: Number(item.target || 0), current_amount: Number(item.current || 0) };
     });
     
-    var activeTplIds = (s.templates || []).map(function(t) { return t.id; }).filter(Boolean);
-    // Delete all budget templates for this user first
-    await supabase.from('budget_templates').delete().eq('user_id', userId);
     var tplRows = (s.templates || []).map(function(t) {
         return { user_id: userId, id: t.id, name: t.name, snapshot_data: t.snapshot || {} };
     });
     
     var activeIconKeys = Object.keys(s.customIcons || {});
-    // Delete all custom icons for this user first
-    await supabase.from('custom_icons').delete().eq('user_id', userId);
+    
+    ok(await supabase.from('category_budgets').delete().eq('user_id', userId),'Delete category_budgets');
+    ok(await supabase.from('additional_income').delete().eq('user_id', userId),'Delete additional_income');
+    ok(await supabase.from('transactions').delete().eq('user_id', userId),'Delete transactions');
+    ok(await supabase.from('savings_history').delete().eq('user_id', userId),'Delete savings_history');
+    ok(await supabase.from('shopee_installments').delete().eq('user_id', userId),'Delete shopee_installments');
+    ok(await supabase.from('recurring_expenses').delete().eq('user_id', userId),'Delete recurring_expenses');
+    ok(await supabase.from('savings_goals').delete().eq('user_id', userId),'Delete savings_goals');
+    ok(await supabase.from('budget_templates').delete().eq('user_id', userId),'Delete budget_templates');
+    ok(await supabase.from('custom_icons').delete().eq('user_id', userId),'Delete custom_icons');
+    ok(await supabase.from('monthly_budgets').delete().eq('user_id', userId),'Delete monthly_budgets');
+    ok(await supabase.from('categories').delete().eq('user_id', userId),'Delete categories');
+    ok(await supabase.from('wallets').delete().eq('user_id', userId),'Delete wallets');
+    
     var iconRows = activeIconKeys.map(function(k) {
         return { user_id: userId, icon_key: k, svg_content: s.customIcons[k] };
     });
     
-    var upsertPromises = [
-        supabase.from('profiles').upsert([profileRow]),
-        walletRows.length > 0 ? supabase.from('wallets').upsert(walletRows) : Promise.resolve(),
-        categoryRows.length > 0 ? supabase.from('categories').upsert(categoryRows) : Promise.resolve(),
-        budgetRows.length > 0 ? supabase.from('monthly_budgets').upsert(budgetRows) : Promise.resolve(),
-        recurRows.length > 0 ? supabase.from('recurring_expenses').upsert(recurRows) : Promise.resolve(),
-        goalRows.length > 0 ? supabase.from('savings_goals').upsert(goalRows) : Promise.resolve(),
-        tplRows.length > 0 ? supabase.from('budget_templates').upsert(tplRows) : Promise.resolve(),
-        iconRows.length > 0 ? supabase.from('custom_icons').upsert(iconRows) : Promise.resolve()
-    ];
-    
-    var upsertResults = await Promise.all(upsertPromises);
-    for (var i = 0; i < upsertResults.length; i++) {
-        if (upsertResults[i].error) throw new Error("Upsert error: " + upsertResults[i].error.message);
-    }
-    
-    var childPromises = [
-        catBudgetRows.length > 0 ? supabase.from('category_budgets').upsert(catBudgetRows) : Promise.resolve(),
-        incomeRows.length > 0 ? supabase.from('additional_income').upsert(incomeRows) : Promise.resolve(),
-        txRows.length > 0 ? supabase.from('transactions').upsert(txRows) : Promise.resolve(),
-        savRows.length > 0 ? supabase.from('savings_history').upsert(savRows) : Promise.resolve(),
-        shRows.length > 0 ? supabase.from('shopee_installments').upsert(shRows) : Promise.resolve()
-    ];
-    var childResults = await Promise.all(childPromises);
-    for (var i = 0; i < childResults.length; i++) {
-        if (childResults[i].error) throw new Error("Child upsert error: " + childResults[i].error.message);
-    }
+    ok(await supabase.from('profiles').upsert([profileRow]),'Upsert profiles');
+    if(walletRows.length > 0)ok(await supabase.from('wallets').upsert(walletRows),'Upsert wallets');
+    if(categoryRows.length > 0)ok(await supabase.from('categories').upsert(categoryRows),'Upsert categories');
+    if(budgetRows.length > 0)ok(await supabase.from('monthly_budgets').upsert(budgetRows),'Upsert monthly_budgets');
+    if(recurRows.length > 0)ok(await supabase.from('recurring_expenses').upsert(recurRows),'Upsert recurring_expenses');
+    if(goalRows.length > 0)ok(await supabase.from('savings_goals').upsert(goalRows),'Upsert savings_goals');
+    if(tplRows.length > 0)ok(await supabase.from('budget_templates').upsert(tplRows),'Upsert budget_templates');
+    if(iconRows.length > 0)ok(await supabase.from('custom_icons').upsert(iconRows),'Upsert custom_icons');
+    if(catBudgetRows.length > 0)ok(await supabase.from('category_budgets').upsert(catBudgetRows),'Upsert category_budgets');
+    if(incomeRows.length > 0)ok(await supabase.from('additional_income').upsert(incomeRows),'Upsert additional_income');
+    if(txRows.length > 0)ok(await supabase.from('transactions').upsert(txRows),'Upsert transactions');
+    if(savRows.length > 0)ok(await supabase.from('savings_history').upsert(savRows),'Upsert savings_history');
+    if(shRows.length > 0)ok(await supabase.from('shopee_installments').upsert(shRows),'Upsert shopee_installments');
     
     s = gs();
-    if (s._tombstones) {
-        tomWallets.forEach(function(id) { delete s._tombstones.wallets[id] });
-        tomCats.forEach(function(id) { delete s._tombstones.customCats[id] });
-        tomRecur.forEach(function(id) { delete s._tombstones.recur[id] });
-        tomGoals.forEach(function(id) { delete s._tombstones.goals[id] });
-        persistStore(s, false);
-    }
+    s._tombstones = { customCats: {}, recur: {}, goals: {}, wallets: {} };
+    persistStore(s, false);
 }
 async function fetchRemoteData(userId) {
     if (!userId) return null;
@@ -986,7 +948,13 @@ async function checkAndHandleMigration(userId) {
             var local = gs();
             var localTime = local.meta ? Number(local.meta.updatedAt || 0) : 0;
             var remoteTime = remote.meta ? Number(remote.meta.updatedAt || 0) : 0;
-            if (remoteTime !== localTime && _syncPending) {
+            if (localTime > remoteTime) {
+                await syncLocalToSupabase(userId);
+                _lastUploadTime=Date.now();
+                _lastSyncSuccess=Date.now();
+                _syncPending=false;
+                updateSyncIndicator();
+            } else if (remoteTime !== localTime && _syncPending) {
                 console.log("Sync conflict detected during login. Smart merging...");
                 var merged = smartMergeStores(local, remote);
                 persistStore(merged, false);
@@ -2551,7 +2519,7 @@ function handleImport(input){
                     _syncing = false;
                     _syncPending = true;
                     updateSyncIndicator();
-                    alert('นำเข้าข้อมูลสำเร็จในเครื่องแล้ว แต่การอัปโหลดขึ้นระบบคลาวด์ขัดข้อง (ระบบจะพยายามซิงค์ใหม่อัตโนมัติเมื่อเครือข่ายพร้อม)');
+                    alert('นำเข้าข้อมูลสำเร็จในเครื่องแล้ว แต่การอัปโหลดขึ้นระบบคลาวด์ขัดข้อง:\n'+(err&&err.message?err.message:String(err))+'\n\nระบบจะเก็บข้อมูลนี้ไว้ในเครื่อง และจะพยายามซิงค์ใหม่เมื่อพร้อม');
                 });
             } else {
                 alert('นำเข้าข้อมูลสำเร็จทั้งหมด '+txCount+' รายการ (บันทึกอยู่ในเครื่องนี้เท่านั้น)');
