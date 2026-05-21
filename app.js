@@ -79,10 +79,10 @@ var THEMES=[
     {id:'light',name:'Claude Cream',dots:['#FAF9F5','#CC785C','#EFE9DE'],free:true},
     {id:'dark',name:'Claude Navy',dots:['#181715','#CC785C','#252320'],free:true},
     {id:'rose',name:'Rose Quartz',dots:['#FAF4F5','#CC785C','#EBDBE0'],free:true},
-    {id:'sunset',name:'Sunset Glow',dots:['#FFF5EC','#FF6B35','#FFEEDD'],free:true},
-    {id:'sage',name:'Sage Garden',dots:['#F2F5EF','#5A8C6A','#E6ECDF'],free:true},
-    {id:'midnight',name:'Midnight Blue',dots:['#0F1623','#5AA9E6','#1A2336'],free:true},
-    {id:'lavender',name:'Lavender Mist',dots:['#F6F3FB','#8B7EC8','#EBE4F4'],free:true}
+    {id:'earth1',name:'Terracotta Clay',dots:['#F5EDE6','#C46A3A','#E8DCD2'],free:true},
+    {id:'earth2',name:'Sandy Olive',dots:['#F0EDE4','#8B7A3A','#E2DDC8'],free:true},
+    {id:'lego',name:'Lego Bricks',dots:['#FFFDF5','#E3000B','#FFF3D6'],free:true},
+    {id:'cheese',name:'Melted Cheese',dots:['#FFFBF0','#E8A020','#FFEEBB'],free:true}
 ];
 var CLIENT_ID='933620688457-nqv6qs8381m46t8dn8sqv0qecbcuav82.apps.googleusercontent.com';
 var APP_VER='0.2.2';
