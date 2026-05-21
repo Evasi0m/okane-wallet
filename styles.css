@@ -1202,10 +1202,10 @@ body, input, button, select, textarea {
 /* ── 4. FROSTED GLASS COMPONENTS ── */
 .sec, .mbox, .popup-box, .cal-box, .pin-box, .sav-bar {
   border-radius: 18px !important;
-  backdrop-filter: blur(28px) saturate(2) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(2) !important;
+  backdrop-filter: blur(20px) saturate(2.2) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(2.2) !important;
   border: 1px solid var(--cb) !important;
-  background: var(--card) !important;
+  background: rgba(255, 255, 255, 0.65) !important;
   box-shadow: var(--s2) !important;
   position: relative;
   overflow: hidden;
@@ -1218,12 +1218,12 @@ body, input, button, select, textarea {
 [data-theme="dark"] .cal-box,
 [data-theme="dark"] .pin-box,
 [data-theme="dark"] .sav-bar {
-  background: linear-gradient(180deg, rgba(56, 53, 48, 0.80) 0%, rgba(42, 39, 35, 0.76) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.13) !important;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
   box-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.5),
-    0 2px 8px rgba(0, 0, 0, 0.3),
-    0 1px 0 rgba(255, 255, 255, 0.08) inset !important;
+    0 8px 32px rgba(0, 0, 0, 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    0 1px 0 rgba(255, 255, 255, 0.12) inset !important;
 }
 /* Horizontal specular top-edge line for dark glass (matches .sav-bar style) */
 [data-theme="dark"] .sec::before,
