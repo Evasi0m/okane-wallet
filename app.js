@@ -504,12 +504,8 @@ async function syncLocalToSupabase(userId) {
         return { user_id: userId, id: c.id, name: c.name, icon: c.icon || 'wallet', color: c.color || '#F59E0B', budget: Number(c.budget || 0) };
     });
     
-    var localMonthKeys = Object.keys(s.mo || {});
-    if (localMonthKeys.length > 0) {
-        await supabase.from('monthly_budgets').delete().eq('user_id', userId).not('month_key', 'in', '(' + localMonthKeys.join(',') + ')');
-    } else {
-        await supabase.from('monthly_budgets').delete().eq('user_id', userId);
-    }
+    // Delete all monthly budgets for this user first
+    await supabase.from('monthly_budgets').delete().eq('user_id', userId);
     var budgetRows = localMonthKeys.map(function(k) {
         return {
             user_id: userId,
@@ -546,11 +542,8 @@ async function syncLocalToSupabase(userId) {
             });
         });
     });
-    if (activeIncomeIds.length > 0) {
-        await supabase.from('additional_income').delete().eq('user_id', userId).not('id', 'in', '(' + activeIncomeIds.join(',') + ')');
-    } else {
-        await supabase.from('additional_income').delete().eq('user_id', userId);
-    }
+    // Delete all additional income for this user first
+    await supabase.from('additional_income').delete().eq('user_id', userId);
     
     var activeTxIds = [];
     var txRows = [];
@@ -569,11 +562,8 @@ async function syncLocalToSupabase(userId) {
             });
         });
     });
-    if (activeTxIds.length > 0) {
-        await supabase.from('transactions').delete().eq('user_id', userId).not('id', 'in', '(' + activeTxIds.join(',') + ')');
-    } else {
-        await supabase.from('transactions').delete().eq('user_id', userId);
-    }
+    // Delete all transactions for this user first
+    await supabase.from('transactions').delete().eq('user_id', userId);
     
     var activeSavIds = [];
     var savRows = ((s.savings && s.savings.history) || []).map(function(item) {
@@ -589,18 +579,12 @@ async function syncLocalToSupabase(userId) {
             note: String(item.note || '')
         };
     });
-    if (activeSavIds.length > 0) {
-        await supabase.from('savings_history').delete().eq('user_id', userId).not('id', 'in', '(' + activeSavIds.join(',') + ')');
-    } else {
-        await supabase.from('savings_history').delete().eq('user_id', userId);
-    }
+    // Delete all savings history for this user first
+    await supabase.from('savings_history').delete().eq('user_id', userId);
     
     var activeShKeys = Object.keys(s.shM || {});
-    if (activeShKeys.length > 0) {
-        await supabase.from('shopee_installments').delete().eq('user_id', userId).not('month_key', 'in', '(' + activeShKeys.join(',') + ')');
-    } else {
-        await supabase.from('shopee_installments').delete().eq('user_id', userId);
-    }
+    // Delete all shopee installments for this user first
+    await supabase.from('shopee_installments').delete().eq('user_id', userId);
     var shRows = activeShKeys.map(function(k) {
         return { user_id: userId, month_key: k, amount: Number(s.shM[k] || 0) };
     });
@@ -622,21 +606,15 @@ async function syncLocalToSupabase(userId) {
     });
     
     var activeTplIds = (s.templates || []).map(function(t) { return t.id; }).filter(Boolean);
-    if (activeTplIds.length > 0) {
-        await supabase.from('budget_templates').delete().eq('user_id', userId).not('id', 'in', '(' + activeTplIds.join(',') + ')');
-    } else {
-        await supabase.from('budget_templates').delete().eq('user_id', userId);
-    }
+    // Delete all budget templates for this user first
+    await supabase.from('budget_templates').delete().eq('user_id', userId);
     var tplRows = (s.templates || []).map(function(t) {
         return { user_id: userId, id: t.id, name: t.name, snapshot_data: t.snapshot || {} };
     });
     
     var activeIconKeys = Object.keys(s.customIcons || {});
-    if (activeIconKeys.length > 0) {
-        await supabase.from('custom_icons').delete().eq('user_id', userId).not('icon_key', 'in', '(' + activeIconKeys.join(',') + ')');
-    } else {
-        await supabase.from('custom_icons').delete().eq('user_id', userId);
-    }
+    // Delete all custom icons for this user first
+    await supabase.from('custom_icons').delete().eq('user_id', userId);
     var iconRows = activeIconKeys.map(function(k) {
         return { user_id: userId, icon_key: k, svg_content: s.customIcons[k] };
     });
