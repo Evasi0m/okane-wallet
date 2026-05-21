@@ -1171,10 +1171,14 @@ function checkSession(){
 
 /* ===== THEME ===== */
 function applyTheme(id){var valid=THEMES.some(function(t){return t.id===id});if(!valid)id='light';document.documentElement.setAttribute('data-theme',id);var s=gs();s.theme=id;persistStore(s,false)}
-function toggleThemeDD(){document.getElementById('themeDD').classList.toggle('open')}
-document.addEventListener('click',function(e){if(!e.target.closest('.theme-dd'))document.getElementById('themeDD').classList.remove('open')});
+function openThemePop(){renderThemeDD();document.getElementById('themePop').classList.add('open')}
+function closeThemePop(){document.getElementById('themePop').classList.remove('open')}
+setTimeout(function(){
+    var tp = document.getElementById('themePop');
+    if(tp) tp.addEventListener('click',function(e){if(e.target===this)closeThemePop()});
+}, 500);
 function renderThemeDD(){var cur=gs().theme||'light';var h='';THEMES.forEach(function(t){h+='<div class="theme-item'+(cur===t.id?' active':'')+'" onclick="pickTheme(\''+t.id+'\',0)"><div class="theme-dots">';t.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});h+='</div><span>'+t.name+'</span><div class="theme-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>'});document.getElementById('themeDD').innerHTML=h}
-function pickTheme(id,lk){applyTheme(id);syncNow(gs());renderThemeDD();render();document.getElementById('themeDD').classList.remove('open')}
+function pickTheme(id,lk){applyTheme(id);syncNow(gs());renderThemeDD();render();closeThemePop()}
 function showPrem(){}
 function closePrem(){}
 function navClick(v){setV(v)}
@@ -2330,7 +2334,7 @@ function openUser(){
     h+='</div>';
     // Theme
     h+='<div class="prof-sec-t">การแสดงผล</div>';
-    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px"><div class="sr" style="border-bottom:none;cursor:pointer" onclick="closeUser();setTimeout(toggleThemeDD,200)">';
+    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:0 14px"><div class="sr" style="border-bottom:none;cursor:pointer" onclick="closeUser();setTimeout(openThemePop,200)">';
     h+='<div class="sl">ธีม</div><div style="display:flex;align-items:center;gap:8px"><div class="theme-dots">';
     curTheme.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});
     h+='</div><span style="font-size:13px;font-weight:600;color:var(--tx2)">'+curTheme.name+'</span>';
