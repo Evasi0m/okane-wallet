@@ -82,7 +82,8 @@ var THEMES=[
     {id:'earth1',name:'Terracotta Clay',dots:['#F5EDE6','#C46A3A','#E8DCD2'],free:true},
     {id:'earth2',name:'Sandy Olive',dots:['#F0EDE4','#8B7A3A','#E2DDC8'],free:true},
     {id:'lego',name:'Lego Bricks',dots:['#FFFDF5','#E3000B','#FFF3D6'],free:true},
-    {id:'cheese',name:'Melted Cheese',dots:['#FFFBF0','#E8A020','#FFEEBB'],free:true}
+    {id:'cheese',name:'Melted Cheese',dots:['#FFFBF0','#E8A020','#FFEEBB'],free:true},
+    {id:'midnight',name:'Midnight Azure',dots:['#0A0E1A','#5B8DEF','#1A2138'],free:true}
 ];
 var CLIENT_ID='933620688457-nqv6qs8381m46t8dn8sqv0qecbcuav82.apps.googleusercontent.com';
 var APP_VER='0.2.2';
@@ -1624,7 +1625,7 @@ function dailyListH(log, dk){
             var i = log.length - 1 - ri;
             var cat = allCats.find(function(c2){ return c2.id === x.cat }) || {name:'อื่นๆ', c:'other', id:'other'};
             var w= x.w ? getWalletName(x.w) : '';
-            h += '<div class="dl-item" onclick="openEditEntry(\''+dk+'\','+i+')"><div class="dl-time">'+x.t+'</div><div class="ri '+cat.c+'" style="width:30px;height:30px">'+getCatIcon(cat.id)+'</div><div class="rn"><div class="rn-t" style="font-size:12.5px">'+fmt(x.a)+'</div>'+(x.n?'<div class="rn-s">'+esc(x.n)+'</div>':'')+'<div class="rn-s" style="margin-top:2px;color:var(--tx3)">'+(w?esc(w)+' ':'')+'('+esc(cat.name)+')</div>'+'</div><button class="cd" onclick="event.stopPropagation();delDayItem(\''+dk+'\','+i+')">'+IC.dl+'</button></div>';
+            h += '<div class="dl-item" style="--i:'+Math.min(ri,16)+'" onclick="openEditEntry(\''+dk+'\','+i+')"><div class="dl-time">'+x.t+'</div><div class="ri '+cat.c+'" style="width:30px;height:30px">'+getCatIcon(cat.id)+'</div><div class="rn"><div class="rn-t" style="font-size:12.5px">'+fmt(x.a)+'</div>'+(x.n?'<div class="rn-s">'+esc(x.n)+'</div>':'')+'<div class="rn-s" style="margin-top:2px;color:var(--tx3)">'+(w?esc(w)+' ':'')+'('+esc(cat.name)+')</div>'+'</div><button class="cd" onclick="event.stopPropagation();delDayItem(\''+dk+'\','+i+')">'+IC.dl+'</button></div>';
         });
         h += '</div>';
     } else {
@@ -2715,7 +2716,7 @@ var tipTimer;function showTip(e){var t=e.currentTarget.dataset.tip;if(!t)return;
 /* ===== CHARTS ===== */
 function cCl(){
     var theme=document.documentElement.getAttribute('data-theme')||'light';
-    var dk=theme==='dark';
+    var dk=theme==='dark'||theme==='midnight';
     return{dk:dk,t:dk?'rgba(255,255,255,.75)':'rgba(0,0,0,.65)',g:dk?'rgba(255,255,255,.07)':'rgba(0,0,0,.07)'}
 }
 function drawMC(d,y,m){
@@ -2774,15 +2775,21 @@ function drawMC(d,y,m){
                 backgroundColor:finalGr,
                 borderWidth:3,
                 borderColor:cCl().dk?'rgba(20,17,16,0.6)':'rgba(255,255,255,0.6)',
-                hoverOffset:12,
-                borderRadius:8,
-                spacing:4
+                hoverOffset:14,
+                borderRadius:10,
+                spacing:5
             }]
         },
         options:{
             responsive:true,
             maintainAspectRatio:false,
             cutout:'68%',
+            animation:{
+                duration:900,
+                easing:'easeOutCubic',
+                animateRotate:true,
+                animateScale:true
+            },
             plugins:{
                 legend:{display:false},
                 tooltip:{
@@ -2809,7 +2816,7 @@ function drawMC(d,y,m){
         var lh='';
         for(var j=0;j<finalLb.length;j++){
             var pct=((finalVl[j]/total)*100).toFixed(1);
-            lh+='<div class="cl-item"><span class="cl-dot" style="background:'+finalCl[j]+'"></span><span class="cl-name">'+finalLb[j]+'</span><span class="cl-val">'+fmt(finalVl[j])+'</span><span class="cl-pct">'+pct+'%</span></div>';
+            lh+='<div class="cl-item" style="--i:'+j+'"><span class="cl-dot" style="background:'+finalCl[j]+'"></span><span class="cl-name">'+finalLb[j]+'</span><span class="cl-val">'+fmt(finalVl[j])+'</span><span class="cl-pct">'+pct+'%</span></div>';
         }
         le.innerHTML=lh;
     }
