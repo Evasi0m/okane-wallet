@@ -2075,16 +2075,16 @@ body.hide-amt .hero-v{transition:filter .4s var(--ease-smooth)}
 .mbar:hover{opacity:.7;width:56px !important}
 
 /* ---------- Transaction rows — hover + ripple ---------- */
-.row,.rn{transition:background .22s var(--ease-smooth),transform .15s var(--ease-spring) !important;position:relative;overflow:hidden}
-.row:hover,.rn:hover{background:var(--acBg) !important}
-.row:active,.rn:active{transform:scale(.995)}
+.row,.dl-item{transition:background .22s var(--ease-smooth),transform .15s var(--ease-spring) !important;position:relative;overflow:hidden}
+.row:hover,.dl-item:hover{background:var(--acBg) !important}
+.row:active,.dl-item:active{transform:scale(.995)}
 
-/* gradient hairline divider — replaces hard 1px solid */
-.row,.rn,.dl-item,.cl-item{border-bottom:none !important;background-image:var(--hairline-grad) !important;background-position:0 100% !important;background-size:100% 1px !important;background-repeat:no-repeat !important}
-.row:hover,.rn:hover,.dl-item:hover{background-image:var(--hairline-grad),linear-gradient(var(--acBg),var(--acBg)) !important;background-position:0 100%,0 0 !important;background-size:100% 1px,100% 100% !important;background-repeat:no-repeat,no-repeat !important}
+/* gradient hairline divider — replaces hard 1px solid (only on actual list rows, NOT nested .rn text container) */
+.row,.dl-item{border-bottom:none !important;background-image:var(--hairline-grad) !important;background-position:0 100% !important;background-size:100% 1px !important;background-repeat:no-repeat !important}
+.row:hover,.dl-item:hover{background-image:var(--hairline-grad),linear-gradient(var(--acBg),var(--acBg)) !important;background-position:0 100%,0 0 !important;background-size:100% 1px,100% 100% !important;background-repeat:no-repeat,no-repeat !important}
 
-/* stagger entrance on transaction lists */
-.dl-item,.rn{animation:rowIn .42s var(--ease-smooth) both;animation-delay:calc(var(--i,0) * 22ms)}
+/* stagger entrance — only outermost row, not nested text container */
+.dl-item{animation:rowIn .42s var(--ease-smooth) both;animation-delay:calc(var(--i,0) * 22ms)}
 @keyframes rowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ---------- Pie chart container — deeper glass ---------- */
@@ -2093,7 +2093,7 @@ body.hide-amt .hero-v{transition:filter .4s var(--ease-smooth)}
 .cc-lb{font-family:'JetBrains Mono',monospace;font-size:9px !important;letter-spacing:.22em !important;text-transform:uppercase;color:var(--tx2)}
 
 /* Legend pill-style hover */
-.cl-item{padding:9px 12px !important;border-radius:12px !important;transition:background .2s,transform .15s var(--ease-spring) !important;cursor:default}
+.cl-item{padding:9px 12px !important;border-radius:12px !important;border-bottom:none !important;transition:background .2s,transform .15s var(--ease-spring) !important;cursor:default}
 .cl-item:hover{background:var(--acBg) !important}
 .cl-dot{box-shadow:0 0 0 2px rgba(255,255,255,.6),0 2px 6px rgba(0,0,0,.12)}
 [data-theme="dark"] .cl-dot,[data-theme="midnight"] .cl-dot{box-shadow:0 0 0 2px rgba(255,255,255,.15),0 2px 6px rgba(0,0,0,.4)}
