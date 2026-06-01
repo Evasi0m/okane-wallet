@@ -1,43 +1,43 @@
 /* ===== ICON LIST (30 minimal SVG for custom categories) ===== */
 var _s='width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 var ICON_LIST={
-shopee:'<svg '+_s+'><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>',
-grab:'<svg '+_s+'><path d="M12 2L4 8l2 2 4-1v5l-3 2v2l5-1 5 1v-2l-3-2V9l4 1 2-2-8-6z"/></svg>',
-netflix:'<svg '+_s+'><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M12 2l-5 5M12 2l5 5"/></svg>',
-youtube:'<svg '+_s+'><path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.42a2.78 2.78 0 00-1.94 2C1 8.14 1 12 1 12s0 3.86.46 5.58a2.78 2.78 0 001.94 2c1.72.42 8.6.42 8.6.42s6.88 0 8.6-.42a2.78 2.78 0 001.94-2C23 15.86 23 12 23 12s0-3.86-.46-5.58z"/><path d="M9.75 15.02l5.75-3.02-5.75-3.02v6.04z" fill="currentColor"/></svg>',
-lineman:'<svg '+_s+'><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-starbucks:'<svg '+_s+'><path d="M17 8h1a4 4 0 010 8h-1M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/><path d="M7 2v3M10 2v3M13 2v3"/></svg>',
-truemoney:'<svg '+_s+'><path d="M20 7H5a2 2 0 00-2 2v10a2 2 0 002 2h15V7z"/><path d="M20 7V5a2 2 0 00-2-2H7"/><circle cx="17" cy="14" r="1.5"/></svg>',
-kasikornbank:'<svg '+_s+'><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>',
-scb:'<svg '+_s+'><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h3"/></svg>',
-visa:'<svg '+_s+'><path d="M10 9h4L12 15h-4zM18 9h4l-2 6h-4zM2 9h4l2 6h-4z"/></svg>',
-coffee:'<svg '+_s+'><path d="M17 8h1a4 4 0 010 8h-1M3 8h14v9a4 4 0 01-4 4H7a4 4 0 01-4-4V8z"/><path d="M7 2v3M10 2v3M13 2v3"/></svg>',
-house:'<svg '+_s+'><path d="M3 10l9-7 9 7v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10z"/><path d="M9 21v-7h6v7"/></svg>',
-phone:'<svg '+_s+'><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M12 18h.01"/></svg>',
-pill:'<svg '+_s+'><path d="M8 2h0a6 6 0 016 6v8a6 6 0 01-6 6h0a6 6 0 01-6-6V8a6 6 0 016-6z"/><path d="M2 12h12"/></svg>',
-graduation:'<svg '+_s+'><path d="M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2.7 3 6 3s6-1 6-3v-5"/><path d="M22 10v6"/></svg>',
-gamepad:'<svg '+_s+'><rect x="3" y="7" width="18" height="11" rx="2"/><path d="M7 12h4M9 10v4"/><circle cx="16" cy="11" r=".5" fill="currentColor"/><circle cx="14.5" cy="14" r=".5" fill="currentColor"/></svg>',
-car:'<svg '+_s+'><path d="M5 17h14M7 7l-2 4h14l-2-4H7z"/><rect x="3" y="11" width="18" height="6" rx="1"/><circle cx="7" cy="17" r="1.5"/><circle cx="17" cy="17" r="1.5"/></svg>',
-plane:'<svg '+_s+'><path d="M12 2L4 8l2 2 4-1v5l-3 2v2l5-1 5 1v-2l-3-2V9l4 1 2-2-8-6z"/></svg>',
-scissors:'<svg '+_s+'><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.1 15.9M14.5 14.5L20 20M8.1 8.1L12 12"/></svg>',
-gift:'<svg '+_s+'><rect x="3" y="8" width="18" height="4"/><rect x="5" y="12" width="14" height="9"/><path d="M12 8v13"/><path d="M12 8c-1-3-4-4-4-4s2 1 4 4M12 8c1-3 4-4 4-4s-2 1-4 4"/></svg>',
-dumbbell:'<svg '+_s+'><path d="M6 7v10M18 7v10M3 8v8M21 8v8M3 12h18"/></svg>',
-package2:'<svg '+_s+'><path d="M21 16V8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>',
+shopee:'<svg '+_s+'><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/><path d="M9 14h6"/></svg>',
+grab:'<svg '+_s+'><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/><circle cx="12" cy="12" r="10"/></svg>',
+netflix:'<svg '+_s+'><path d="M4 2v20M20 2v20M4 2l16 20"/></svg>',
+youtube:'<svg '+_s+'><rect x="2.5" y="4.5" width="19" height="15" rx="3"/><polygon points="10 9 15 12 10 15 10 9" fill="currentColor"/></svg>',
+lineman:'<svg '+_s+'><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-.6-2.7-1.1-4.5C14.7 4.7 13.9 4 13 4H8c-.9 0-1.7.7-1.9 1.5C5.4 7.3 4 13 4 13s-2.7.6-4.5 1.1C-.9 14.3-1.6 15.1-1.6 16v3c0 .6.4 1 1 1h2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>',
+starbucks:'<svg '+_s+'><path d="M12 2a10 10 0 1010 10A10 10 0 0012 2zm0 18a8 8 0 118-8 8 8 0 01-8 8z"/><path d="M12 6a3 3 0 00-3 3c0 2 3 5 3 5s3-3 3-5a3 3 0 00-3-3z"/></svg>',
+truemoney:'<svg '+_s+'><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h.01M11 15h.01"/></svg>',
+kasikornbank:'<svg '+_s+'><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>',
+scb:'<svg '+_s+'><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M21 12H3M12 3v18"/></svg>',
+visa:'<svg '+_s+'><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M7 15h2M13 15h4"/></svg>',
+coffee:'<svg '+_s+'><path d="M18 8h1a3 3 0 010 6h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><path d="M6 2v3M10 2v3M14 2v3"/></svg>',
+house:'<svg '+_s+'><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>',
+phone:'<svg '+_s+'><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 18h.01"/></svg>',
+pill:'<svg '+_s+'><rect x="2" y="9" width="20" height="6" rx="3" transform="rotate(-45 12 12)"/><line x1="8.5" y1="15.5" x2="15.5" y2="8.5"/></svg>',
+graduation:'<svg '+_s+'><polygon points="12 2 22 8.5 12 15 2 8.5 12 2"/><path d="M6 12.5v5c0 2 2.7 3.5 6 3.5s6-1.5 6-3.5v-5M21.5 8.5v8"/></svg>',
+gamepad:'<svg '+_s+'><rect x="2" y="6" width="20" height="12" rx="3"/><path d="M6 12h4M8 10v4M15 11h.01M17 13h.01"/></svg>',
+car:'<svg '+_s+'><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-.6-2.7-1.1-4.5C14.7 4.7 13.9 4 13 4H8c-.9 0-1.7.7-1.9 1.5C5.4 7.3 4 13 4 13s-2.7.6-4.5 1.1C-.9 14.3-1.6 15.1-1.6 16v3c0 .6.4 1 1 1h2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>',
+plane:'<svg '+_s+'><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>',
+scissors:'<svg '+_s+'><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="9.8" y1="8.2" x2="20" y2="18.4"/><line x1="9.8" y1="15.8" x2="20" y2="5.6"/></svg>',
+gift:'<svg '+_s+'><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v9a1 1 0 01-1 1H6a1 1 0 01-1-1v-9"/><path d="M12 8c-2.5-3-5-2-5-2s1 3.5 5 2M12 8c2.5-3 5-2 5-2s-1 3.5-5 2"/></svg>',
+dumbbell:'<svg '+_s+'><path d="M6.5 6.5h11M4 5v14M20 5v14M6.5 12h11M1.5 8v8M22.5 8v8"/></svg>',
+package2:'<svg '+_s+'><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 7v10M22 7v10M12 12v10"/></svg>',
 wrench:'<svg '+_s+'><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.8-3.8a6 6 0 01-7.9 7.9l-6.9 6.9a2 2 0 01-2.8-2.8l6.9-6.9a6 6 0 017.9-7.9l-3.8 3.8z"/></svg>',
-laptop:'<svg '+_s+'><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/></svg>',
+laptop:'<svg '+_s+'><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20M5 16h14"/></svg>',
 music:'<svg '+_s+'><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
-tv:'<svg '+_s+'><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M12 2l-5 5M12 2l5 5"/></svg>',
-paw:'<svg '+_s+'><circle cx="11" cy="4" r="1.5"/><circle cx="4" cy="8" r="1.5"/><circle cx="18" cy="8" r="1.5"/><path d="M12 22c-4 0-6-2-6-4.5S9 13 12 13s6 2.5 6 4.5S16 22 12 22z"/></svg>',
+tv:'<svg '+_s+'><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M17 21H7M12 17v4"/></svg>',
+paw:'<svg '+_s+'><circle cx="12" cy="5" r="2"/><circle cx="6" cy="8" r="2"/><circle cx="18" cy="8" r="2"/><path d="M12 13c-3 0-5 2-5 4s2 3 5 3 5-1 5-3-2-4-5-4z"/></svg>',
 shopping:'<svg '+_s+'><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg>',
 piggy:'<svg '+_s+'><path d="M19 5c-2 0-3 2-4 4H9C8 7 7 5 5 5S2 7 2 9c0 1 1 2 2 3 0 1 0 2 0 3 0 3 4 5 8 5s8-2 8-5c0-1 0-2 0-3 1-1 2-2 2-3 0-2-1-4-3-4z"/><path d="M10 13h.01M14 13h.01"/></svg>',
 book:'<svg '+_s+'><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>',
 beer:'<svg '+_s+'><path d="M17 11h1a3 3 0 010 6h-1"/><path d="M5 8v12a2 2 0 002 2h8a2 2 0 002-2V8"/><path d="M5 8h12"/><path d="M9 4v4M13 4v4"/></svg>',
-hospital:'<svg '+_s+'><path d="M22 12h-6l-2 7L10 5l-2 7H2"/></svg>',
-bulb:'<svg '+_s+'><path d="M9 18h6M10 22h4"/><path d="M15 14c1-1 2-3 2-5a5 5 0 00-10 0c0 2 1 4 2 5"/></svg>',
+hospital:'<svg '+_s+'><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>',
+bulb:'<svg '+_s+'><path d="M15 14c1-1 2-3 2-5a5 5 0 00-10 0c0 2 1 4 2 5M9 18h6M10 22h4"/></svg>',
 shower:'<svg '+_s+'><path d="M4 4v5h16M7 14v3M10 14v5M13 14v3M16 14v5"/></svg>',
 film:'<svg '+_s+'><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M17 7h5M2 17h5M17 17h5"/></svg>',
 baby:'<svg '+_s+'><circle cx="12" cy="12" r="8"/><path d="M9 13h.01M15 13h.01"/><path d="M10 16.5a3 3 0 004 0"/></svg>',
-ring:'<svg '+_s+'><circle cx="12" cy="15" r="6"/><path d="M12 9V3M9 5l3 4 3-4"/></svg>',
+ring:'<svg '+_s+'><circle cx="12" cy="14" r="6"/><path d="M12 8V2M9 4l3 4 3-4"/></svg>',
 camera:'<svg '+_s+'><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="3.5"/></svg>',
 broom:'<svg '+_s+'><path d="M12 2v9M5 14h14l-2 8H7z"/></svg>',
 wallet:'<svg '+_s+'><path d="M20 7H5a2 2 0 00-2 2v10a2 2 0 002 2h15V7z"/><path d="M20 7V5a2 2 0 00-2-2H7"/><circle cx="17" cy="14" r="1.5"/></svg>'
@@ -2348,41 +2348,238 @@ function openCreateCat(catId){
     var current=catId?getCatMeta(catId):null;
     ccIcon=current&&current.icon?current.icon:'coffee';
     ccColor=current&&current.color?current.color:CAT_PALETTE[0];
+    
+    // Bind backdrop listener once
+    var el = document.getElementById('ccPopup');
+    if(el && !el._hasCcListener){
+        el._hasCcListener = true;
+        el.addEventListener('click', function(e){ if(e.target===this) closeCreateCat(); });
+    }
+    
+    if (document.getElementById('ccTitle')) {
+        document.getElementById('ccTitle').textContent = catId ? 'แก้ไขหมวดหมู่' : 'สร้างหมวดใหม่';
+    }
+    
     renderCreateCat();
-    document.getElementById('ccPopup').classList.add('open')
+    el.classList.add('open');
 }
 function closeCreateCat(){document.getElementById('ccPopup').classList.remove('open')}
 function renderCreateCat(){
-    var h = '<div class="mbd">';
     var current=_catEditId?getCatMeta(_catEditId):null;
-    h += '<input class="inp" id="ccName" placeholder="ชื่อหมวด" style="margin-bottom:12px;width:100%" value="'+esc(current?current.name:'')+'">';
-    h += '<input class="inp" type="number" id="ccBudget" placeholder="งบ/เดือน (เช่น 800)" min="0" style="margin-bottom:12px;width:100%" value="'+Number(current&&current.budget||0)+'">';
-    h += '<div style="font-size:12px;font-weight:700;margin:12px 0 8px">สีไอคอน:</div><div class="color-palette">';
+    var nameVal = current?current.name:'';
+    var budgetVal = current&&current.budget?current.budget:'';
+    
+    var previewName = nameVal || 'ชื่อหมวดหมู่';
+    var previewBudget = budgetVal || 0;
+    
+    var h = '<div class="mbd" style="display:flex; flex-direction:column; gap:14px">';
+    
+    // Live Preview Card
+    h += '<div class="cc-preview-wrap" style="padding:4px 0;display:flex;justify-content:center;width:100%">';
+    h += '<div class="exp-card" style="--cat-color:'+ccColor+'; --cat-color-alpha:'+hexToRgba(ccColor,0.08)+'; --cat-color-border:'+hexToRgba(ccColor,0.2)+'; margin-bottom:0 !important; width:100%">';
+    h += '<div class="exp-card-main">';
+    h += '<div class="exp-badge-glow" style="--glow-color:'+hexToRgba(ccColor,0.4)+';">';
+    h += '<div class="ri" style="background:'+hexToRgba(ccColor,0.12)+'; color:'+ccColor+'; display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px">'+(ICON_LIST[ccIcon]||'')+'</div>';
+    h += '</div>';
+    h += '<div class="exp-info">';
+    h += '<div class="exp-name-row"><span class="exp-name">'+esc(previewName)+'</span></div>';
+    if(previewBudget>0){
+        h += '<div class="exp-meta-row" style="display:flex;justify-content:space-between;align-items:center"><span class="exp-spent-label">ใช้ไปแล้ว ฿0.00 จาก '+fmt(previewBudget)+'</span><span class="exp-pct-label">0%</span></div>';
+    }else{
+        h += '<div class="exp-meta-row"><span class="exp-spent-label">ใช้ไปแล้ว ฿0.00</span></div>';
+    }
+    h += '</div>';
+    h += '<div class="exp-val-area">';
+    h += '<div class="rv neg">'+fmt(previewBudget)+'</div>';
+    h += '</div>';
+    h += '</div>';
+    if(previewBudget>0){
+        h += '<div class="exp-prog-wrap" style="margin-top:8px"><div class="exp-prog-bar"><div class="exp-prog-fill" style="width:0%; --bar-color:'+ccColor+'"></div></div></div>';
+    }
+    h += '</div>';
+    h += '</div>';
+    
+    // Sleek Form Inputs
+    h += '<div class="cc-input-group" style="display:flex;flex-direction:column;gap:12px;width:100%">';
+    h += '<div class="cc-input-field" style="position:relative;display:flex;align-items:center">';
+    h += '<svg class="cc-input-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2.5" style="position:absolute;left:12px;pointer-events:none"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
+    h += '<input class="inp" id="ccName" placeholder="ชื่อหมวดหมู่" style="width:100%;padding-left:36px" value="'+esc(nameVal)+'" oninput="updateCcPreview()">';
+    h += '</div>';
+    
+    h += '<div class="cc-input-field" style="position:relative;display:flex;align-items:center">';
+    h += '<svg class="cc-input-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2.5" style="position:absolute;left:12px;pointer-events:none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>';
+    h += '<input class="inp" type="number" id="ccBudget" placeholder="งบประมาณรายเดือน (เช่น 800)" min="0" style="width:100%;padding-left:36px" value="'+(budgetVal||'')+'" oninput="updateCcPreview()">';
+    h += '</div>';
+    h += '</div>';
+    
+    // Color Palette
+    h += '<div><div style="font-size:12px;font-weight:700;margin:6px 0 8px;color:var(--tx)">เลือกสีหมวดหมู่:</div><div class="color-palette" style="margin:0">';
     CAT_PALETTE.forEach(function(color){
         var isOn=ccColor===color;
-        var glow=isOn?'inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px '+color+',0 4px 10px rgba(0,0,0,.2)':'';
-        h+='<button class="color-dot'+(isOn?' on':'')+'" style="background:'+color+';'+(glow?'box-shadow:'+glow:'')+';" data-color="'+color+'" onclick="ccColor=\''+color+'\';renderCreateCat()" type="button"></button>'
+        var glow=isOn?'box-shadow: 0 0 0 2px var(--card), 0 0 0 4px '+color+', 0 4px 12px '+hexToRgba(color, 0.4)+'; transform: scale(1.1)':'';
+        h+='<button class="color-dot'+(isOn?' on':'')+'" style="background:'+color+';'+glow+'" data-color="'+color+'" onclick="changeCcColor(\''+color+'\')" type="button"></button>'
     });
     var isBlack=ccColor==='#1A1A1A';
     var isWhite=ccColor==='#FFFFFF';
-    h+='<button class="color-dot'+(isBlack?' on':'')+'" style="background:#1A1A1A;'+(isBlack?'box-shadow:inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px #1A1A1A,0 4px 10px rgba(0,0,0,.2);':'')+'" data-color="#1A1A1A" onclick="ccColor=\'#1A1A1A\';renderCreateCat()" type="button"></button>';
-    h+='<button class="color-dot'+(isWhite?' on':'')+'" style="background:#FFFFFF;border:1.5px solid #ccc;'+(isWhite?'box-shadow:inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px #aaa,0 4px 10px rgba(0,0,0,.2);':'')+'" data-color="#FFFFFF" onclick="ccColor=\'#FFFFFF\';renderCreateCat()" type="button"></button>';
+    var blackGlow=isBlack?'box-shadow: 0 0 0 2px var(--card), 0 0 0 4px #1A1A1A, 0 4px 12px rgba(0,0,0,0.25); transform: scale(1.1)':'';
+    var whiteGlow=isWhite?'box-shadow: 0 0 0 2px var(--card), 0 0 0 4px #ccc, 0 4px 12px rgba(0,0,0,0.1); transform: scale(1.1)':'';
+    h+='<button class="color-dot'+(isBlack?' on':'')+'" style="background:#1A1A1A;'+blackGlow+'" data-color="#1A1A1A" onclick="changeCcColor(\'#1A1A1A\')" type="button"></button>';
+    h+='<button class="color-dot'+(isWhite?' on':'')+'" style="background:#FFFFFF;border:1.5px solid var(--cb);'+whiteGlow+'" data-color="#FFFFFF" onclick="changeCcColor(\'#FFFFFF\')" type="button"></button>';
     h+='<label class="color-dot color-dot-custom" title="เลือกสีเอง" style="background:'+(/^#[0-9A-Fa-f]{6}$/.test(ccColor)&&CAT_PALETTE.indexOf(ccColor)<0&&ccColor!=='#1A1A1A'&&ccColor!=='#FFFFFF'?ccColor:'transparent')+';border:2px dashed var(--tx3);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative"><input type="color" value="'+(/^#[0-9A-Fa-f]{6}$/.test(ccColor)?ccColor:'#F59E0B')+'" style="opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer" oninput="pickCatCustomColor(this.value,this.parentElement)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></label>';
-    h += '</div>';
-    h += '<div style="font-size:12px;font-weight:700;margin:12px 0 8px">เลือก icon:</div>';
-    h += '<div class="icon-grid" style="grid-template-columns:repeat(5,1fr);max-height:300px;overflow-y:auto;padding:4px;background:var(--bg2);border-radius:12px;border:1px solid var(--cb)">';
+    h += '</div></div>';
+    
+    // Icon selector grid
+    h += '<div><div style="font-size:12px;font-weight:700;margin:6px 0 8px;color:var(--tx)">เลือกไอคอนหมวดหมู่:</div>';
+    h += '<div class="icon-grid" style="grid-template-columns:repeat(5,1fr);max-height:180px;overflow-y:auto;padding:8px;background:var(--bg2);border-radius:14px;border:1px solid var(--cb);display:grid;gap:8px">';
     Object.keys(ICON_LIST).forEach(function(k){
-        h += '<div class="icon-item'+(ccIcon===k?' on':'')+'" onclick="ccIcon=\''+k+'\';renderCreateCat()" style="padding:10px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;color:'+ccColor+'">';
+        var isOn = ccIcon===k;
+        var style = isOn ? 'color:'+ccColor+'; background:'+hexToRgba(ccColor, 0.12)+'; border: 1.5px solid '+ccColor+'; box-shadow: 0 0 10px '+hexToRgba(ccColor, 0.25) : 'color:var(--tx2); border: 1.5px solid transparent';
+        h += '<div class="icon-item'+(isOn?' on':'')+'" data-icon-key="'+k+'" onclick="changeCcIcon(\''+k+'\')" style="padding:12px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;transition:all 0.2s ease;'+style+'">';
         h += ICON_LIST[k];
         h += '</div>';
     });
-    h += '</div></div>';
-    h += '<div class="mft" style="padding:16px 18px 0;display:flex;gap:10px">';
+    h += '</div></div></div>';
+    
+    // Actions Footer
+    h += '<div class="mft" style="padding:16px 18px env(safe-area-inset-bottom);display:flex;gap:10px;border-top:1px solid var(--cb);background:var(--card)">';
     h += '<button class="btn btn-gh btn-full" onclick="closeCreateCat()">ยกเลิก</button>';
-    if(_catEditId)h += '<button class="btn btn-rd btn-full" onclick="deleteCategory()">ลบหมวด</button>';
+    if(_catEditId)h += '<button class="btn btn-rd" style="flex:0 0 auto;min-width:90px" onclick="deleteCategory()">ลบหมวด</button>';
     h += '<button class="btn btn-ac btn-full" onclick="doCreateCat()">'+(_catEditId?'บันทึก':'สร้าง')+'</button>';
     h += '</div>';
+    
     document.getElementById('ccBody').innerHTML = h;
+}
+function updateCcPreview() {
+    var nameInp = document.getElementById('ccName');
+    var budgetInp = document.getElementById('ccBudget');
+    if (!nameInp || !budgetInp) return;
+    
+    var nameVal = nameInp.value.trim() || 'ชื่อหมวดหมู่';
+    var budgetVal = Number(budgetInp.value) || 0;
+    
+    // Update preview name
+    var previewNameEl = document.querySelector('#ccPopup .exp-name');
+    if (previewNameEl) previewNameEl.textContent = nameVal;
+    
+    // Update preview budget value
+    var previewValEl = document.querySelector('#ccPopup .rv.neg');
+    if (previewValEl) previewValEl.textContent = fmt(budgetVal);
+    
+    // Update spent and progress
+    var previewMetaRow = document.querySelector('#ccPopup .exp-meta-row');
+    var previewProgWrap = document.querySelector('#ccPopup .exp-prog-wrap');
+    var expCardEl = document.querySelector('#ccPopup .exp-card');
+    
+    if (budgetVal > 0) {
+        if (previewMetaRow) {
+            previewMetaRow.innerHTML = '<span class="exp-spent-label">ใช้ไปแล้ว ฿0.00 จาก '+fmt(budgetVal)+'</span><span class="exp-pct-label">0%</span>';
+        }
+        if (!previewProgWrap && expCardEl) {
+            var wrap = document.createElement('div');
+            wrap.className = 'exp-prog-wrap';
+            wrap.style.marginTop = '8px';
+            wrap.innerHTML = '<div class="exp-prog-bar"><div class="exp-prog-fill" style="width:0%; --bar-color:'+ccColor+'"></div></div>';
+            expCardEl.appendChild(wrap);
+        }
+    } else {
+        if (previewMetaRow) {
+            previewMetaRow.innerHTML = '<span class="exp-spent-label">ใช้ไปแล้ว ฿0.00</span>';
+        }
+        if (previewProgWrap) {
+            previewProgWrap.remove();
+        }
+    }
+}
+function changeCcColor(color) {
+    ccColor = color;
+    
+    // Update preview card styles
+    var expCard = document.querySelector('#ccPopup .exp-card');
+    if (expCard) {
+        expCard.style.setProperty('--cat-color', color);
+        expCard.style.setProperty('--cat-color-alpha', hexToRgba(color, 0.08));
+        expCard.style.setProperty('--cat-color-border', hexToRgba(color, 0.2));
+    }
+    
+    var riEl = document.querySelector('#ccPopup .ri');
+    if (riEl) {
+        riEl.style.background = hexToRgba(color, 0.12);
+        riEl.style.color = color;
+    }
+    
+    var progressFill = document.querySelector('#ccPopup .exp-prog-fill');
+    if (progressFill) {
+        progressFill.style.setProperty('--bar-color', color);
+    }
+    
+    var expBadgeGlow = document.querySelector('#ccPopup .exp-badge-glow');
+    if (expBadgeGlow) {
+        expBadgeGlow.style.setProperty('--glow-color', hexToRgba(color, 0.4));
+    }
+    
+    // Redraw the color-palette inside DOM so the checked glow updates
+    var palette = document.querySelector('#ccPopup .color-palette');
+    if (palette) {
+        var h = '';
+        CAT_PALETTE.forEach(function(col){
+            var isOn=ccColor===col;
+            var glow=isOn?'box-shadow: 0 0 0 2px var(--card), 0 0 0 4px '+col+', 0 4px 12px '+hexToRgba(col, 0.4)+'; transform: scale(1.1)':'';
+            h+='<button class="color-dot'+(isOn?' on':'')+'" style="background:'+col+';'+glow+'" data-color="'+col+'" onclick="changeCcColor(\''+col+'\')" type="button"></button>'
+        });
+        var isBlack=ccColor==='#1A1A1A';
+        var isWhite=ccColor==='#FFFFFF';
+        var blackGlow=isBlack?'box-shadow: 0 0 0 2px var(--card), 0 0 0 4px #1A1A1A, 0 4px 12px rgba(0,0,0,0.25); transform: scale(1.1)':'';
+        var whiteGlow=isWhite?'box-shadow: 0 0 0 2px var(--card), 0 0 0 4px #ccc, 0 4px 12px rgba(0,0,0,0.1); transform: scale(1.1)':'';
+        h+='<button class="color-dot'+(isBlack?' on':'')+'" style="background:#1A1A1A;'+blackGlow+'" data-color="#1A1A1A" onclick="changeCcColor(\'#1A1A1A\')" type="button"></button>';
+        h+='<button class="color-dot'+(isWhite?' on':'')+'" style="background:#FFFFFF;border:1.5px solid var(--cb);'+whiteGlow+'" data-color="#FFFFFF" onclick="changeCcColor(\'#FFFFFF\')" type="button"></button>';
+        h+='<label class="color-dot color-dot-custom" title="เลือกสีเอง" style="background:'+(/^#[0-9A-Fa-f]{6}$/.test(ccColor)&&CAT_PALETTE.indexOf(ccColor)<0&&ccColor!=='#1A1A1A'&&ccColor!=='#FFFFFF'?ccColor:'transparent')+';border:2px dashed var(--tx3);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative"><input type="color" value="'+(/^#[0-9A-Fa-f]{6}$/.test(ccColor)?ccColor:'#F59E0B')+'" style="opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer" oninput="changeCcColor(this.value)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></label>';
+        palette.innerHTML = h;
+    }
+    
+    // Also update colors in the icon selector items!
+    var iconItems = document.querySelectorAll('#ccPopup .icon-item');
+    iconItems.forEach(function(el) {
+        var key = el.getAttribute('data-icon-key');
+        if (el.classList.contains('on')) {
+            el.style.color = color;
+            el.style.background = hexToRgba(color, 0.12);
+            el.style.borderColor = color;
+            el.style.boxShadow = '0 0 10px ' + hexToRgba(color, 0.25);
+        } else {
+            el.style.color = 'var(--tx2)';
+            el.style.background = 'transparent';
+            el.style.borderColor = 'transparent';
+            el.style.boxShadow = 'none';
+        }
+    });
+}
+function changeCcIcon(iconKey) {
+    ccIcon = iconKey;
+    
+    // Update preview card icon
+    var riEl = document.querySelector('#ccPopup .ri');
+    if (riEl) {
+        riEl.innerHTML = ICON_LIST[ccIcon] || '';
+    }
+    
+    // Update active icon selection in the grid
+    var iconItems = document.querySelectorAll('#ccPopup .icon-item');
+    iconItems.forEach(function(el) {
+        var key = el.getAttribute('data-icon-key');
+        if (key === iconKey) {
+            el.classList.add('on');
+            el.style.color = ccColor;
+            el.style.background = hexToRgba(ccColor, 0.12);
+            el.style.borderColor = ccColor;
+            el.style.boxShadow = '0 0 10px ' + hexToRgba(ccColor, 0.25);
+        } else {
+            el.classList.remove('on');
+            el.style.color = 'var(--tx2)';
+            el.style.background = 'transparent';
+            el.style.borderColor = 'transparent';
+            el.style.boxShadow = 'none';
+        }
+    });
 }
 function doCreateCat(){
     var name=document.getElementById('ccName').value.trim();
@@ -2682,18 +2879,12 @@ function pickIncomeCustomColor(color,label){
     label.style.borderColor=color
 }
 function pickCatCustomColor(color,label){
-    ccColor=color;
-    document.querySelectorAll('#ccPopup .color-dot').forEach(function(b){
-        var c=b.getAttribute('data-color');
-        var isOn=c===ccColor;
-        b.classList.toggle('on',isOn);
-        if(isOn&&c){b.style.boxShadow='inset 0 1px 2px rgba(255,255,255,.45),inset 0 -1px 2px rgba(0,0,0,.18),0 0 0 2px var(--card),0 0 14px 5px '+c+',0 4px 10px rgba(0,0,0,.2)'}
-        else{b.style.boxShadow=''}
-    });
-    document.querySelectorAll('.icon-item').forEach(function(el){el.style.color=ccColor});
-    label.style.background=ccColor;
-    label.style.borderStyle='solid';
-    label.style.borderColor=ccColor
+    changeCcColor(color);
+    if (label) {
+        label.style.background=ccColor;
+        label.style.borderStyle='solid';
+        label.style.borderColor=ccColor;
+    }
 }
 function openIncomePopup(id){
     _incomeEditId=id||null;

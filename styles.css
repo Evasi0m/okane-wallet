@@ -2587,3 +2587,63 @@ button:focus-visible,.btn:focus-visible,.qa-cat:focus-visible,.theme-item:focus-
   border-color: var(--sh) !important;
   color: var(--sh) !important;
 }
+
+/* ===== CUSTOM CATEGORY POPUP PREMIUM STYLING ===== */
+.cc-preview-wrap {
+  background: rgba(var(--hdrBg), 0.35);
+  border: 1px solid var(--cb);
+  border-radius: 20px;
+  padding: 14px !important;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+  width: 100%;
+}
+
+.cc-input-field {
+  transition: transform 0.2s ease;
+}
+
+.cc-input-field:focus-within {
+  transform: translateY(-1px);
+}
+
+.cc-input-ic {
+  transition: color 0.25s ease, stroke-width 0.25s ease;
+}
+
+.cc-input-field:focus-within .cc-input-ic {
+  color: var(--ac) !important;
+}
+
+.color-dot {
+  border-radius: 10px !important; /* Premium modern rounded tiles */
+  transition: transform 0.25s var(--ease-spring), box-shadow 0.25s ease !important;
+}
+
+.color-dot-custom {
+  border-radius: 10px !important;
+}
+
+.icon-item {
+  background: var(--card) !important;
+  border: 1.5px solid var(--cb) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03) !important;
+  transition: all 0.22s var(--ease-smooth) !important;
+}
+
+.icon-item:hover {
+  transform: scale(1.08) !important;
+  border-color: var(--tx3) !important;
+}
+
+.icon-item.on:hover {
+  transform: scale(1.08) !important;
+}
+
+.icon-grid::-webkit-scrollbar {
+  width: 5px;
+}
+
+.icon-grid::-webkit-scrollbar-thumb {
+  background: var(--cb);
+  border-radius: 4px;
+}
