@@ -82,13 +82,12 @@ var THEMES=[
     {id:'earth1',name:'Terracotta Clay',dots:['#F5EDE6','#C46A3A','#E8DCD2'],free:true},
     {id:'earth2',name:'Sandy Olive',dots:['#F0EDE4','#8B7A3A','#E2DDC8'],free:true},
     {id:'lego',name:'Lego Bricks',dots:['#FFFDF5','#E3000B','#FFF3D6'],free:true},
-    {id:'cheese',name:'Melted Cheese',dots:['#FFFBF0','#E8A020','#FFEEBB'],free:true},
-    {id:'midnight',name:'Midnight Azure',dots:['#0A0E1A','#5B8DEF','#1A2138'],free:true}
+    {id:'cheese',name:'Melted Cheese',dots:['#FFFBF0','#E8A020','#FFEEBB'],free:true}
 ];
 var CLIENT_ID='933620688457-nqv6qs8381m46t8dn8sqv0qecbcuav82.apps.googleusercontent.com';
-var APP_VER='0.2.2';
+var APP_VER='0.2.9';
 var SUPABASE_URL = 'https://xdbsyiigkyafoohqqffx.supabase.co';
-var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkYnN5aWlna3lhZm9vaHFxZmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyODMzODMsImV4cCI6MjA5NDg1OTM4M30.jt38mikfDyk5RsOuRaldjigrBYbxz8F3TDMCrLuXHiY';
+var SUPABASE_KEY = 'sb_publishable_SKWRc9CCCsQxOhpq6NlNaQ_zsx9hBx4';
 var supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 var supabaseUserId = null;
 function getBangkokNow(){return new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}))}
@@ -97,7 +96,7 @@ var NOW=getBangkokNow();
 var cY=NOW.getFullYear(),sM_=NOW.getMonth(),vw='m',ch=null,shY,tokenClient=null,accessToken=null,isGuest=false,userInfo={name:'',email:'',picture:''},driveFileId=null,sq='';
 var editInc=false,editExp=false,viewDate=new Date(NOW);
 var DF={salary:0,savGoal:0,showDecimal:true,hideAmount:false,lowRemaining:1000,warnPercent:90,weeklyOn:false};
-var _syncing=false,_syncTimer=null,_syncPending=false,_syncRetryDelay=0;
+var _syncing=false,_syncTimer=null,_syncPending=false,_syncRetryDelay=0,_lastSyncError='',_saveBadgeTimer=null;
 var _tokenRefreshTimer=null;
 var _lastDriveModTime=null,_lastUploadTime=0,_pollTimer=null,_visListenerAdded=false,_lastSyncSuccess=0,_pendingManualSync=false;
 var _mCalcCache={};
@@ -228,6 +227,11 @@ function isP(y,m){var now=getBangkokNow();return y<now.getFullYear()||(y===now.g
 function fmt(n){var s=gs();var showDec=s.settings&&s.settings.showDecimal!==undefined?s.settings.showDecimal:true;if(showDec)return Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});return Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:0,maximumFractionDigits:2})}
 function fmtSh(n){var v=Math.abs(Number(n||0));if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e4)return(v/1000).toFixed(0)+'K';if(v>=1000)return(v/1000).toFixed(1)+'K';return String(Math.round(v))}
 function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function hexToRgba(hex, alpha) {
+    if (!hex || hex.charAt(0) !== '#') return 'rgba(128,128,128,' + alpha + ')';
+    var r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+}
 function dKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function sanitizeNumericValue(val,allowDecimal){
     var raw=String(val==null?'':val).replace(/,/g,'');
@@ -384,6 +388,9 @@ function isNewUser(){
     if(s.dLog&&Object.keys(s.dLog).some(function(k){return (s.dLog[k]||[]).length>0}))return false;
     if((s.recur||[]).length>0)return false;
     if(s.savings&&Array.isArray(s.savings.history)&&s.savings.history.length>0)return false;
+    if(s.shM&&Object.keys(s.shM).some(function(k){return Number(s.shM[k]||0)>0}))return false;
+    if((s.goals||[]).length>0)return false;
+    if((s.templates||[]).length>0)return false;
     return true
 }
 function activeCategoryIdsForMonth(d,y,m,spentMap,recurMap){
@@ -402,7 +409,7 @@ function scheduleTokenRefresh(){}
 function updateSyncIndicator(){
     var el=document.getElementById('syncPendingBadge');
     if(el) {
-        el.style.display=(!isGuest&&_syncPending)?'':'none';
+        el.style.display=(!isGuest&&supabaseUserId&&_syncPending)?'':'none';
     }
     
     var ledWrap = document.getElementById('syncLedWrap');
@@ -417,7 +424,7 @@ function updateSyncIndicator(){
             btn.title = 'ไม่มีการเชื่อมต่อเครือข่าย';
         } else if (_syncing || _syncPending) {
             btn.classList.add('sync-pending');
-            btn.title = 'กำลังอัปเดตข้อมูลไปยังระบบคลาวด์...';
+            btn.title = _lastSyncError ? ('ยังบันทึกไม่สำเร็จ: ' + _lastSyncError) : 'กำลังอัปเดตข้อมูลไปยังระบบคลาวด์...';
         } else {
             btn.classList.add('sync-online');
             btn.title = 'เชื่อมต่อและซิงค์ข้อมูลกับคลาวด์เรียบร้อย';
@@ -452,7 +459,7 @@ function initSupabaseAuth() {
             });
         } else {
             supabaseUserId = null;
-            isGuest = false;
+            isGuest = true;
             userInfo = { name: '', email: '', picture: '' };
             
             // Stay locked on welcome screen, hide app
@@ -901,11 +908,16 @@ function smartMergeStores(local, remote) {
     });
     
     if (!s.shM) s.shM = {};
-    if (r.shM) {
-        Object.keys(r.shM).forEach(function(k) {
-            s.shM[k] = remoteTime > localTime ? (r.shM[k] || s.shM[k] || 0) : (s.shM[k] || r.shM[k] || 0);
-        });
-    }
+    var shKeys = Array.from(new Set(Object.keys(s.shM).concat(Object.keys(r.shM || {}))));
+    shKeys.forEach(function(k) {
+        var localVal = s.shM[k];
+        var remoteVal = (r.shM && r.shM[k] !== undefined) ? r.shM[k] : undefined;
+        if (remoteTime > localTime) {
+            s.shM[k] = remoteVal !== undefined ? Number(remoteVal || 0) : Number(localVal || 0);
+        } else {
+            s.shM[k] = localVal !== undefined ? Number(localVal || 0) : Number(remoteVal || 0);
+        }
+    });
     
     var recurMap = {};
     (r.recur || []).forEach(function(item) { recurMap[item.id] = item; });
@@ -996,6 +1008,16 @@ async function checkAndHandleMigration(userId) {
     if (s.dLog && Object.keys(s.dLog).length > 0) guestHasData = true;
     if (s.customCats && s.customCats.length > 0) guestHasData = true;
     if (s.savings && s.savings.history && s.savings.history.length > 0) guestHasData = true;
+    if (s.recur && s.recur.length > 0) guestHasData = true;
+    if (s.goals && s.goals.length > 0) guestHasData = true;
+    if (s.templates && s.templates.length > 0) guestHasData = true;
+    if (s.shM && Object.keys(s.shM).some(function(k){return Number(s.shM[k]||0)>0})) guestHasData = true;
+    if (s.mo && Object.keys(s.mo).some(function(k){
+        var d = s.mo[k] || {};
+        if (Number(d.sal || 0) > 0) return true;
+        if ((d.oI || []).length > 0) return true;
+        return getBudgetKeys(d).some(function(catId){return Number(d[catId]||0)>0});
+    })) guestHasData = true;
     
     if (guestHasData && count === 0) {
         console.log("Migrating local guest data to Supabase...");
@@ -1018,6 +1040,55 @@ async function checkAndHandleMigration(userId) {
     s.meta.migratedToSupabase = true;
     persistStore(s, false);
 }
+function thaiSyncError(err){
+    // แปลง error จาก Supabase / network เป็นข้อความภาษาไทยที่ผู้ใช้เข้าใจ
+    var msg = (err && (err.message || err.error_description || err.error)) ? String(err.message || err.error_description || err.error) : String(err || '');
+    var low = msg.toLowerCase();
+    if(!window.navigator.onLine || low.indexOf('failed to fetch')>=0 || low.indexOf('network')>=0 || low.indexOf('networkerror')>=0)
+        return 'ไม่มีการเชื่อมต่ออินเทอร์เน็ต';
+    if(low.indexOf('timeout')>=0 || low.indexOf('timed out')>=0)
+        return 'เชื่อมต่อเซิร์ฟเวอร์นานเกินไป (timeout)';
+    if(low.indexOf('jwt')>=0 || low.indexOf('token')>=0 || low.indexOf('401')>=0 || low.indexOf('expired')>=0 || low.indexOf('unauthorized')>=0)
+        return 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่';
+    if(low.indexOf('row-level security')>=0 || low.indexOf('rls')>=0 || low.indexOf('policy')>=0 || low.indexOf('403')>=0 || low.indexOf('permission')>=0 || low.indexOf('forbidden')>=0)
+        return 'ไม่มีสิทธิ์บันทึกข้อมูล (สิทธิ์การเข้าถึง)';
+    if(low.indexOf('duplicate')>=0 || low.indexOf('unique')>=0 || low.indexOf('conflict')>=0 || low.indexOf('409')>=0)
+        return 'ข้อมูลซ้ำซ้อนกับที่มีอยู่';
+    if(low.indexOf('violates')>=0 || low.indexOf('constraint')>=0 || low.indexOf('invalid')>=0 || low.indexOf('400')>=0)
+        return 'รูปแบบข้อมูลไม่ถูกต้อง';
+    if(low.indexOf('429')>=0 || low.indexOf('rate')>=0 || low.indexOf('too many')>=0)
+        return 'ส่งคำขอบ่อยเกินไป กรุณารอสักครู่';
+    if(/50[0-9]/.test(low) || low.indexOf('server')>=0 || low.indexOf('unavailable')>=0)
+        return 'เซิร์ฟเวอร์ขัดข้องชั่วคราว กรุณาลองใหม่';
+    return 'บันทึกขึ้นคลาวด์ไม่สำเร็จ' + (msg ? ' (' + msg.slice(0,60) + ')' : '');
+}
+function showSaveBadge(state, detail){
+    // state: 'saving' | 'ok' | 'error'
+    var el=document.getElementById('saveBadge');
+    if(!el)return;
+    if(isGuest || !supabaseUserId){el.classList.remove('show');return}
+    var ic, txt, cls;
+    if(state==='saving'){
+        cls='saving';
+        ic='<svg class="sb-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
+        txt='กำลังบันทึกขึ้นคลาวด์...';
+    }else if(state==='ok'){
+        cls='ok';
+        ic='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+        txt='บันทึกขึ้นคลาวด์แล้ว';
+    }else{
+        cls='error';
+        ic='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12" y2="16.5"/></svg>';
+        txt=detail||'บันทึกไม่สำเร็จ';
+    }
+    el.className='save-badge show '+cls;
+    el.innerHTML='<span class="sb-ic">'+ic+'</span><span class="sb-txt">'+esc(txt)+'</span>';
+    clearTimeout(_saveBadgeTimer);
+    if(state!=='saving'){
+        // สำเร็จซ่อนเร็ว, ผิดพลาดให้ค้างนานกว่าเพื่ออ่านเหตุผล
+        _saveBadgeTimer=setTimeout(function(){el.classList.remove('show')}, state==='ok'?2500:7000);
+    }
+}
 function queueSync(immediate){
     if(!supabaseUserId) return;
     if(_syncing){_syncPending=true;return}
@@ -1035,6 +1106,7 @@ function supabaseSync(){
     data.lastSync = new Date().toISOString();
     persistStore(data, false);
     
+    showSaveBadge('saving');
     updateSyncIndicator();
     
     return syncLocalToSupabase(supabaseUserId).then(function(){
@@ -1042,10 +1114,14 @@ function supabaseSync(){
         _lastSyncSuccess=Date.now();
         _syncPending=false;
         _syncRetryDelay=0;
+        _lastSyncError='';
+        showSaveBadge('ok');
         updateSyncIndicator();
     }).catch(function(err){
         console.error("Supabase sync failed:", err);
         _syncPending=true;
+        _lastSyncError=thaiSyncError(err);
+        showSaveBadge('error', _lastSyncError);
         updateSyncIndicator();
     }).then(function(){
         _syncing=false;
@@ -1133,6 +1209,8 @@ function manualSync(){
             setTimeout(function(){btn.innerHTML='⇕ ซิงค์กับ Supabase';btn.classList.remove('sync-ok');btn.disabled=false},2500);
         }).catch(function(err){
             console.error("Manual sync failed:", err);
+            _lastSyncError=thaiSyncError(err);
+            showSaveBadge('error', _lastSyncError);
             btn.disabled=false;
             btn.innerHTML='✕ ไม่สามารถเชื่อมต่อได้';
             btn.classList.add('sync-err');
@@ -1199,10 +1277,28 @@ function pickTheme(id,lk){applyTheme(id);syncNow(gs());renderThemeDD();render();
 function showPrem(){}
 function closePrem(){}
 function navClick(v){setV(v)}
+
+/* Slide the liquid-glass indicator to the active nav item (stays inside the pill) */
+function positionNavPop(){
+    var pop=document.getElementById('navPop');
+    if(!pop)return;
+    var on=document.querySelector('.bnav-in .ni.on');
+    if(!on){pop.style.opacity='0';return}
+    var wrap=on.closest('.bnav-in');
+    requestAnimationFrame(function(){
+        var wr=wrap.getBoundingClientRect(),r=on.getBoundingClientRect();
+        if(!r.width){pop.style.opacity='0';return}
+        var center=(r.left-wr.left)+r.width/2;
+        pop.style.transform='translateX('+(center-24)+'px)';
+        pop.style.opacity='1';
+    });
+}
+window.addEventListener('resize',positionNavPop);
 function updateUserBtn(){var b=document.getElementById('userBtn');var s=gs();var pic=getSafeImageSrc(s.customPicture||((!isGuest&&userInfo.picture)?userInfo.picture:null));if(!b)return;if(!isGuest&&pic)b.innerHTML='<img src="'+esc(pic)+'" alt="">';else b.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>'}
 
 /* ===== NAV ===== */
 function setV(v){vw=v;document.getElementById('n0').classList.toggle('on',v==='d');document.getElementById('n1').classList.toggle('on',v==='m');document.getElementById('n2').classList.toggle('on',v==='y');document.getElementById('n3').classList.toggle('on',v==='sim');
+positionNavPop();
 document.getElementById('yD').textContent=cY;
 var showYbar=v==='y'||v==='sim';
 document.querySelector('.ybar').classList.toggle('hide',!showYbar);
@@ -1420,9 +1516,32 @@ exps.forEach(function(e){
 var v=Number(d[e.k]||0);
 var isShopee=e.k==='shopee';
 var rowClick=(!editExp&&!isShopee)?' onclick="openCatDetail(\''+e.k+'\')" style="cursor:pointer"':'';
-h+='<div class="row"'+rowClick+'>'+catBadge(e.k)+'<div class="rn"><div class="rn-t" style="display:flex;align-items:center;gap:6px">'+esc(e.n)+(e.hasCal?'<button class="mini-btn" style="width:24px;height:24px" onclick="event.stopPropagation();openShopee()">'+IC.cal+'</button>':'')+'</div></div>';
+var spent=Number((c.spentMap||{})[e.k]||0)+((c.carryIn&&c.carryIn.cat&&c.carryIn.cat[e.k])?Number(c.carryIn.cat[e.k]||0):0);
+var budget=v;
+var pct=budget>0?Math.min((spent/budget)*100,100):0;
+var catColor=e.color||defaultCatColor(e.k);
+
+h+='<div class="exp-card" style="--cat-color:'+catColor+'; --cat-color-alpha:'+hexToRgba(catColor,0.08)+'; --cat-color-border:'+hexToRgba(catColor,0.2)+';">';
+h+='<div class="exp-card-main"'+rowClick+'>';
+h+='<div class="exp-badge-glow" style="--glow-color:'+hexToRgba(catColor,0.4)+';">';
+h+=catBadge(e.k);
+h+='</div>';
+h+='<div class="exp-info">';
+h+='<div class="exp-name-row"><span class="exp-name">'+esc(e.n)+'</span>'+(e.hasCal?'<button class="mini-btn sh-cal-btn" onclick="event.stopPropagation();openShopee()">'+IC.cal+'</button>':'')+'</div>';
+if(budget>0){
+    h+='<div class="exp-meta-row" style="display:flex;justify-content:space-between;align-items:center"><span class="exp-spent-label">ใช้ไปแล้ว '+fmt(spent)+' จาก '+fmt(budget)+'</span><span class="exp-pct-label'+(spent>budget?' over':'')+'">'+(spent/budget*100).toFixed(0)+'%</span></div>';
+}else{
+    h+='<div class="exp-meta-row"><span class="exp-spent-label">ใช้ไปแล้ว '+fmt(spent)+'</span></div>';
+}
+h+='</div>';
+h+='<div class="exp-val-area">';
 if(editExp&&!isShopee)h+='<input class="edit-val" type="number" id="ed_'+e.k+'" value="'+v+'" onchange="saveField(&#39;'+e.k+'&#39;,&#39;ed_'+e.k+'&#39;)" step="0.01" onclick="event.stopPropagation()">';
 else h+='<div class="rv neg">'+fmt(v)+'</div>';
+h+='</div>';
+h+='</div>';
+if(budget>0){
+    h+='<div class="exp-prog-wrap"><div class="exp-prog-bar"><div class="exp-prog-fill'+(spent>budget?' over':'')+'" style="width:'+pct+'%; --bar-color:'+catColor+'"></div></div></div>';
+}
 h+='</div>';
 });
 
@@ -2479,7 +2598,7 @@ function logout(){
     localStorage.removeItem('okane_cat_hints');
     clearCalcCache();
     supabaseUserId = null;
-    isGuest = false;
+    isGuest = true;
     if (supabase) {
         supabase.auth.signOut().then(function() {
             location.reload();
@@ -2621,7 +2740,7 @@ var tipTimer;function showTip(e){var t=e.currentTarget.dataset.tip;if(!t)return;
 /* ===== CHARTS ===== */
 function cCl(){
     var theme=document.documentElement.getAttribute('data-theme')||'light';
-    var dk=theme==='dark'||theme==='midnight';
+    var dk=theme==='dark';
     return{dk:dk,t:dk?'rgba(255,255,255,.75)':'rgba(0,0,0,.65)',g:dk?'rgba(255,255,255,.07)':'rgba(0,0,0,.07)'}
 }
 function drawMC(d,y,m){
