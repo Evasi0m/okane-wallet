@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "okane",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "7823", "."],
+      "port": 7823
+    }
+  ]
+}
