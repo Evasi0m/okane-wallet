@@ -2242,10 +2242,7 @@ body.hide-amt .hero-v{transition:filter .4s var(--ease-smooth)}
 .btn-gh:hover{box-shadow:0 1px 0 var(--hl) inset,var(--s2) !important;border-color:var(--ac) !important;transform:translateY(-1px)}
 .btn-gh:active{transform:scale(.97)}
 
-/* ---------- FAB — conic gradient ring ---------- */
-.fab-c{position:relative;background:linear-gradient(145deg,var(--ac) 0%,var(--ac2) 100%) !important;box-shadow:0 1px 0 rgba(255,255,255,.45) inset,0 -2px 0 rgba(0,0,0,.16) inset,0 8px 24px var(--acBg2),0 2px 8px var(--acBg),var(--navGlow) !important;border:1.5px solid rgba(255,255,255,.45) !important}
-.fab-c::after{content:'';position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(from 0deg,var(--ac),var(--heroA),var(--ac2),var(--ac));z-index:-1;opacity:.6;filter:blur(6px);animation:fabRing 6s linear infinite}
-@keyframes fabRing{to{transform:rotate(360deg)}}
+
 
 /* ---------- Inputs — premium focus state ---------- */
 .inp,.qa-note,.si,input[type=text],input[type=number],input[type=password],textarea{transition:all .25s var(--ease-smooth) !important;box-shadow:inset 0 1px 2px rgba(0,0,0,.03) !important}
@@ -2261,7 +2258,7 @@ body.hide-amt .hero-v{transition:filter .4s var(--ease-smooth)}
 .mhd h2,.mhd h3{letter-spacing:-.01em;font-weight:700}
 
 /* premium drag handle on bottom sheets */
-.mbar{background:var(--tx3) !important;opacity:.4;height:5px !important;border-radius:3px !important;width:42px !important;transition:opacity .2s,width .2s var(--ease-spring)}
+.mbar{background:var(--tx3) !important;opacity:.4;height:5px !important;border-radius:3px !important;width:42px !important;transition:opacity .2s,width .2s var(--ease-spring);align-self:center;margin:12px 0 0 0}
 .mbar:hover{opacity:.7;width:56px !important}
 
 /* ---------- Transaction rows — hover + ripple ---------- */
