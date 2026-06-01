@@ -2671,3 +2671,258 @@ button:focus-visible,.btn:focus-visible,.qa-cat:focus-visible,.theme-item:focus-
   background: var(--cb);
   border-radius: 4px;
 }
+
+/* ===== INSTALLMENT SIMULATOR TIMELINE & CAPSULES ===== */
+.sim-timeline-wrap {
+  margin-top: 4px;
+  margin-bottom: 16px;
+  padding: 0 2px;
+}
+
+.sim-timeline-title {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--tx2);
+  margin-bottom: 8px;
+  letter-spacing: 0.2px;
+}
+
+.sim-timeline {
+  display: flex;
+  gap: 10px;
+  padding: 4px 2px 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sim-timeline::-webkit-scrollbar {
+  display: none;
+}
+
+.sim-month-capsule {
+  flex-shrink: 0;
+  width: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 13px 8px 12px;
+  border-radius: 20px;
+  background: var(--gl);
+  backdrop-filter: blur(30px) saturate(1.8);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  border: 1.5px solid var(--glb);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -8px 16px rgba(0,0,0,0.02) !important;
+  scroll-snap-align: start;
+  transition: transform 0.22s var(--ease-spring), border-color 0.22s ease, background-color 0.22s ease;
+}
+
+[data-theme="dark"] .sim-month-capsule {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+
+.sim-month-capsule:hover {
+  transform: translateY(-2.5px);
+}
+
+.sim-month-capsule.status-deficit {
+  border-color: rgba(239, 68, 68, 0.35) !important;
+  background: rgba(239, 68, 68, 0.06) !important;
+}
+
+.sim-month-capsule.status-ok {
+  border-color: rgba(34, 197, 94, 0.25) !important;
+  background: rgba(34, 197, 94, 0.04) !important;
+}
+
+.sim-cap-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.sim-cap-month {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--tx);
+}
+
+.sim-cap-year {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--tx3);
+  letter-spacing: 0.04em;
+}
+
+.sim-health-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin: 1px 0;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.sim-health-dot.dot-ok {
+  background: var(--gn);
+  box-shadow: 0 0 6px var(--gn);
+}
+
+.sim-health-dot.dot-deficit {
+  background: var(--rd);
+  box-shadow: 0 0 8px var(--rd);
+  animation: pulseWarning 1.4s infinite alternate;
+}
+
+.sim-cap-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.2px;
+}
+
+.sim-month-capsule.status-deficit .sim-cap-val {
+  color: var(--rd);
+}
+
+.sim-month-capsule.status-ok .sim-cap-val {
+  color: var(--gn);
+}
+
+.sim-cap-sub {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--tx3);
+  white-space: nowrap;
+}
+
+/* ════════════════════════════════════════════
+   SIM PAGE — Redesign (hero + framed panels)
+   ════════════════════════════════════════════ */
+
+/* ── Hero card (live total) ── */
+.sim-hero{
+  position:relative;overflow:hidden;isolation:isolate;
+  border-radius:24px;padding:26px 20px 20px;margin:10px 0 16px;text-align:center;
+  color:var(--heroPosFg);
+  background:linear-gradient(158deg,rgb(var(--heroGlass1) / var(--heroOp1,.52)) 0%,rgb(var(--heroGlass2) / var(--heroOp2,.68)) 100%);
+  backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5);
+  border:1px solid rgba(255,255,255,.38);
+  box-shadow:0 1px 0 rgba(255,255,255,.48) inset,0 -1px 0 rgba(0,0,0,.08) inset,0 16px 48px rgb(var(--heroDrop) / .14),0 4px 14px rgb(var(--heroDrop) / .07);
+  animation:fadeUp .4s ease both;
+}
+.sim-hero::after{content:'';position:absolute;inset:1px;border-radius:23px;border:1px solid rgba(255,255,255,.14);pointer-events:none;z-index:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.24)}
+.sim-hero-reset{
+  position:absolute;top:14px;right:14px;z-index:3;
+  width:32px;height:32px;border-radius:50%;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--heroPosFg);background:rgba(255,255,255,.16);
+  border:1px solid rgba(255,255,255,.3);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:transform .18s var(--ease-spring),background-color .2s;
+}
+.sim-hero-reset:hover{background:rgba(255,255,255,.28)}
+.sim-hero-reset:active{transform:scale(.88) rotate(-40deg)}
+.sim-hero-lb{position:relative;z-index:2;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--heroPosDim);margin-bottom:8px}
+.sim-hero-v{position:relative;z-index:2;font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.025em;line-height:1.05;text-shadow:var(--heroPosVSh);transition:opacity .25s}
+.sim-hero-name{position:relative;z-index:2;font-size:12.5px;font-weight:600;color:var(--heroPosDim);margin-top:6px;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sim-hero-stats{position:relative;z-index:2;display:flex;gap:8px;margin-top:18px}
+.sim-hstat{
+  flex:1 1 0;min-width:0;padding:9px 6px 10px;border-radius:14px;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+  -webkit-backdrop-filter:blur(10px) saturate(1.4);backdrop-filter:blur(10px) saturate(1.4);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.34),0 4px 14px rgba(0,0,0,.05);
+}
+.sim-hstat small{display:block;font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--heroPosDim);margin-bottom:5px}
+.sim-hstat span{display:block;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--heroPosFg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── Framed panels ── */
+.sim-panel{
+  position:relative;
+  background:var(--gl);border:1px solid var(--glb);border-radius:22px;
+  -webkit-backdrop-filter:blur(36px) saturate(1.8);backdrop-filter:blur(36px) saturate(1.8);
+  box-shadow:0 8px 30px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.5),inset 0 0 0 1px rgba(255,255,255,.05),inset 0 -14px 28px rgba(0,0,0,.02);
+  margin-bottom:14px;overflow:hidden;animation:fadeUp .4s ease both;
+}
+/* matte frost layer — diffuse, no glossy streak */
+.sim-panel::before{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;z-index:0;background:radial-gradient(120% 80% at 50% -10%,rgba(255,255,255,.16) 0%,transparent 55%)}
+.sim-panel > *{position:relative;z-index:1}
+[data-theme="dark"] .sim-panel{box-shadow:0 8px 30px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 1px rgba(255,255,255,.03),inset 0 -14px 28px rgba(0,0,0,.12)}
+[data-theme="dark"] .sim-panel::before{background:radial-gradient(120% 80% at 50% -10%,rgba(255,255,255,.06) 0%,transparent 55%)}
+.sim-panel-hd{display:flex;align-items:center;gap:9px;padding:13px 15px;font-size:13.5px;font-weight:800;color:var(--tx);border-bottom:1px solid var(--cb)}
+.sim-panel-ic{width:28px;height:28px;border-radius:9px;background:var(--acBg);color:var(--ac);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sim-panel-count{margin-left:auto;font-size:11px;font-weight:800;color:var(--ac);background:var(--acBg);padding:2px 10px;border-radius:20px}
+
+/* timeline inside panel */
+.sim-timeline-box{padding:12px 7px 4px}
+.sim-panel .sim-form{padding:14px}
+.sim-panel .sim-group{margin-bottom:13px}
+.sim-panel .sim-group:last-child{margin-bottom:0}
+.sim-panel .sim-2col .sim-group{margin-bottom:0}
+
+/* clearer framed input fields inside frosted panel */
+.sim-panel .sim-inp{
+  border-width:1.6px !important;border-color:rgba(0,0,0,.13) !important;
+  background:var(--card) !important;
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.045),0 1px 0 rgba(255,255,255,.5) !important;
+}
+[data-theme="dark"] .sim-panel .sim-inp{
+  border-color:rgba(255,255,255,.2) !important;background:rgba(255,255,255,.06) !important;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.28) !important;
+}
+.sim-panel .sim-inp:focus{
+  border-color:var(--ac) !important;
+  box-shadow:0 0 0 3px var(--acBg),inset 0 1px 3px rgba(0,0,0,.045) !important;
+}
+[data-theme="dark"] .sim-panel .sim-inp:focus{box-shadow:0 0 0 3px var(--acBg),inset 0 1px 3px rgba(0,0,0,.28) !important}
+
+/* ── Action card (live, when valid) ── */
+.sim-action-card{
+  border-radius:18px;padding:13px;margin-bottom:14px;
+  background:var(--card2);border:1px solid var(--cb);
+  box-shadow:var(--s2);animation:fadeUp .35s ease both;
+}
+[data-theme="dark"] .sim-action-card{background:var(--card2)}
+.sim-action-top{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.sim-action-info{flex:1;min-width:0}
+.sim-action-name{font-size:14px;font-weight:800;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sim-action-sub{font-size:11px;font-weight:600;color:var(--tx3);margin-top:2px;font-variant-numeric:tabular-nums}
+.sim-table-btn{
+  flex-shrink:0;display:inline-flex;align-items:center;gap:5px;
+  padding:7px 12px;border-radius:11px;cursor:pointer;
+  font-family:inherit;font-size:11.5px;font-weight:700;
+  color:var(--ac);background:var(--acBg);border:1px solid transparent;
+  transition:all .18s;
+}
+.sim-table-btn:hover{border-color:var(--ac)}
+.sim-table-btn:active{transform:scale(.94)}
+.sim-save-cta{gap:7px;padding:13px;border-radius:13px;font-size:14px;font-weight:800;box-shadow:0 4px 16px var(--acBg2),0 1px 0 rgba(255,255,255,.3) inset}
+
+/* ── Saved plans ── */
+.sim-saved-list{padding:10px}
+.sim-saved-card{
+  display:flex;align-items:center;gap:11px;padding:11px;border-radius:14px;
+  background:var(--card2);border:1px solid var(--cb);margin-bottom:8px;
+}
+.sim-saved-card:last-child{margin-bottom:0}
+.sim-saved-ic{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--acBg);color:var(--ac)}
+.sim-saved-info{flex:1;min-width:0}
+.sim-saved-name{font-size:13.5px;font-weight:800;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sim-saved-meta{font-size:10.5px;font-weight:600;color:var(--tx3);margin-top:2px;font-variant-numeric:tabular-nums}
+.sim-saved-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.sim-apply-btn{padding:6px 13px;font-size:12px;font-weight:700;border-radius:10px;margin:0;height:auto}
+.sim-del-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--cb);background:transparent;color:var(--tx3);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s}
+.sim-del-btn:hover{background:var(--rdBg);color:var(--rd);border-color:var(--rd)}
+.sim-del-btn:active{transform:scale(.88)}
+
+@media (prefers-reduced-motion:reduce){
+  .sim-hero,.sim-panel,.sim-action-card{animation:none !important}
+}
+
+.sim-summary-container {
+  animation: fadeUp 0.35s ease both;
+}

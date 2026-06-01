@@ -947,6 +947,20 @@ function smartMergeStores(local, remote) {
     });
     s.templates = Object.values(tplMap);
     
+    // Merge simDraft (newer wins, fallbacks to non-undefined)
+    s.simDraft = remoteTime > localTime ? (r.simDraft !== undefined ? r.simDraft : s.simDraft) : (s.simDraft !== undefined ? s.simDraft : r.simDraft);
+    
+    // Merge saved simulations list (sims) using unique IDs and tombstones
+    var simMap = {};
+    (r.sims || []).forEach(function(sm) { simMap[sm.id] = sm; });
+    (s.sims || []).forEach(function(sm) {
+        if (!sm.id) sm.id = genId('sim');
+        if (!r._tombstones || !r._tombstones.sims || !r._tombstones.sims[sm.id]) {
+            simMap[sm.id] = sm;
+        }
+    });
+    s.sims = Object.values(simMap);
+    
     s.customIcons = Object.assign({}, r.customIcons, s.customIcons);
     
     recalcSavingsBalance(s);
@@ -1884,24 +1898,6 @@ function setSimMonthsUI(months){
         cus.value='';
     }
 }
-function onSimMonthsSelChange(v){
-    var cus=document.getElementById('simMonthsCustom');
-    if(cus)cus.style.display=(v==='custom')?'':'none';
-    simDraftUpdate()
-}
-function simDraftUpdate(){
-    var s=gs();
-    var draft=normalizeSimDraft(s.simDraft);
-    var name=((document.getElementById('simName')||{}).value||'').trim();
-    var per=Number((document.getElementById('simPer')||{}).value)||0;
-    var mos=getSimMonthsFromUI();
-    var st=(document.getElementById('simStartSel')||{}).value||'';
-    var now3=getBangkokNow(),sy=now3.getFullYear(),sm=now3.getMonth();
-    if(st&&st.indexOf('-')>0){var sp=st.split('-');sy=Number(sp[0])||now3.getFullYear();sm=Number(sp[1])||now3.getMonth()}
-    draft.input={name:name,per:per,months:mos,startM:sm,startY:sy};
-    s.simDraft=draft;
-    ss(s)
-}
 function openSimOverlay(){
     simOverlayOpen=false;
     render();
@@ -1923,13 +1919,177 @@ function simResultTableH(res){
     var now4=getBangkokNow();
     var sM=Number(res.startM!==undefined?res.startM:now4.getMonth());
     var sY=Number(res.startY!==undefined?res.startY:now4.getFullYear());
+    
     var h='<div class="sim-plan-list">';
+    var currentDeficitCarry = 0;
+    
     for(var i=0;i<mos;i++){
-        var mI=(sM+i)%12,yr=sY+Math.floor((sM+i)/12),cc=calc(yr,mI),aR=cc.r-per;
-        h+='<article class="sim-plan-card"><div class="sim-plan-head"><span class="sim-plan-month">'+TM[mI]+' '+yr+'</span><span class="sim-plan-after '+(aR>=0?'sim-pos':'sim-neg')+'">'+(aR>=0?'+':'-')+fmt(Math.abs(aR))+'</span></div><div class="sim-plan-grid"><div class="sim-plan-metric"><span>ก่อนผ่อน</span><strong class="sim-mono">'+(cc.r>=0?'+':'-')+fmt(Math.abs(cc.r))+'</strong></div><div class="sim-plan-metric"><span>ค่างวด</span><strong class="sim-mono sim-muted">-'+fmt(per)+'</strong></div><div class="sim-plan-metric"><span>หลังผ่อน</span><strong class="sim-mono '+(aR>=0?'sim-pos':'sim-neg')+'">'+(aR>=0?'+':'-')+fmt(Math.abs(aR))+'</strong></div></div></article>'
+        var mI=(sM+i)%12,yr=sY+Math.floor((sM+i)/12);
+        var cc=computeMonth(yr,mI);
+        
+        var baseR = cc.r;
+        var aR = baseR - per - currentDeficitCarry;
+        
+        var baseDeficit = Math.max(0, -baseR);
+        var newDeficit = Math.max(0, -aR);
+        currentDeficitCarry = Math.max(0, newDeficit - baseDeficit);
+        
+        h+='<article class="sim-plan-card"><div class="sim-plan-head"><span class="sim-plan-month">'+TM[mI]+' '+yr+'</span><span class="sim-plan-after '+(aR>=0?'sim-pos':'sim-neg')+'">'+(aR>=0?'+':'-')+fmt(Math.abs(aR))+'.-</span></div><div class="sim-plan-grid"><div class="sim-plan-metric"><span>ก่อนผ่อน</span><strong class="sim-mono">'+(cc.r>=0?'+':'-')+fmt(Math.abs(cc.r))+'.-</strong></div><div class="sim-plan-metric"><span>ค่างวด</span><strong class="sim-mono sim-muted">-'+fmt(per)+'.-</strong></div><div class="sim-plan-metric"><span>หลังผ่อน</span><strong class="sim-mono '+(aR>=0?'sim-pos':'sim-neg')+'">'+(aR>=0?'+':'-')+fmt(Math.abs(aR))+'.-</strong></div></div></article>';
     }
     h+='</div>';
-    return h
+    return h;
+}
+function onSimMonthsSelChange(v){
+    var cus=document.getElementById('simMonthsCustom');
+    if(cus)cus.style.display=(v==='custom')?'':'none';
+    simDraftUpdate()
+}
+function updateSimLivePreview() {
+    var nameEl = document.getElementById('simName');
+    var perEl = document.getElementById('simPer');
+    var monthsSel = document.getElementById('simMonthsSel');
+    var customMonthsEl = document.getElementById('simMonthsCustom');
+    var startSel = document.getElementById('simStartSel');
+    
+    if (!nameEl || !perEl || !monthsSel || !startSel) return;
+    
+    var nm = (nameEl.value || '').trim();
+    var per = Number(perEl.value) || 0;
+    var mos = 12;
+    if (monthsSel.value === 'custom') {
+        mos = Number(customMonthsEl ? customMonthsEl.value : 0) || 0;
+    } else {
+        mos = Number(monthsSel.value) || 0;
+    }
+    
+    var st = startSel.value || '';
+    var now3 = getBangkokNow(), sy = now3.getFullYear(), sm = now3.getMonth();
+    if (st && st.indexOf('-') > 0) {
+        var sp = st.split('-');
+        sy = Number(sp[0]) || now3.getFullYear();
+        sm = Number(sp[1]) || now3.getMonth();
+    }
+    
+    // ── live hero update ──
+    var total = per * mos;
+    var heroTotalEl = document.getElementById('simHeroTotal');
+    var heroNameEl = document.getElementById('simHeroName');
+    var heroPerEl = document.getElementById('simHeroPer');
+    var heroMonthsEl = document.getElementById('simHeroMonths');
+    var heroStartEl = document.getElementById('simHeroStart');
+    var heroEl = document.getElementById('simHero');
+    var valid = per > 0 && mos > 0;
+    if (heroTotalEl) heroTotalEl.textContent = fmt(valid ? total : 0);
+    if (heroNameEl) heroNameEl.textContent = nm || (valid ? 'ไม่ได้ตั้งชื่อ' : 'เริ่มกรอกข้อมูลด้านล่าง');
+    if (heroPerEl) heroPerEl.textContent = per > 0 ? fmt(per) : '—';
+    if (heroMonthsEl) heroMonthsEl.textContent = mos > 0 ? (mos + ' งวด') : '—';
+    if (heroStartEl) heroStartEl.textContent = valid ? (TM[sm] + ' ' + sy) : '—';
+    if (heroEl) heroEl.classList.toggle('is-active', valid);
+
+    var currentDeficitCarry = 0;
+    var timelineHtml = '';
+
+    for (var i = 0; i < 6; i++) {
+        var mI = (sm + i) % 12;
+        var yr = sy + Math.floor((sm + i) / 12);
+        
+        var cc = computeMonth(yr, mI);
+        var activeInstallment = (i < mos) ? per : 0;
+        
+        var baseR = cc.r;
+        var newR = baseR - activeInstallment - currentDeficitCarry;
+        
+        var baseDeficit = Math.max(0, -baseR);
+        var newDeficit = Math.max(0, -newR);
+        currentDeficitCarry = Math.max(0, newDeficit - baseDeficit);
+        
+        var isDeficit = newR < 0;
+        var statusClass = isDeficit ? 'status-deficit' : 'status-ok';
+        var dotClass = isDeficit ? 'dot-deficit' : 'dot-ok';
+        
+        timelineHtml += '<div class="sim-month-capsule ' + statusClass + '">';
+        timelineHtml += '  <div class="sim-cap-header">';
+        timelineHtml += '    <span class="sim-cap-month">' + TM[mI] + '</span>';
+        timelineHtml += '    <span class="sim-cap-year">' + String(yr) + '</span>';
+        timelineHtml += '  </div>';
+        timelineHtml += '  <div class="sim-health-dot ' + dotClass + '"></div>';
+        timelineHtml += '  <div class="sim-cap-val">' + fmt(newR) + '</div>';
+        timelineHtml += '  <div class="sim-cap-sub">' + (activeInstallment > 0 ? ('ผ่อน ' + fmt(activeInstallment)) : 'ไม่มีผ่อน') + '</div>';
+        timelineHtml += '</div>';
+    }
+    
+    var timelineContainer = document.querySelector('.sim-timeline');
+    if (timelineContainer) {
+        timelineContainer.innerHTML = timelineHtml;
+    }
+    
+    var summaryContainer = document.querySelector('.sim-summary-container');
+    if (summaryContainer) {
+        if (per > 0 && mos > 0) {
+            summaryContainer.style.display = '';
+            summaryContainer.innerHTML =
+                '<div class="sim-action-card">' +
+                '  <div class="sim-action-top"><div class="sim-action-info"><div class="sim-action-name">' + esc(nm || 'ไม่ได้ตั้งชื่อ') + '</div><div class="sim-action-sub">' + fmt(per) + '/เดือน · ' + mos + ' งวด · รวม ' + fmt(per * mos) + '</div></div><button class="sim-table-btn" onclick="openSimOverlay()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>ดูตาราง</button></div>' +
+                '  <button class="btn btn-ac btn-full sim-save-cta" onclick="saveSim()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>บันทึกแผนการผ่อนนี้</button>' +
+                '</div>';
+            
+            var overlayWrap = document.querySelector('.sim-table-wrap');
+            if (overlayWrap) {
+                overlayWrap.innerHTML = simResultTableH({ name: nm || '-', per: per, months: mos, startM: sm, startY: sy });
+            }
+            var overlaySub = document.querySelector('.sim-overlay-sub');
+            if (overlaySub) {
+                overlaySub.innerHTML = 'ยอดผ่อน ' + fmt(per) + ' x ' + mos + ' เดือน = รวม ' + fmt(per * mos);
+            }
+        } else {
+            summaryContainer.style.display = 'none';
+        }
+    }
+}
+var _simDraftTimer;
+function simDraftUpdate() {
+    updateSimLivePreview();
+    
+    clearTimeout(_simDraftTimer);
+    _simDraftTimer = setTimeout(function() {
+        var s = gs();
+        var draft = normalizeSimDraft(s.simDraft);
+        var nameEl = document.getElementById('simName');
+        var perEl = document.getElementById('simPer');
+        var monthsSel = document.getElementById('simMonthsSel');
+        var customMonthsEl = document.getElementById('simMonthsCustom');
+        var startSel = document.getElementById('simStartSel');
+        
+        if (!nameEl || !perEl || !monthsSel || !startSel) return;
+        
+        var name = (nameEl.value || '').trim();
+        var per = Number(perEl.value) || 0;
+        var mos = 12;
+        if (monthsSel.value === 'custom') {
+            mos = Number(customMonthsEl ? customMonthsEl.value : 0) || 0;
+        } else {
+            mos = Number(monthsSel.value) || 0;
+        }
+        
+        var st = startSel.value || '';
+        var now3 = getBangkokNow(), sy = now3.getFullYear(), sm = now3.getMonth();
+        if (st && st.indexOf('-') > 0) {
+            var sp = st.split('-');
+            sy = Number(sp[0]) || now3.getFullYear();
+            sm = Number(sp[1]) || now3.getMonth();
+        }
+        
+        draft.input = { name: name, per: per, months: mos, startM: sm, startY: sy };
+        if (per > 0 && mos > 0) {
+            draft.result = { name: name || '-', per: per, months: mos, startM: sm, startY: sy };
+        } else {
+            draft.result = null;
+        }
+        s.simDraft = draft;
+        
+        persistStore(s, true);
+        queueSync(false);
+    }, 800);
 }
 function rSim(el){
     var st=gs(),sims=st.sims||[],draft=normalizeSimDraft(st.simDraft);
@@ -1942,57 +2102,92 @@ function rSim(el){
     var customVal=(mos>48)?String(mos):'';
 
     var now5=getBangkokNow();
-    var startDefY=input.startY||now5.getFullYear();var startDefM=(typeof input.startM==='number')?input.startM:now5.getMonth();
-    var h='<div class="sec sim-sec" style="margin-top:10px">';
-    // Header
-    h+='<div class="sim-hdr"><div class="sim-hdr-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h2M10 15h4"/></svg></div><div><div class="sim-hdr-title">จำลองการผ่อนชำระ</div><div class="sim-hdr-sub">คำนวณผลกระทบต่องบรายเดือน</div></div><button class="mini-btn" onclick="clearSimDraft()" title="ล้างข้อมูล" style="margin-left:auto">'+IC.dl+'</button></div>';
-    h+='<div class="sc sim-form">';
-    // Group 1: เธชเธดเธเธเนเธฒ
+    var startDefY=input.startY||now5.getFullYear();
+    var startDefM=(typeof input.startM==='number')?input.startM:now5.getMonth();
+    
+    var h='';
+
+    // ───────── HERO CARD (live total) ─────────
+    h+='<div class="sim-hero" id="simHero">';
+    h+='<div class="hero-mesh"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>';
+    h+='<button class="sim-hero-reset" onclick="clearSimDraft()" title="ล้างข้อมูล" aria-label="ล้างข้อมูล"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 2v6h6"/><path d="M3.5 8a9 9 0 102.1-3.4L3 8"/></svg></button>';
+    h+='<div class="sim-hero-lb">ยอดผ่อนทั้งหมด</div>';
+    h+='<div class="sim-hero-v" id="simHeroTotal">0.00</div>';
+    h+='<div class="sim-hero-name" id="simHeroName">เริ่มกรอกข้อมูลด้านล่าง</div>';
+    h+='<div class="sim-hero-stats">';
+    h+='<div class="sim-hstat"><small>ค่างวด/เดือน</small><span id="simHeroPer">—</span></div>';
+    h+='<div class="sim-hstat"><small>จำนวนงวด</small><span id="simHeroMonths">—</span></div>';
+    h+='<div class="sim-hstat"><small>เริ่มผ่อน</small><span id="simHeroStart">—</span></div>';
+    h+='</div>';
+    h+='</div>';
+
+    // ───────── FORM CARD ─────────
+    h+='<div class="sim-panel">';
+    h+='<div class="sim-panel-hd"><span class="sim-panel-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h2M10 15h4"/></svg></span>ข้อมูลการผ่อน</div>';
+    h+='<div class="sim-form">';
+
+    // Product Name
     h+='<div class="sim-group"><div class="sim-group-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>สินค้า / เป้าหมาย</div>';
     h+='<input id="simName" class="sim-inp" placeholder="เช่น iPhone 16, PS5, รถยนต์..." value="'+nameVal+'" oninput="simDraftUpdate()"></div>';
-    // Group 2: เธขเธญเธ”เธเนเธญเธ
+
+    // Per Month
     h+='<div class="sim-group"><div class="sim-group-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>ยอดผ่อนต่อเดือน (บาท)</div>';
-    h+='<input type="number" id="simPer" class="sim-inp sim-mono" placeholder="0" min="0" value="'+perVal+'" oninput="simDraftUpdate()"></div>';
-    // Group 3: เธเธงเธ” + เน€เธฃเธดเนเธก (2 col)
+    h+='<input type="number" inputmode="decimal" id="simPer" class="sim-inp sim-mono" placeholder="0" min="0" value="'+perVal+'" oninput="simDraftUpdate()"></div>';
+
+    // 2-col: term + start
     h+='<div class="sim-2col">';
     h+='<div class="sim-group"><div class="sim-group-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>จำนวนงวด</div>';
-    h+='<select id="simMonthsSel" class="sim-inp" style="appearance:auto" onchange="onSimMonthsSelChange(this.value)">';
+    h+='<select id="simMonthsSel" class="sim-inp sim-select" onchange="onSimMonthsSelChange(this.value)">';
     for(var i=1;i<=48;i++){h+='<option value="'+i+'"'+(selVal===String(i)?' selected':'')+'>'+i+' เดือน</option>'}
     h+='<option value="custom"'+(selVal==='custom'?' selected':'')+'>มากกว่า 48 งวด</option>';
-    h+='</select><input type="number" id="simMonthsCustom" class="sim-inp sim-mono" placeholder="49+ เดือน" min="49" value="'+esc(customVal)+'" style="'+(selVal==='custom'?'':'display:none')+';margin-top:6px" oninput="simDraftUpdate()"></div>';
-    h+='<div class="sim-group"><div class="sim-group-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>เริ่มผ่อนจากเดือน</div>';
-    h+='<select id="simStartSel" class="sim-inp" style="appearance:auto" onchange="simDraftUpdate()">';
-    for(var k=0;k<24;k++){var mI=(now5.getMonth()+k)%12;var yI=now5.getFullYear()+Math.floor((now5.getMonth()+k)/12);var val=yI+'-'+String(mI).padStart(2,'0');var sel=(yI===startDefY&&mI===startDefM)?' selected':'';h+='<option value="'+val+'"'+sel+'>'+TM[mI]+' '+yI+'</option>'}
-    h+='</select></div>';
+    h+='</select>';
+    h+='<input type="number" inputmode="numeric" id="simMonthsCustom" class="sim-inp sim-mono" placeholder="49+ เดือน" min="49" value="'+customVal+'" style="'+(selVal==='custom'?'':'display:none')+';margin-top:8px" oninput="simDraftUpdate()">';
     h+='</div>';
-    // Calc button
-    h+='<button class="sim-calc-main" onclick="runSim()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-3"/><rect x="9" y="3" width="6" height="8" rx="1"/><path d="M9 12h6M9 16h4"/></svg>คำนวณผลกระทบรายเดือน</button>';
 
-    if(res&&Number(res.per||0)>0&&Number(res.months||0)>0){
-        h+='<div class="sim-result" style="margin-top:14px">';
-        h+='<div class="sim-res-title"><span>ผลการจำลอง: '+esc(res.name||'-')+'</span><button class="btn btn-gh" style="padding:6px 10px;font-size:11px" onclick="openSimOverlay()">ดูตาราง</button></div>';
-        h+='<div class="sim-res-sub">ยอดผ่อน '+fmt(res.per)+' ทั้งหมด '+Number(res.months||0)+' เดือน (รวม '+fmt(Number(res.per||0)*Number(res.months||0))+')</div>';
-        h+='<div class="sim-actions"><button class="btn btn-ac btn-full" onclick="saveSim()">บันทึกแผนการผ่อนนี้</button><button class="btn btn-gh btn-full" onclick="clearSimDraft()">ล้างข้อมูล</button></div>';
-        h+='</div>';
+    h+='<div class="sim-group"><div class="sim-group-label"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>เริ่มผ่อนจากเดือน</div>';
+    h+='<select id="simStartSel" class="sim-inp sim-select" onchange="simDraftUpdate()">';
+    for(var k=0;k<24;k++){
+        var mI=(now5.getMonth()+k)%12;
+        var yI=now5.getFullYear()+Math.floor((now5.getMonth()+k)/12);
+        var val=yI+'-'+String(mI).padStart(2,'0');
+        var sel=(yI===startDefY&&mI===startDefM)?' selected':'';
+        h+='<option value="'+val+'"'+sel+'>'+TM[mI]+' '+yI+'</option>';
     }
+    h+='</select></div>';
+    h+='</div>'; // end 2col
+    h+='</div></div>'; // end sim-form / sim-panel
 
-    h+='</div></div>';
+    // ───────── TIMELINE CARD ─────────
+    h+='<div class="sim-panel">';
+    h+='<div class="sim-panel-hd"><span class="sim-panel-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 4-5"/></svg></span>การคาดการณ์ 6 เดือนข้างหน้า</div>';
+    h+='<div class="sim-timeline-box"><div class="sim-timeline"></div></div>';
+    h+='</div>';
 
+    // ───────── ACTION (live summary) ─────────
+    h+='<div class="sim-summary-container" style="display:none"></div>';
+
+    // ───────── SAVED PLANS ─────────
     if(sims.length>0){
-        h+='<div class="sec-t" style="margin-top:14px">รายการที่บันทึกไว้</div>';
-        h+='<div class="sec"><div class="sc">';
+        h+='<div class="sim-panel">';
+        h+='<div class="sim-panel-hd"><span class="sim-panel-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg></span>แผนที่บันทึกไว้<span class="sim-panel-count">'+sims.length+'</span></div>';
+        h+='<div class="sim-saved-list">';
         sims.forEach(function(s, i){
-            h+='<div class="row"><div class="ri shopee">'+IC.shopee+'</div>';
-            h+='<div class="rn"><div class="rn-t">'+esc(s.name)+'</div><div class="rn-s">'+s.months+' งวด x '+fmt(s.per)+'</div></div>';
-            h+='<div style="display:flex;gap:6px"><button class="btn btn-ac" style="padding:6px 10px;font-size:11px" onclick="applySim('+i+')">ใช้จริง</button><button class="cd" onclick="delSim('+i+')">'+IC.dl+'</button></div></div>'
+            h+='<div class="sim-saved-card">';
+            h+='<div class="sim-saved-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h2"/></svg></div>';
+            h+='<div class="sim-saved-info"><div class="sim-saved-name">'+esc(s.name)+'</div><div class="sim-saved-meta">'+fmt(s.per)+'/เดือน · '+s.months+' งวด · เริ่ม '+TM[s.startM]+' '+s.startY+'</div></div>';
+            h+='<div class="sim-saved-actions"><button class="btn btn-ac sim-apply-btn" onclick="applySim('+i+')">ใช้จริง</button><button class="sim-del-btn" onclick="delSim('+i+')" aria-label="ลบ">'+IC.dl+'</button></div>';
+            h+='</div>';
         });
-        h+='</div></div>'
+        h+='</div></div>';
     }
 
     if(res&&Number(res.per||0)>0&&Number(res.months||0)>0){
-        h+='<div class="sim-overlay'+(simOverlayOpen?' open':'')+'" id="simOverlay" onclick="if(event.target===this)closeSimOverlay()"><div class="sim-overlay-box"><div class="sim-overlay-hd"><div class="sim-overlay-ttl">ตารางจำลองการผ่อน</div><button class="mini-btn" onclick="closeSimOverlay()" title="ปิด"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="sim-overlay-sub">ยอดผ่อน '+fmt(res.per)+' x '+Number(res.months||0)+' เดือน = รวม '+fmt(Number(res.per||0)*Number(res.months||0))+'</div><div class="sim-table-wrap">'+simResultTableH(res)+'</div></div></div>'
+        h+='<div class="sim-overlay'+(simOverlayOpen?' open':'')+'" id="simOverlay" onclick="if(event.target===this)closeSimOverlay()"><div class="sim-overlay-box"><div class="sim-overlay-hd"><div class="sim-overlay-ttl">ตารางจำลองการผ่อน</div><button class="mini-btn" onclick="closeSimOverlay()" title="ปิด"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="sim-overlay-sub">ยอดผ่อน '+fmt(res.per)+' x '+Number(res.months||0)+' เดือน = รวม '+fmt(Number(res.per||0)*Number(res.months||0))+'</div><div class="sim-table-wrap">'+simResultTableH(res)+'</div></div></div>';
     }
+    
+    h+='<div class="credit" style="margin-top:16px">Credit : Opus 4.6 & Jarasrawee</div>';
     el.innerHTML=h;
+    updateSimLivePreview();
 }
 
 function runSim(){
@@ -2019,14 +2214,44 @@ function saveSim(){
     if(!r)return;
     if(!s.sims)s.sims=[];
     var now7=getBangkokNow();
-    s.sims.push({name:r.name||'-',per:Number(r.per)||0,months:Number(r.months)||0,startM:Number(r.startM)||now7.getMonth(),startY:Number(r.startY)||now7.getFullYear()});
+    s.sims.push({
+        id: genId('sim'),
+        name: r.name||'-',
+        per: Number(r.per)||0,
+        months: Number(r.months)||0,
+        startM: Number(r.startM)||now7.getMonth(),
+        startY: Number(r.startY)||now7.getFullYear()
+    });
     delete s.simDraft;
     syncNow(s);
     simOverlayOpen=false;
     render()
 }
-function delSim(i){var s=gs();if(s.sims)s.sims.splice(i,1);syncNow(s);render()}
-function applySim(i){if(!confirm('\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19?'))return;var s=gs(),sm=s.sims[i];if(!sm)return;if(!s.shM)s.shM={};for(var j=0;j<sm.months;j++){var mI=(sm.startM+j)%12,yr=sm.startY+Math.floor((sm.startM+j)/12),k=mk(yr,mI);s.shM[k]=(Number(s.shM[k])||0)+sm.per;if(s.mo&&s.mo[k])delete s.mo[k].shopee}s.sims.splice(i,1);syncNow(s);render()}
+function delSim(i){
+    var s=gs();
+    if(s.sims){
+        var item = s.sims[i];
+        if(item && item.id) addTombstone(s, 'sims', item.id);
+        s.sims.splice(i,1);
+    }
+    syncNow(s);
+    render()
+}
+function applySim(i){
+    if(!confirm('\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19?'))return;
+    var s=gs(),sm=s.sims[i];
+    if(!sm)return;
+    if(!s.shM)s.shM={};
+    for(var j=0;j<sm.months;j++){
+        var mI=(sm.startM+j)%12,yr=sm.startY+Math.floor((sm.startM+j)/12),k=mk(yr,mI);
+        s.shM[k]=(Number(s.shM[k])||0)+sm.per;
+        if(s.mo&&s.mo[k])delete s.mo[k].shopee;
+    }
+    if(sm.id) addTombstone(s, 'sims', sm.id);
+    s.sims.splice(i,1);
+    syncNow(s);
+    render()
+}
 
 /* ===== SAVINGS MODAL ===== */
 var savTab='history';
