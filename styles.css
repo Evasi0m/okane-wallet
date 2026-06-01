@@ -61,7 +61,12 @@
 .hero.neg::before{content:'';position:absolute;inset:-30%;pointer-events:none;z-index:1;filter:blur(38px);opacity:.62;transform:rotate(-11deg) scale(1.02) translate(-1%,1%);animation:heroSheen 12s ease-in-out infinite;background:radial-gradient(ellipse 86% 56% at 72% 12%,rgba(255,245,245,.45) 0%,rgba(255,210,210,.18) 40%,transparent 70%),radial-gradient(ellipse 60% 82% at 16% 84%,rgba(255,170,170,.22) 0%,rgba(255,130,130,.06) 42%,transparent 66%)}
 @keyframes heroGrad{0%{background-position:0% 0%,0% 0%,0% 55%}50%{background-position:0% 0%,0% 0%,100% 45%}100%{background-position:0% 0%,0% 0%,0% 55%}}
 @keyframes heroSheen{0%,100%{opacity:.48;transform:rotate(-11deg) scale(1.02) translate(-2.5%,1%)}50%{opacity:.76;transform:rotate(-8deg) scale(1.1) translate(3.5%,-2.5%)}}
-.hero-mesh{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;background:radial-gradient(60% 80% at 12% 8%,rgb(var(--heroGlassBr) / .22) 0%,transparent 60%),radial-gradient(55% 75% at 88% 18%,rgb(var(--heroGlass1) / .30) 0%,transparent 62%),radial-gradient(70% 90% at 78% 92%,rgb(var(--heroGlass2) / .26) 0%,transparent 65%),radial-gradient(50% 70% at 20% 95%,rgb(var(--heroGlassBr) / .14) 0%,transparent 60%);background-size:160% 160%;filter:saturate(1.15);animation:auroraShift 26s ease-in-out infinite}
+.hero-mesh{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;background:radial-gradient(60% 80% at 12% 8%,rgb(var(--heroGlassBr) / .22) 0%,transparent 60%),radial-gradient(55% 75% at 88% 18%,rgb(var(--heroGlass1) / .30) 0%,transparent 62%),radial-gradient(70% 90% at 78% 92%,rgb(var(--heroGlass2) / .26) 0%,transparent 65%),radial-gradient(50% 70% at 20% 95%,rgb(var(--heroGlassBr) / .14) 0%,transparent 60%);background-size:160% 160%;filter:saturate(1.15);animation:auroraShift 40s ease-in-out infinite;opacity:.5}
+/* ===== Dreamblur — dreamy out-of-focus flowing color blobs ===== */
+.dreamblur{position:relative;isolation:isolate;overflow:hidden}
+.dreamblur::before{content:'';position:absolute;inset:-40%;z-index:-1;pointer-events:none;background:radial-gradient(38% 42% at 22% 30%,rgb(var(--heroGlass1) / .55) 0%,transparent 60%),radial-gradient(46% 50% at 82% 22%,rgb(var(--heroGlass2) / .50) 0%,transparent 62%),radial-gradient(50% 55% at 70% 88%,rgb(var(--heroGlass1) / .40) 0%,transparent 64%),radial-gradient(40% 46% at 14% 84%,rgb(var(--heroGlassBr) / .22) 0%,transparent 60%);filter:blur(42px) saturate(1.25);transform:translateZ(0);animation:dreamDrift 26s ease-in-out infinite alternate}
+@keyframes dreamDrift{0%{transform:translate(0,0) scale(1) rotate(0deg)}50%{transform:translate(4%,-3%) scale(1.12) rotate(4deg)}100%{transform:translate(-3%,4%) scale(1.06) rotate(-3deg)}}
+[data-theme="dark"] .dreamblur::before{filter:blur(46px) saturate(1.1);opacity:.9}
 .hero-mesh .orb,.hero-mesh::after{display:none !important}
 @keyframes auroraShift{0%,100%{background-position:0% 0%,100% 0%,100% 100%,0% 100%}50%{background-position:8% 6%,92% 10%,88% 94%,6% 96%}}
 .hero.neg .hero-mesh{background:radial-gradient(60% 80% at 14% 10%,rgba(255,255,255,.16) 0%,transparent 60%),radial-gradient(60% 80% at 86% 16%,rgba(255,200,200,.20) 0%,transparent 62%),radial-gradient(70% 90% at 80% 92%,rgba(255,140,140,.16) 0%,transparent 65%);background-size:160% 160%;animation:auroraShift 30s ease-in-out infinite}
@@ -1310,6 +1315,16 @@ select.sim-inp {
 .tone-sh{--tone:var(--sh);--toneBg:var(--shBg)}
 .day-nav{display:flex;align-items:center;justify-content:center;gap:14px;padding:8px 0 12px}.day-nav span{font-size:15px;font-weight:700;min-width:140px;text-align:center}.day-nav button{width:30px;height:30px;border-radius:50%;border:1px solid var(--glb);background:var(--gl);backdrop-filter:blur(10px) saturate(1.3);-webkit-backdrop-filter:blur(10px) saturate(1.3);color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.06),0 0 0 1px rgba(255,255,255,.16) inset}.day-nav button:hover{border-color:var(--ac);color:var(--ac)}
 .sav-h{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:12px;border-bottom:1px solid var(--cb)}.sav-h:last-child{border-bottom:none}.sav-h .sav-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}.sav-h .sav-dot.add{background:var(--gn)}.sav-h .sav-dot.wd{background:var(--rd)}
+/* ===== Savings modal — glass hero + sections (matches qa-* language) ===== */
+.sv-hero{display:flex;flex-direction:column;align-items:center;gap:4px;padding:24px 16px;margin:0 0 16px;border-radius:20px;background:rgb(var(--heroGlass1) / .14);border:1px solid rgba(255,255,255,.38);backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);box-shadow:var(--s2),0 1px 0 rgba(255,255,255,.45) inset}
+[data-theme="dark"] .sv-hero{background:rgb(var(--heroGlass1) / .12);border-color:rgba(255,255,255,.18);box-shadow:0 4px 16px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.1)}
+.sv-hero-lb{font-size:11px;font-weight:700;color:var(--tx2);letter-spacing:.04em}
+.sv-hero-v{font-size:34px;font-weight:900;font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:var(--gn);line-height:1.1;letter-spacing:-.02em}
+.sv-panel{padding:16px;border-radius:16px;margin-bottom:14px;background:rgba(var(--hdrBg, 255,255,255), 0.35);border:1px solid rgba(255,255,255,.38);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:var(--s1),0 1px 0 rgba(255,255,255,.45) inset}
+[data-theme="dark"] .sv-panel{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.18);box-shadow:0 4px 16px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.1)}
+.sv-panel-t{font-size:13px;font-weight:800;color:var(--tx);margin-bottom:10px}
+.sv-radio{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:8px;cursor:pointer}
+.sv-h-lb{font-size:12px;font-weight:800;color:var(--tx3);margin:4px 0 6px}
 .tip{position:fixed;z-index:300;background:var(--tx);color:var(--bg);padding:8px 12px;border-radius:8px;font-size:11px;font-weight:600;max-width:200px;pointer-events:none;opacity:0;transform:translateY(4px);transition:all .2s;box-shadow:var(--s2)}.tip.show{opacity:1;transform:translateY(0)}.reset-area{text-align:center;padding:16px 0 8px;border-top:1px solid var(--cb);margin-top:8px}.reset-btn {
     background: rgba(214, 62, 62, 0.08) !important;
     border: 1px solid rgba(214, 62, 62, 0.3) !important;
@@ -1362,14 +1377,21 @@ select.sim-inp {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: var(--bg2) !important;
-  border: 1px solid var(--cb) !important;
+  background: rgb(var(--heroGlass1) / .12) !important;
+  border: 1px solid rgba(255,255,255,.38) !important;
   border-radius: 20px !important;
   padding: 24px 16px !important;
   margin: 12px 0 16px !important;
-  box-shadow: var(--s1) !important;
+  backdrop-filter: blur(14px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.4) !important;
+  box-shadow: var(--s2),0 1px 0 rgba(255,255,255,.45) inset !important;
   position: relative;
   overflow: hidden;
+}
+[data-theme="dark"] .prof-hero {
+  background: rgb(var(--heroGlass1) / .12) !important;
+  border-color: rgba(255,255,255,.18) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.1) !important;
 }
 .prof-av-wrap{position:relative;width:88px;height:88px;border-radius:50%;cursor:pointer;margin-bottom:14px;flex-shrink:0}
 .prof-av-wrap:hover .prof-cam{opacity:1}
@@ -2253,6 +2275,10 @@ body.hide-amt .hero-v{transition:filter .4s var(--ease-smooth)}
 /* ---------- Modals — cinematic entrance + premium scrim ---------- */
 .mbg{background:radial-gradient(circle at 50% 30%,rgba(0,0,0,.28) 0%,rgba(0,0,0,.55) 100%) !important;backdrop-filter:blur(18px) saturate(1.2) !important;-webkit-backdrop-filter:blur(18px) saturate(1.2) !important;transition:opacity .35s var(--ease-smooth),backdrop-filter .35s var(--ease-smooth),visibility .35s !important}
 [data-theme="dark"] .mbg{background:radial-gradient(circle at 50% 30%,rgba(0,0,0,.55) 0%,rgba(0,0,0,.78) 100%) !important}
+/* ===== Fluted-glass overlay backdrop (shared, subtle) ===== */
+.mbg::before,.cal-popup::before,.sim-overlay::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,rgba(255,255,255,0) 2px,rgba(0,0,0,.035) 7px,rgba(255,255,255,0) 12px,rgba(255,255,255,.035) 13px,rgba(255,255,255,.035) 14px),radial-gradient(120% 80% at 50% 0%,rgb(var(--heroGlass1) / .10) 0%,rgb(var(--heroGlass2) / .05) 40%,transparent 72%);background-size:14px 100%,100% 100%;mix-blend-mode:soft-light;opacity:0;transition:opacity .35s var(--ease-smooth)}
+.mbg.open::before,.cal-popup.open::before,.sim-overlay.open::before{opacity:1}
+[data-theme="dark"] .mbg::before,[data-theme="dark"] .cal-popup::before,[data-theme="dark"] .sim-overlay::before{background:repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,rgba(255,255,255,0) 2px,rgba(0,0,0,.12) 7px,rgba(255,255,255,0) 12px,rgba(255,255,255,.03) 13px,rgba(255,255,255,.03) 14px),radial-gradient(120% 80% at 50% 0%,rgb(var(--heroGlass1) / .12) 0%,rgb(var(--heroGlass2) / .06) 42%,transparent 74%);background-size:14px 100%,100% 100%;mix-blend-mode:screen}
 .mbg.open .mbox,.mbg.show .mbox{animation:modalIn .45s var(--ease-spring) both}
 @keyframes modalIn{from{opacity:0;transform:translateY(40px) scale(.94);filter:blur(6px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 .mbox{box-shadow:0 -24px 80px rgba(0,0,0,.22),0 -2px 0 rgba(255,255,255,.4) inset !important}
@@ -2326,6 +2352,7 @@ button:focus-visible,.btn:focus-visible,.qa-cat:focus-visible,.theme-item:focus-
 @media (prefers-reduced-motion: reduce){
   .hero.pos::after,.fab-c::after,.main,.dl-item,.rn,.btn-ac::after{animation:none !important}
   .hero.pos .hero-mesh::after{animation:none !important}
+  .dreamblur::before{animation:none !important;transform:none !important}
 }
 
 
