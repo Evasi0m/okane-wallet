@@ -97,7 +97,7 @@ var NOW=getBangkokNow();
 var cY=NOW.getFullYear(),sM_=NOW.getMonth(),vw='m',ch=null,shY,tokenClient=null,accessToken=null,isGuest=false,userInfo={name:'',email:'',picture:''},driveFileId=null,sq='';
 var editInc=false,editExp=false,viewDate=new Date(NOW);
 var DF={salary:0,savGoal:0,showDecimal:true,hideAmount:false,lowRemaining:1000,warnPercent:90,weeklyOn:false};
-var _syncing=false,_syncTimer=null,_syncPending=false;
+var _syncing=false,_syncTimer=null,_syncPending=false,_syncRetryDelay=0;
 var _tokenRefreshTimer=null;
 var _lastDriveModTime=null,_lastUploadTime=0,_pollTimer=null,_visListenerAdded=false,_lastSyncSuccess=0,_pendingManualSync=false;
 var _mCalcCache={};
@@ -157,7 +157,7 @@ function persistStore(d,markUpdated){
     clearCalcCache();
     return d;
 }
-function ss(d){persistStore(d,true);queueSync(true)}
+function ss(d){return syncNow(d)}
 function syncNow(d){persistStore(d,true);queueSync(true)}
 function gSet(){var s=gs();return s.settings||Object.assign({},DF)}
 function ensureSettings(){var s=gs();if(!s.settings)s.settings=Object.assign({},DF);return s.settings}
@@ -581,7 +581,7 @@ async function syncLocalToSupabase(userId) {
     });
     
     var goalRows = (s.goals || []).map(function(item) {
-        return { user_id: userId, id: item.id, name: item.name, target_amount: Number(item.target || 0), current_amount: Number(item.current || 0) };
+        return { user_id: userId, id: item.id, name: item.name, target_amount: Number(item.target || 0), current_amount: Number(item.cur || 0) };
     });
     
     var tplRows = (s.templates || []).map(function(t) {
@@ -622,7 +622,7 @@ async function syncLocalToSupabase(userId) {
     if(shRows.length > 0)ok(await supabase.from('shopee_installments').upsert(shRows),'Upsert shopee_installments');
     
     s = gs();
-    s._tombstones = { customCats: {}, recur: {}, goals: {}, wallets: {} };
+    s._tombstones = { customCats: {}, recur: {}, goals: {}, wallets: {}, templates: {} };
     persistStore(s, false);
 }
 async function fetchRemoteData(userId) {
@@ -671,7 +671,7 @@ async function fetchRemoteData(userId) {
         simDraft: s.simDraft || {},
         isLoggedIn: true,
         userInfo: userInfoObj,
-        _tombstones: { customCats: {}, recur: {}, goals: {}, wallets: {} }
+        _tombstones: { customCats: {}, recur: {}, goals: {}, wallets: {}, templates: {} }
     };
     
     var prof = results[0].data;
@@ -779,7 +779,7 @@ async function fetchRemoteData(userId) {
             id: g.id,
             name: g.name,
             target: Number(g.target_amount || 0),
-            current: Number(g.current_amount || 0)
+            cur: Number(g.current_amount || 0)
         };
     });
     
@@ -927,7 +927,12 @@ function smartMergeStores(local, remote) {
     
     var tplMap = {};
     (r.templates || []).forEach(function(t) { tplMap[t.id] = t; });
-    (s.templates || []).forEach(function(t) { tplMap[t.id] = t; });
+    (s.templates || []).forEach(function(t) {
+        // Only restore local template if it hasn't been tombstoned on remote
+        if (!r._tombstones || !r._tombstones.templates || !r._tombstones.templates[t.id]) {
+            tplMap[t.id] = t;
+        }
+    });
     s.templates = Object.values(tplMap);
     
     s.customIcons = Object.assign({}, r.customIcons, s.customIcons);
@@ -961,8 +966,9 @@ async function checkAndHandleMigration(userId) {
                 _lastSyncSuccess=Date.now();
                 _syncPending=false;
                 updateSyncIndicator();
-            } else if (remoteTime !== localTime && _syncPending) {
-                console.log("Sync conflict detected during login. Smart merging...");
+            } else if (remoteTime > localTime || _syncPending) {
+                // Remote is newer OR we have pending local changes — smart merge to keep both
+                console.log("Sync: merging local and remote on login...");
                 var merged = smartMergeStores(local, remote);
                 persistStore(merged, false);
                 applyCustomIcons();
@@ -970,6 +976,7 @@ async function checkAndHandleMigration(userId) {
                 if (merged.theme) applyTheme(merged.theme);
                 queueSync(true);
             } else {
+                // Timestamps identical and no pending — remote wins (fresh load from another device)
                 persistStore(remote, false);
                 applyCustomIcons();
                 applyIndexSvgOverrides();
@@ -1034,6 +1041,7 @@ function supabaseSync(){
         _lastUploadTime=Date.now();
         _lastSyncSuccess=Date.now();
         _syncPending=false;
+        _syncRetryDelay=0;
         updateSyncIndicator();
     }).catch(function(err){
         console.error("Supabase sync failed:", err);
@@ -1043,7 +1051,10 @@ function supabaseSync(){
         _syncing=false;
         if(_syncPending && supabaseUserId){
             _syncPending=false;
-            return supabaseSync();
+            // Exponential backoff: 2s → 4s → 8s → max 30s to avoid tight retry loops
+            var delay=Math.min((_syncRetryDelay||0)*2||2000,30000);
+            _syncRetryDelay=delay;
+            _syncTimer=setTimeout(function(){supabaseSync()},delay);
         }
     });
 }
@@ -1313,7 +1324,7 @@ var c=computeMonth(y,m);
 return{tI:c.tI,tE:c.tE,r:c.r,d:c.d,otherTotal:c.otherTotal,savTransfer:c.savTransfer,recurTotal:c.recurTotal,carryIn:c.carryIn,unbudgetedApplied:c.unbudgetedApplied,spentMap:c.spentMap,dailySpentMap:c.dailySpentMap,recurMap:c.recurMap}
 }
 
-function applyPrivacy(){var st=ensureSettings();document.body.classList.toggle('hide-amt',!!st.hideAmt)}
+function applyPrivacy(){var st=ensureSettings();document.body.classList.toggle('hide-amt',!!st.hideAmount)}
 function render(){refreshCurrentContext();var el=document.getElementById('M');applyPrivacy();renderThemeDD();if(vw==='d')rDaily(el);else if(vw==='y')rYear(el);else if(vw==='sim')rSim(el);else rMonth(el);enhanceNumericInputs(document)}
 
 function heroH(lb,val,tI,tE,opt){
@@ -2867,7 +2878,7 @@ if(stPage==='templates'){h=renderSettingsTemplates();document.getElementById('st
 
 var pin=getPinCfg();
 var lowRem=st.lowRemaining!==undefined?Number(st.lowRemaining||0):1000;
-var warnPct=st.warnPct!==undefined?Number(st.warnPct||0):90;
+var warnPct=st.warnPercent!==undefined?Number(st.warnPercent||0):90;
 var weeklyOn=!!st.weeklyOn;
 var card=st.card||{cycleDay:25,dueDay:10};
 
@@ -2883,7 +2894,7 @@ h+='</div></div>';
 
 h+='<div class="sec st-sec tone-ac"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1"/><path d="M12 20v1"/><path d="M3 12h1"/><path d="M20 12h1"/><path d="M5.6 5.6l.7.7"/><path d="M17.7 17.7l.7.7"/><path d="M5.6 18.4l.7-.7"/><path d="M17.7 6.3l.7-.7"/><circle cx="12" cy="12" r="4"/></svg></div><div class="st-ht"><div class="st-ttl">การแสดงผล</div><div class="st-sub">ทศนิยม และโหมด Privacy</div></div></div><div class="st-body">';
 h+='<div class="sr"><div class="sl">แสดงทศนิยม<small>เช่น 3,000.00 หรือ 3,000</small></div><button class="tgl'+(showDec?' on':'')+'" onclick="toggleDecimal()"></button></div>';
-h+='<div class="sr" style="border-bottom:none"><div class="sl">ซ่อนยอดทั้งหมด<small>เหมาะสำหรับโหมด Privacy</small></div><button class="tgl'+(st.hideAmt?' on':'')+'" onclick="toggleHideAmt()"></button></div>';
+h+='<div class="sr" style="border-bottom:none"><div class="sl">ซ่อนยอดทั้งหมด<small>เหมาะสำหรับโหมด Privacy</small></div><button class="tgl'+(st.hideAmount?' on':'')+'" onclick="toggleHideAmt()"></button></div>';
 h+='</div></div>';
 
 h+='<div class="sec st-sec tone-pr"><div class="st-h"><div class="st-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div class="st-ht"><div class="st-ttl">ความปลอดภัย</div><div class="st-sub">ล็อกด้วย PIN (ค่าเริ่มต้น: ปิด)</div></div></div><div class="st-body">';
@@ -2907,11 +2918,11 @@ h+='</div>';
 document.getElementById('stB').innerHTML=h
 }
 function toggleDecimal(){var s=gs();var st=ensureSettings();st.showDecimal=!(st.showDecimal!==undefined?st.showDecimal:true);s.settings=st;syncNow(s);renderSettings();render()}
-function toggleHideAmt(){var s=gs();var st=ensureSettings();st.hideAmt=!st.hideAmt;s.settings=st;syncNow(s);renderSettings();render()}
+function toggleHideAmt(){var s=gs();var st=ensureSettings();st.hideAmount=!st.hideAmount;s.settings=st;syncNow(s);renderSettings();render()}
 function openSettingsPage(p){stPage=p;renderSettings()}
 function backSettings(){stPage='main';renderSettings()}
 function toggleWeekly(){var s=gs();var st=ensureSettings();st.weeklyOn=!st.weeklyOn;s.settings=st;syncNow(s);renderSettings();render()}
-function saveAlertSettings(){var s=gs();var st=ensureSettings();st.lowRemaining=Number(document.getElementById('stLowRem').value)||0;st.warnPct=Number(document.getElementById('stWarnPct').value)||90;s.settings=st;syncNow(s);renderSettings();render()}
+function saveAlertSettings(){var s=gs();var st=ensureSettings();st.lowRemaining=Number(document.getElementById('stLowRem').value)||0;st.warnPercent=Number(document.getElementById('stWarnPct').value)||90;s.settings=st;syncNow(s);renderSettings();render()}
 function saveCardSettings(){var s=gs();var st=ensureSettings();st.card={cycleDay:Math.min(28,Math.max(1,Number(document.getElementById('stCycle').value)||25)),dueDay:Math.min(28,Math.max(1,Number(document.getElementById('stDue').value)||10))};s.settings=st;syncNow(s);renderSettings();render()}
 function togglePin(){var cfg=getPinCfg();if(cfg.enabled){showPinLock('disable',{title:'ปิด PIN',sub:'ใส่ PIN เพื่อยืนยัน',len:4,autoSubmit:true,canCancel:false});return}showPinLock('set',{title:'ตั้ง PIN',sub:'ใส่ PIN 4 หลัก',len:4,autoSubmit:true,canCancel:false})}
 function changePin(){var cfg=getPinCfg();if(!cfg.enabled)return;showPinLock('change_old',{title:'เปลี่ยน PIN',sub:'ใส่ PIN ปัจจุบัน',len:4,autoSubmit:true,canCancel:false})}
@@ -2931,12 +2942,24 @@ function delGoal(id){var s=gs();if(!s.goals)return;s.goals=s.goals.filter(functi
 
 function renderSettingsWallets(){var s=gs();var w=getWallets();var h='<div style="padding:12px 0"><div class="cal-hd" style="margin:0 0 10px"><button onclick="backSettings()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg></button><span>กระเป๋า</span><div style="width:30px"></div></div>';w.forEach(function(x){h+='<div class="sr"><div class="sl">'+esc(x.name)+'<small>'+esc(x.type)+'</small></div><button class="cd" onclick="delWallet(\''+x.id+'\')">'+IC.dl+'</button></div>'});h+='<div class="prof-sec-t">เพิ่มกระเป๋า</div>';h+='<div class="ar" style="padding:0"><input class="inp" id="wName" placeholder="ชื่อกระเป๋า"><select class="inp" id="wType" style="appearance:auto;flex:.7"><option value="cash">cash</option><option value="bank">bank</option><option value="card">card</option></select></div>';h+='<div style="margin-top:10px"><button class="btn btn-ac btn-full" onclick="addWallet()">เพิ่ม</button></div>';h+='</div>';return h}
 function addWallet(){var name=(document.getElementById('wName').value||'').trim();var type=document.getElementById('wType').value||'cash';if(!name)return;var s=gs();if(!s.wallets)s.wallets=[];var id=genId('w');s.wallets.push({id:id,name:name,type:type});syncNow(s);renderSettings();render()}
-function delWallet(id){var s=gs();if(!s.wallets)return;s.wallets=s.wallets.filter(function(x){return x.id!==id});addTombstone(s,'wallets',id);syncNow(s);renderSettings();render()}
+function delWallet(id){
+    var s=gs();
+    if(!s.wallets)return;
+    // Warn if any transactions still reference this wallet
+    var hasOrphans=false;
+    if(s.dLog){Object.keys(s.dLog).forEach(function(dk){if((s.dLog[dk]||[]).some(function(x){return x.w===id}))hasOrphans=true;})}
+    if(hasOrphans&&!confirm('กระเป๋านี้ยังมีรายการค่าใช้จ่ายที่อ้างถึงอยู่\nหากลบ กระเป๋าจะถูกลบ แต่รายการเดิมจะยังคงอยู่\nต้องการดำเนินการต่อหรือไม่?'))return;
+    s.wallets=s.wallets.filter(function(x){return x.id!==id});
+    addTombstone(s,'wallets',id);
+    syncNow(s);
+    renderSettings();
+    render();
+}
 
 function renderSettingsTemplates(){var s=gs();if(!s.templates)s.templates=[];var t=s.templates;var h='<div style="padding:12px 0"><div class="cal-hd" style="margin:0 0 10px"><button onclick="backSettings()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"/></svg></button><span>Template งบ</span><div style="width:30px"></div></div>';if(t.length>0){t.forEach(function(x){h+='<div class="sr"><div class="sl">'+esc(x.name)+'<small>'+esc(x.id)+'</small></div><button class="btn btn-gh" style="padding:6px 10px;font-size:11px" onclick="applyTemplate(\''+x.id+'\')">ใช้</button><button class="cd" onclick="delTemplate(\''+x.id+'\')">'+IC.dl+'</button></div>'})}else{h+='<div class="dl-empty" style="padding:18px 0">ยังไม่มี Template</div>'}h+='<div class="prof-sec-t">สร้าง Template จากเดือนนี้</div>';h+='<div class="ar" style="padding:0"><input class="inp" id="tName" placeholder="ชื่อ Template"><button class="btn btn-ac" style="padding:8px 12px" onclick="saveTemplate()">บันทึก</button></div>';h+='</div>';return h}
 function saveTemplate(){var name=(document.getElementById('tName').value||'').trim();if(!name)return;var d=gm(cY,sM_);var data=JSON.parse(JSON.stringify(d));var s=gs();if(!s.templates)s.templates=[];s.templates.push({id:genId('tpl'),name:name,data:data});syncNow(s);renderSettings()}
 function applyTemplate(id){var s=gs();if(!s.templates)return;var t=s.templates.find(function(x){return x.id===id});if(!t)return;if(!confirm('ใช้ Template นี้กับเดือนนี้?'))return;var d=gm(cY,sM_);var merged=Object.assign({},d,t.data||{});sm_(cY,sM_,merged);render();renderSettings()}
-function delTemplate(id){var s=gs();if(!s.templates)return;s.templates=s.templates.filter(function(x){return x.id!==id});syncNow(s);renderSettings()}
+function delTemplate(id){var s=gs();if(!s.templates)return;s.templates=s.templates.filter(function(x){return x.id!==id});addTombstone(s,'templates',id);syncNow(s);renderSettings()}
 
 /* ===== STREAK TRACKING ===== */
 function getStreak(){var s=gs();return s.streak||{current:0,best:0,lastDate:''}}
