@@ -138,8 +138,8 @@ function addAutoBackupSnapshot(d) {
         }
         
         backups.unshift(backup);
-        if (backups.length > 5) {
-            backups = backups.slice(0, 5);
+        if (backups.length > 1) {
+            backups = backups.slice(0, 1);
         }
         localStorage.setItem('okane_auto_backups', JSON.stringify(backups));
     } catch(e) {
@@ -274,7 +274,7 @@ function getDailySpent(y,m,catId){var s=gs(),total=0,prefix=mk(y,m);if(!s.dLog)r
 function getDailyOther(y,m){var s=gs(),items=[],prefix=mk(y,m);if(!s.dLog)return items;Object.keys(s.dLog).sort().forEach(function(dk){if(dk.startsWith(prefix)){s.dLog[dk].forEach(function(x){if(x.cat==='other')items.push(Object.assign({date:dk},x))})}});return items}
 function getDailyOtherTotal(y,m){return getDailyOther(y,m).reduce(function(s,x){return s+Number(x.a||0)},0)}
 function getSavingsTransferFromRemaining(y,m){var sav=getSavings();var mk2=mk(y,m);return sav.history.filter(function(h){return h.monthKey===mk2&&h.type==='add'&&h.source==='remaining'}).reduce(function(s,h){return s+Number(h.amount||0)},0)}
-function getWallets(){var s=gs();if(!s.wallets){s.wallets=[{id:'cash',name:'เงินสด',type:'cash'},{id:'bank',name:'บัญชี',type:'bank'},{id:'card',name:'บัตร',type:'card'}];persistStore(s,false)}return s.wallets}
+function getWallets(){var s=gs();if(!s.wallets||s.wallets.length===0){s.wallets=[{id:'cash',name:'เงินสด',type:'cash'},{id:'bank',name:'บัญชี',type:'bank'},{id:'card',name:'บัตร',type:'card'}];persistStore(s,false)}return s.wallets}
 function getWalletName(id){var w=getWallets().find(function(x){return x.id===id});return w?w.name:id}
 function getLastWallet(){var s=gs();return s.lastWallet||'cash'}
 function setLastWallet(id){var s=gs();s.lastWallet=id;syncNow(s)}
@@ -497,7 +497,8 @@ async function syncLocalToSupabase(userId) {
         updated_at: new Date().toISOString()
     };
     
-    var walletRows = (s.wallets || []).map(function(w) {
+    var wallets = s.wallets && s.wallets.length > 0 ? s.wallets : getWallets();
+    var walletRows = wallets.map(function(w) {
         return { user_id: userId, id: w.id, name: w.name, type: w.type || 'cash' };
     });
     
@@ -2352,19 +2353,14 @@ function openUser(){
     h+='<button class="btn btn-gh btn-full" id="forcePullBtn" onclick="forcePullFromCloud()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14M7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>ดึงข้อมูลจากระบบคลาวด์ใหม่ทั้งหมด (Force Overwrite)</button>';
     h+='<div id="manualSyncLbl" style="font-size:11px;color:var(--tx3);text-align:center;margin-top:2px">'+syncLbl+'</div>'+pendingBadge;
     h+='</div></div>';
-    // Import / Export
-    h+='<div class="prof-sec-t">Backup & Restore</div>';
-    h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">';
-    h+='<div style="font-size:11px;color:var(--tx3);margin-bottom:2px">สำรองข้อมูลทั้งหมด หรือกู้คืนจากไฟล์ backup — ใช้ย้ายข้อมูลระหว่างบัญชีได้</div>';
-    h+='<button class="btn btn-gh btn-full" onclick="exportBackup()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export Backup (.json)</button>';
-    h+='<button class="btn btn-gh btn-full" onclick="triggerImport()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px;vertical-align:middle"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import Backup (.json)</button>';
-    h+='<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(this)">';
-    
+    // Auto Backup History
     var rawHistory = localStorage.getItem('okane_auto_backups');
     if (rawHistory) {
         var backups = JSON.parse(rawHistory) || [];
         if (backups.length > 0) {
-            h+='<div style="font-size:11px;color:var(--tx3);margin:10px 0 4px;font-weight:700">ประวัติสำรองข้อมูลอัตโนมัติ (ล่าสุด 5 ครั้ง)</div>';
+            h+='<div class="prof-sec-t">Backup & Restore</div>';
+            h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:8px">';
+            h+='<div style="font-size:11px;color:var(--tx3);margin:0 0 4px;font-weight:700">สำรองข้อมูลอัตโนมัติล่าสุด</div>';
             h+='<div style="display:flex;flex-direction:column;gap:6px;background:var(--bg2);padding:6px;border-radius:10px;border:1px solid var(--cb)">';
             backups.forEach(function(b, idx) {
                 var dStr = new Date(b.exportedAt).toLocaleString('th-TH', { hour12: false, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -2374,10 +2370,9 @@ function openUser(){
                 h+='</div>';
             });
             h+='</div>';
+            h+='</div></div>';
         }
     }
-    
-    h+='</div></div>';
     h+='<div class="prof-sec-t">ดูข้อมูลใน Excel / Google Sheets</div>';
     h+='<div class="sec" style="margin:0 0 16px"><div class="sc" style="padding:10px 14px;display:flex;flex-direction:column;gap:6px">';
     h+='<div style="font-size:11px;color:var(--tx3);margin-bottom:2px">Export รายการใช้จ่ายเป็นตาราง — ใช้เปิดดูหรือวิเคราะห์บน Excel / Google Sheets เท่านั้น ไม่สามารถ import กลับได้</div>';
@@ -2404,7 +2399,7 @@ function restoreAutoBackupSnapshot(idx) {
         var backups = JSON.parse(raw) || [];
         var b = backups[idx];
         if (!b) return;
-        if (!confirm('⚠️ คุณแน่ใจหรือไม่ว่าต้องการกู้คืนข้อมูลไปยังจุดนี้?\n\nข้อมูลปัจจุบันของคุณบนเครื่องจะถูกเขียนทับด้วยข้อมูลสำรองของวันที่ ' + new Date(b.exportedAt).toLocaleString('th-TH') + '\n\n(หากต้องการเซฟข้อมูลปัจจุบันไว้ก่อน แนะนำให้กด Export Backup ไว้ก่อนได้)')) return;
+        if (!confirm('⚠️ คุณแน่ใจหรือไม่ว่าต้องการกู้คืนข้อมูลไปยังจุดนี้?\n\nข้อมูลปัจจุบันของคุณบนเครื่องจะถูกเขียนทับด้วยข้อมูลสำรองของวันที่ ' + new Date(b.exportedAt).toLocaleString('th-TH'))) return;
         
         persistStore(b.data, true);
         applyCustomIcons();
@@ -2419,22 +2414,7 @@ function restoreAutoBackupSnapshot(idx) {
         alert('เกิดข้อผิดพลาดในการกู้คืน: ' + e.message);
     }
 }
-function exportBackup(){
-    var s=gs();
-    var backup={
-        _app:'okane-wallet',_version:APP_VER,_exportedAt:new Date().toISOString(),
-        dLog:s.dLog||{},mo:s.mo||{},savings:s.savings||{balance:0,history:[]},
-        wallets:s.wallets||[],customCats:s.customCats||[],recur:s.recur||[],
-        goals:s.goals||[],templates:s.templates||[],settings:s.settings||{},
-        shM:s.shM||{},sims:s.sims||[]
-    };
-    var blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');a.href=url;
-    a.download='okane_backup_'+getThaiToday()+'.json';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
+
 function exportCsv(){
     var s=gs();
     var rows=[['วันที่','เวลา','จำนวนเงิน','หมวดหมู่','กระเป๋า','หมายเหตุ']];
@@ -2453,97 +2433,7 @@ function exportCsv(){
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
-function triggerImport(){document.getElementById('importFile').click()}
-function handleImport(input){
-    var file=input.files[0];if(!file)return;
-    var reader=new FileReader();
-    reader.onload=function(e){
-        try{
-            var data=JSON.parse(e.target.result);
-            if(data._app!=='okane-wallet'&&!data.dLog&&!data.mo){
-                alert('ไฟล์ไม่ถูกต้อง กรุณาใช้ไฟล์ที่ Export จาก Okane Wallet เท่านั้น');
-                input.value='';return;
-            }
-            var txCount=0;
-            Object.keys(data.dLog||{}).forEach(function(dk){txCount+=(data.dLog[dk]||[]).length});
-            var catCount=(data.customCats||[]).length;
-            var walletCount=(data.wallets||[]).length;
-            var savHist=(data.savings&&data.savings.history)||[];
-            var msg='นำเข้าข้อมูล:\n'
-                +'• รายจ่าย: '+txCount+' รายการ\n'
-                +'• หมวดหมู่ custom: '+catCount+' หมวด\n'
-                +'• กระเป๋า: '+walletCount+' ใบ\n'
-                +'• ประวัติออม: '+savHist.length+' รายการ\n'
-                +'• Export เมื่อ: '+(data._exportedAt||'ไม่ทราบ')+'\n\n'
-                +'⚠️ ข้อมูลปัจจุบันจะถูกแทนที่ทั้งหมด\nต้องการดำเนินการต่อ?';
-            if(!confirm(msg)){input.value='';return}
-            var s=gs();
-            var imported=Object.assign({},s,{
-                dLog:data.dLog||{},mo:data.mo||{},
-                savings:data.savings||{balance:0,history:[]},
-                wallets:data.wallets||s.wallets,
-                customCats:data.customCats||[],
-                recur:data.recur||[],goals:data.goals||[],
-                templates:data.templates||[],settings:data.settings||s.settings,
-                shM:data.shM||{},sims:data.sims||[]
-            });
-            // Recalc savings balance from history
-            var bal=0;
-            (imported.savings.history||[]).forEach(function(h){
-                if(h.type==='withdraw'){bal=Math.max(0,bal-Number(h.amount||0))}
-                else{bal+=Number(h.amount||0)}
-            });
-            imported.savings.balance=bal;
-            
-            // Populate category catalog from legacy usages (like 'other') BEFORE sync to prevent foreign key errors
-            var cats = imported.customCats || [];
-            var changed = false;
-            Object.keys(LEGACY_CATS).forEach(function(id){
-                if(cats.some(function(cat){return cat.id===id}))return;
-                if(!hasLegacyUsageInStore(imported,id))return;
-                cats.push(buildCatConfig(LEGACY_CATS[id]));
-                changed=true;
-            });
-            if(changed){imported.customCats=cats}
-            
-            // Set local storage and update local updatedAt timestamp to now
-            imported.meta = imported.meta || {};
-            imported.meta.updatedAt = Date.now();
-            persistStore(imported, true);
-            render();
-            
-            if (supabaseUserId) {
-                // If logged in, block standard queue sync and force push direct overwrite
-                _syncing = true;
-                updateSyncIndicator();
-                
-                syncLocalToSupabase(supabaseUserId).then(function() {
-                    _lastUploadTime = Date.now();
-                    _lastSyncSuccess = Date.now();
-                    _syncPending = false;
-                    _syncing = false;
-                    updateSyncIndicator();
-                    alert('นำเข้าข้อมูลสำเร็จ และบันทึกทับข้อมูลบนระบบคลาวด์เรียบร้อยแล้ว!');
-                }).catch(function(err) {
-                    console.error("Direct upload after import failed:", err);
-                    _syncing = false;
-                    _syncPending = true;
-                    updateSyncIndicator();
-                    alert('นำเข้าข้อมูลสำเร็จในเครื่องแล้ว แต่การอัปโหลดขึ้นระบบคลาวด์ขัดข้อง:\n'+(err&&err.message?err.message:String(err))+'\n\nระบบจะเก็บข้อมูลนี้ไว้ในเครื่อง และจะพยายามซิงค์ใหม่เมื่อพร้อม');
-                });
-            } else {
-                alert('นำเข้าข้อมูลสำเร็จทั้งหมด '+txCount+' รายการ (บันทึกอยู่ในเครื่องนี้เท่านั้น)');
-            }
-            
-            input.value='';
-            closeUser();
-        }catch(ex){
-            alert('อ่านไฟล์ไม่ได้ กรุณาตรวจสอบไฟล์แล้วลองใหม่');
-            input.value='';
-        }
-    };
-    reader.readAsText(file,'utf-8');
-}
+
 function saveUser(){var s=gs();s.userName=(document.getElementById('uName')||{}).value||'';syncNow(s);render();closeUser()}
 async function deleteUserSupabaseData(userId) {
     if (!userId || !supabase) return;
@@ -2574,6 +2464,8 @@ function logout(){
     clearTimeout(_syncTimer);
     clearInterval(_tokenRefreshTimer);
     localStorage.removeItem('okane_v3');
+    localStorage.removeItem('okane_auto_backups');
+    localStorage.removeItem('okane_cat_hints');
     clearCalcCache();
     supabaseUserId = null;
     isGuest = false;
@@ -2591,6 +2483,8 @@ function resetAll(){
     if(!confirm('\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14?\n\n\u0E01\u0E32\u0E23\u0E01\u0E23\u0E30\u0E17\u0E33\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01\u0E44\u0E14\u0E49 \u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E17\u0E38\u0E01\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E08\u0E30\u0E2B\u0E32\u0E22\u0E44\u0E1B\u0E16\u0E32\u0E27\u0E23'))return;
     clearTimeout(_syncTimer);
     localStorage.removeItem('okane_v3');
+    localStorage.removeItem('okane_auto_backups');
+    localStorage.removeItem('okane_cat_hints');
     clearCalcCache();
     var done=function(){
         supabaseUserId = null;
