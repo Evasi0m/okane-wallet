@@ -2351,17 +2351,17 @@ button:focus-visible,.btn:focus-visible,.qa-cat:focus-visible,.theme-item:focus-
 .bnav-pop{
   position:absolute;left:0;top:50%;margin-top:-24px;width:48px;height:48px;
   border-radius:50%;z-index:1;opacity:0;
-  background:linear-gradient(135deg,var(--ac) 0%,var(--ac2) 100%);
-  box-shadow:0 6px 16px var(--acBg2),
-             inset 0 1px 0 rgba(255,255,255,.5),
-             inset 0 -2px 6px rgba(0,0,0,.14);
+  background:linear-gradient(135deg,var(--heroA) 0%,var(--heroB) 100%) !important;
+  box-shadow:0 6px 14px rgba(0,0,0,0.1),
+             inset 0 1px 0 rgba(255,255,255,.22),
+             inset 0 -1px 3px rgba(0,0,0,.08) !important;
   pointer-events:none;
   transition:transform .46s cubic-bezier(.34,1.56,.64,1),
              background .3s ease,opacity .35s ease;
 }
 .bnav-pop::after{
   content:'';position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.55),transparent 56%);
+  background:radial-gradient(circle at 32% 24%,rgba(255,255,255,.15),transparent 56%);
 }
 
 /* nav items — icon only */
