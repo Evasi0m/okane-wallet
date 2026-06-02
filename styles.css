@@ -2273,13 +2273,15 @@ body.hide-amt .hero-v{transition:filter .4s var(--ease-smooth)}
 .si{font-variant-numeric:tabular-nums !important;font-feature-settings:'tnum','zero','ss01' !important;letter-spacing:-.01em}
 
 /* ---------- Modals — cinematic entrance + premium scrim ---------- */
-.mbg{background:radial-gradient(circle at 50% 30%,rgba(0,0,0,.28) 0%,rgba(0,0,0,.55) 100%) !important;backdrop-filter:blur(18px) saturate(1.2) !important;-webkit-backdrop-filter:blur(18px) saturate(1.2) !important;transition:opacity .35s var(--ease-smooth),backdrop-filter .35s var(--ease-smooth),visibility .35s !important}
+.mbg{background:radial-gradient(circle at 50% 30%,rgba(0,0,0,.28) 0%,rgba(0,0,0,.55) 100%) !important;backdrop-filter:blur(18px) saturate(1.2) !important;-webkit-backdrop-filter:blur(18px) saturate(1.2) !important;transition:opacity .42s var(--ease-smooth),backdrop-filter .42s var(--ease-smooth),visibility .42s !important}
 [data-theme="dark"] .mbg{background:radial-gradient(circle at 50% 30%,rgba(0,0,0,.55) 0%,rgba(0,0,0,.78) 100%) !important}
 /* ===== Fluted-glass overlay backdrop (shared, subtle) ===== */
 .mbg::before,.cal-popup::before,.sim-overlay::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,rgba(255,255,255,0) 2px,rgba(0,0,0,.035) 7px,rgba(255,255,255,0) 12px,rgba(255,255,255,.035) 13px,rgba(255,255,255,.035) 14px),radial-gradient(120% 80% at 50% 0%,rgb(var(--heroGlass1) / .10) 0%,rgb(var(--heroGlass2) / .05) 40%,transparent 72%);background-size:14px 100%,100% 100%;mix-blend-mode:soft-light;opacity:0;transition:opacity .35s var(--ease-smooth)}
 .mbg.open::before,.cal-popup.open::before,.sim-overlay.open::before{opacity:1}
 [data-theme="dark"] .mbg::before,[data-theme="dark"] .cal-popup::before,[data-theme="dark"] .sim-overlay::before{background:repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,rgba(255,255,255,0) 2px,rgba(0,0,0,.12) 7px,rgba(255,255,255,0) 12px,rgba(255,255,255,.03) 13px,rgba(255,255,255,.03) 14px),radial-gradient(120% 80% at 50% 0%,rgb(var(--heroGlass1) / .12) 0%,rgb(var(--heroGlass2) / .06) 42%,transparent 74%);background-size:14px 100%,100% 100%;mix-blend-mode:screen}
-.mbg.open .mbox,.mbg.show .mbox{animation:modalIn .45s var(--ease-spring) both}
+/* Bidirectional sheet motion — symmetric slide/fade on open AND close (no one-way keyframe that suppresses the close transition) */
+.mbox{transition:transform .44s cubic-bezier(.32,.72,0,1),opacity .3s ease,filter .34s ease !important;opacity:0;filter:blur(4px)}
+.mbg.open .mbox,.mbg.show .mbox{transform:translateY(0) scale(1);opacity:1;filter:blur(0)}
 @keyframes modalIn{from{opacity:0;transform:translateY(40px) scale(.94);filter:blur(6px)}to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
 .mbox{box-shadow:0 -24px 80px rgba(0,0,0,.22),0 -2px 0 rgba(255,255,255,.4) inset !important}
 .mhd h2,.mhd h3{letter-spacing:-.01em;font-weight:700}
