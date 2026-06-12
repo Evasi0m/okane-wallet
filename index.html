@@ -83,6 +83,38 @@
 <!-- Filter Popup -->
 <div class="cal-popup" id="filterPop"><div class="cal-box"><div class="cal-hd"><span>ตัวกรอง</span><button onclick="closeFilterPop()"><svg data-icon-id="filter-close" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div id="filterBody"></div><div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-gh btn-full" onclick="resetFilters()">ล้าง</button><button class="btn btn-ac btn-full" onclick="applyFilters()">ใช้ตัวกรอง</button></div></div></div>
 <script src="app.js?v=20260601f"></script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(function(){})})}</script>
+<script>
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('./sw.js', {scope:'./'}).then(function(reg){
+        if(reg.waiting){ window._swWaiting=reg.waiting; }
+        reg.addEventListener('updatefound', function(){
+          var nw = reg.installing;
+          if(nw){
+            nw.addEventListener('statechange', function(){
+              if(nw.state==='installed' && navigator.serviceWorker.controller){
+                window._swWaiting = nw;
+              }
+            });
+          }
+        });
+      }).catch(function(){});
+    });
+  }
+</script>
+
+<div id="updateOverlay" role="dialog" aria-modal="true" aria-labelledby="updateTitle">
+  <div class="update-card">
+    <div class="update-badge">✨ UPDATE</div>
+    <div class="update-title" id="updateTitle">อัปเดตใหม่พร้อมแล้ว!</div>
+    <div class="update-ver" id="updateVer"></div>
+    <div class="update-notes-title">สิ่งที่ปรับปรุง</div>
+    <ul class="update-notes" id="updateNotesList"></ul>
+    <button class="update-btn" id="updateNowBtn" onclick="doForceUpdate()">
+      <div class="update-btn-spin"></div>
+      <span class="update-btn-label">อัปเดตเดี๋ยวนี้</span>
+    </button>
+  </div>
+</div>
 </body>
 </html>

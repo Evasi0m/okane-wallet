@@ -100,6 +100,7 @@ var _syncing=false,_syncTimer=null,_syncPending=false,_syncRetryDelay=0,_lastSyn
 var _tokenRefreshTimer=null;
 var _lastDriveModTime=null,_lastUploadTime=0,_pollTimer=null,_visListenerAdded=false,_lastSyncSuccess=0,_pendingManualSync=false;
 var _mCalcCache={};
+var _cachedStore=null;
 var stPage='main',_pinMode='unlock',_pinValue='',_pinPending=null,_lastDelete=null,_undoTimer=null;
 var dFilter={q:'',min:0,max:0,cat:'',wallet:'',onlyOverspent:false,onlyCarry:false};
 var CAT_RESERVED_KEYS={sal:1,oI:1,savAutoTransfer:1};
@@ -110,7 +111,16 @@ var _catPopupMode='add',_authRefreshStarted=false;
 
 /* ===== STORAGE ===== */
 function normalizeStore(d){if(!d||typeof d!=='object'||Array.isArray(d))d={};if(!d.meta||typeof d.meta!=='object'||Array.isArray(d.meta))d.meta={};if(typeof d.meta.updatedAt!=='number')d.meta.updatedAt=0;var st=d.settings&&typeof d.settings==='object'&&!Array.isArray(d.settings)?d.settings:{};d.settings=Object.assign({},DF,st);if(st.hideAmt!==undefined&&st.hideAmount===undefined)d.settings.hideAmount=!!st.hideAmt;if(st.saving!==undefined&&st.savGoal===undefined)d.settings.savGoal=Number(st.saving||0);d.settings.salary=Number(d.settings.salary||0);d.settings.savGoal=Number(d.settings.savGoal||0);d.settings.lowRemaining=Number(d.settings.lowRemaining||1000);d.settings.warnPercent=Number(d.settings.warnPercent||90);d.settings.showDecimal=d.settings.showDecimal!==false;d.settings.hideAmount=!!d.settings.hideAmount;d.settings.weeklyOn=!!d.settings.weeklyOn;return d}
-function gs(){try{return normalizeStore(JSON.parse(localStorage.getItem('okane_v3')||'{}'))}catch(e){return normalizeStore({})}}
+function gs(){
+    if(_cachedStore) return _cachedStore;
+    try{
+        _cachedStore = normalizeStore(JSON.parse(localStorage.getItem('okane_v3')||'{}'));
+        return _cachedStore;
+    }catch(e){
+        _cachedStore = normalizeStore({});
+        return _cachedStore;
+    }
+}
 function clearCalcCache(){_mCalcCache={}}
 
 function addAutoBackupSnapshot(d) {
@@ -152,6 +162,7 @@ function persistStore(d,markUpdated){
         d.meta.updatedAt=Date.now();
         addAutoBackupSnapshot(d);
     }
+    _cachedStore=d;
     localStorage.setItem('okane_v3',JSON.stringify(d));
     clearCalcCache();
     return d;
@@ -597,36 +608,138 @@ async function syncLocalToSupabase(userId) {
     
     var activeIconKeys = Object.keys(s.customIcons || {});
     
-    ok(await supabase.from('category_budgets').delete().eq('user_id', userId),'Delete category_budgets');
-    ok(await supabase.from('additional_income').delete().eq('user_id', userId),'Delete additional_income');
-    ok(await supabase.from('transactions').delete().eq('user_id', userId),'Delete transactions');
-    ok(await supabase.from('savings_history').delete().eq('user_id', userId),'Delete savings_history');
-    ok(await supabase.from('shopee_installments').delete().eq('user_id', userId),'Delete shopee_installments');
-    ok(await supabase.from('recurring_expenses').delete().eq('user_id', userId),'Delete recurring_expenses');
-    ok(await supabase.from('savings_goals').delete().eq('user_id', userId),'Delete savings_goals');
-    ok(await supabase.from('budget_templates').delete().eq('user_id', userId),'Delete budget_templates');
-    ok(await supabase.from('custom_icons').delete().eq('user_id', userId),'Delete custom_icons');
-    ok(await supabase.from('monthly_budgets').delete().eq('user_id', userId),'Delete monthly_budgets');
-    ok(await supabase.from('categories').delete().eq('user_id', userId),'Delete categories');
-    ok(await supabase.from('wallets').delete().eq('user_id', userId),'Delete wallets');
-    
     var iconRows = activeIconKeys.map(function(k) {
         return { user_id: userId, icon_key: k, svg_content: s.customIcons[k] };
     });
+
+    // Fetch all existing IDs/keys from Supabase in parallel
+    var fetchQueries = [
+        supabase.from('wallets').select('id').eq('user_id', userId),
+        supabase.from('categories').select('id').eq('user_id', userId),
+        supabase.from('monthly_budgets').select('month_key').eq('user_id', userId),
+        supabase.from('category_budgets').select('month_key, category_id').eq('user_id', userId),
+        supabase.from('additional_income').select('id').eq('user_id', userId),
+        supabase.from('transactions').select('id').eq('user_id', userId),
+        supabase.from('savings_history').select('id').eq('user_id', userId),
+        supabase.from('shopee_installments').select('month_key').eq('user_id', userId),
+        supabase.from('recurring_expenses').select('id').eq('user_id', userId),
+        supabase.from('savings_goals').select('id').eq('user_id', userId),
+        supabase.from('budget_templates').select('id').eq('user_id', userId),
+        supabase.from('custom_icons').select('icon_key').eq('user_id', userId)
+    ];
+    var fetched = await Promise.all(fetchQueries);
+    for (var i = 0; i < fetched.length; i++) {
+        if (fetched[i].error) throw new Error("Sync pre-fetch error: " + fetched[i].error.message);
+    }
+
+    var deleteQueries = [];
     
-    ok(await supabase.from('profiles').upsert([profileRow]),'Upsert profiles');
-    if(walletRows.length > 0)ok(await supabase.from('wallets').upsert(walletRows),'Upsert wallets');
-    if(categoryRows.length > 0)ok(await supabase.from('categories').upsert(categoryRows),'Upsert categories');
-    if(budgetRows.length > 0)ok(await supabase.from('monthly_budgets').upsert(budgetRows),'Upsert monthly_budgets');
-    if(recurRows.length > 0)ok(await supabase.from('recurring_expenses').upsert(recurRows),'Upsert recurring_expenses');
-    if(goalRows.length > 0)ok(await supabase.from('savings_goals').upsert(goalRows),'Upsert savings_goals');
-    if(tplRows.length > 0)ok(await supabase.from('budget_templates').upsert(tplRows),'Upsert budget_templates');
-    if(iconRows.length > 0)ok(await supabase.from('custom_icons').upsert(iconRows),'Upsert custom_icons');
-    if(catBudgetRows.length > 0)ok(await supabase.from('category_budgets').upsert(catBudgetRows),'Upsert category_budgets');
-    if(incomeRows.length > 0)ok(await supabase.from('additional_income').upsert(incomeRows),'Upsert additional_income');
-    if(txRows.length > 0)ok(await supabase.from('transactions').upsert(txRows),'Upsert transactions');
-    if(savRows.length > 0)ok(await supabase.from('savings_history').upsert(savRows),'Upsert savings_history');
-    if(shRows.length > 0)ok(await supabase.from('shopee_installments').upsert(shRows),'Upsert shopee_installments');
+    // 1. wallets
+    var remoteWalletIds = (fetched[0].data || []).map(function(x){return x.id});
+    var localWalletIds = walletRows.map(function(x){return x.id});
+    var delWallets = remoteWalletIds.filter(function(id){return localWalletIds.indexOf(id) === -1});
+    if (delWallets.length > 0) deleteQueries.push(supabase.from('wallets').delete().eq('user_id', userId).in('id', delWallets));
+    
+    // 2. categories
+    var remoteCatIds = (fetched[1].data || []).map(function(x){return x.id});
+    var localCatIds = categoryRows.map(function(x){return x.id});
+    var delCats = remoteCatIds.filter(function(id){return localCatIds.indexOf(id) === -1});
+    if (delCats.length > 0) deleteQueries.push(supabase.from('categories').delete().eq('user_id', userId).in('id', delCats));
+    
+    // 3. monthly_budgets
+    var remoteMonthKeys = (fetched[2].data || []).map(function(x){return x.month_key});
+    var localMonthKeys = budgetRows.map(function(x){return x.month_key});
+    var delMonths = remoteMonthKeys.filter(function(k){return localMonthKeys.indexOf(k) === -1});
+    if (delMonths.length > 0) deleteQueries.push(supabase.from('monthly_budgets').delete().eq('user_id', userId).in('month_key', delMonths));
+    
+    // 4. category_budgets
+    var remoteCatBudgets = fetched[3].data || [];
+    var delCatBudgets = remoteCatBudgets.filter(function(rCb) {
+        return !catBudgetRows.some(function(lCb) {
+            return lCb.month_key === rCb.month_key && lCb.category_id === rCb.category_id;
+        });
+    });
+    delCatBudgets.forEach(function(item) {
+        deleteQueries.push(supabase.from('category_budgets').delete().eq('user_id', userId).eq('month_key', item.month_key).eq('category_id', item.category_id));
+    });
+    
+    // 5. additional_income
+    var remoteIncomeIds = (fetched[4].data || []).map(function(x){return x.id});
+    var localIncomeIds = incomeRows.map(function(x){return x.id});
+    var delIncome = remoteIncomeIds.filter(function(id){return localIncomeIds.indexOf(id) === -1});
+    if (delIncome.length > 0) deleteQueries.push(supabase.from('additional_income').delete().eq('user_id', userId).in('id', delIncome));
+    
+    // 6. transactions
+    var remoteTxIds = (fetched[5].data || []).map(function(x){return x.id});
+    var localTxIds = txRows.map(function(x){return x.id});
+    var delTx = remoteTxIds.filter(function(id){return localTxIds.indexOf(id) === -1});
+    if (delTx.length > 0) deleteQueries.push(supabase.from('transactions').delete().eq('user_id', userId).in('id', delTx));
+    
+    // 7. savings_history
+    var remoteSavIds = (fetched[6].data || []).map(function(x){return x.id});
+    var localSavIds = savRows.map(function(x){return x.id});
+    var delSav = remoteSavIds.filter(function(id){return localSavIds.indexOf(id) === -1});
+    if (delSav.length > 0) deleteQueries.push(supabase.from('savings_history').delete().eq('user_id', userId).in('id', delSav));
+    
+    // 8. shopee_installments
+    var remoteShKeys = (fetched[7].data || []).map(function(x){return x.month_key});
+    var localShKeys = shRows.map(function(x){return x.month_key});
+    var delSh = remoteShKeys.filter(function(k){return localShKeys.indexOf(k) === -1});
+    if (delSh.length > 0) deleteQueries.push(supabase.from('shopee_installments').delete().eq('user_id', userId).in('month_key', delSh));
+    
+    // 9. recurring_expenses
+    var remoteRecurIds = (fetched[8].data || []).map(function(x){return x.id});
+    var localRecurIds = recurRows.map(function(x){return x.id});
+    var delRecur = remoteRecurIds.filter(function(id){return localRecurIds.indexOf(id) === -1});
+    if (delRecur.length > 0) deleteQueries.push(supabase.from('recurring_expenses').delete().eq('user_id', userId).in('id', delRecur));
+    
+    // 10. savings_goals
+    var remoteGoalIds = (fetched[9].data || []).map(function(x){return x.id});
+    var localGoalIds = goalRows.map(function(x){return x.id});
+    var delGoals = remoteGoalIds.filter(function(id){return localGoalIds.indexOf(id) === -1});
+    if (delGoals.length > 0) deleteQueries.push(supabase.from('savings_goals').delete().eq('user_id', userId).in('id', delGoals));
+    
+    // 11. budget_templates
+    var remoteTplIds = (fetched[10].data || []).map(function(x){return x.id});
+    var localTplIds = tplRows.map(function(x){return x.id});
+    var delTpl = remoteTplIds.filter(function(id){return localTplIds.indexOf(id) === -1});
+    if (delTpl.length > 0) deleteQueries.push(supabase.from('budget_templates').delete().eq('user_id', userId).in('id', delTpl));
+    
+    // 12. custom_icons
+    var remoteIconKeys = (fetched[11].data || []).map(function(x){return x.icon_key});
+    var localIconKeys = iconRows.map(function(x){return x.icon_key});
+    var delIcons = remoteIconKeys.filter(function(k){return localIconKeys.indexOf(k) === -1});
+    if (delIcons.length > 0) deleteQueries.push(supabase.from('custom_icons').delete().eq('user_id', userId).in('icon_key', delIcons));
+
+    // Execute deletions in parallel
+    if (deleteQueries.length > 0) {
+        var deleteResults = await Promise.all(deleteQueries);
+        for (var i = 0; i < deleteResults.length; i++) {
+            if (deleteResults[i].error) throw new Error("Sync delete error: " + deleteResults[i].error.message);
+        }
+    }
+
+    // Prepare and execute upserts in parallel
+    var upsertQueries = [
+        supabase.from('profiles').upsert([profileRow])
+    ];
+    if(walletRows.length > 0) upsertQueries.push(supabase.from('wallets').upsert(walletRows));
+    if(categoryRows.length > 0) upsertQueries.push(supabase.from('categories').upsert(categoryRows));
+    if(budgetRows.length > 0) upsertQueries.push(supabase.from('monthly_budgets').upsert(budgetRows));
+    if(recurRows.length > 0) upsertQueries.push(supabase.from('recurring_expenses').upsert(recurRows));
+    if(goalRows.length > 0) upsertQueries.push(supabase.from('savings_goals').upsert(goalRows));
+    if(tplRows.length > 0) upsertQueries.push(supabase.from('budget_templates').upsert(tplRows));
+    if(iconRows.length > 0) upsertQueries.push(supabase.from('custom_icons').upsert(iconRows));
+    if(catBudgetRows.length > 0) upsertQueries.push(supabase.from('category_budgets').upsert(catBudgetRows));
+    if(incomeRows.length > 0) upsertQueries.push(supabase.from('additional_income').upsert(incomeRows));
+    if(txRows.length > 0) upsertQueries.push(supabase.from('transactions').upsert(txRows));
+    if(savRows.length > 0) upsertQueries.push(supabase.from('savings_history').upsert(savRows));
+    if(shRows.length > 0) upsertQueries.push(supabase.from('shopee_installments').upsert(shRows));
+
+    var upsertResults = await Promise.all(upsertQueries);
+    for (var i = 0; i < upsertResults.length; i++) {
+        if (upsertResults[i].error) throw new Error("Sync upsert error: " + upsertResults[i].error.message);
+    }
     
     s = gs();
     s._tombstones = { customCats: {}, recur: {}, goals: {}, wallets: {}, templates: {} };
@@ -1270,6 +1383,8 @@ function enterApp(){
     if(!wasShown&&pinEnabled()){showPinLock('unlock',{title:'ใส่ PIN เพื่อปลดล็อก',sub:'เพื่อความปลอดภัยของข้อมูล',len:4,autoSubmit:true,canCancel:false})}
     if(!_pollTimer)_pollTimer=setInterval(function(){supabasePollSync()},5*60*1000);
     if(!_visListenerAdded){_visListenerAdded=true;document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')setTimeout(supabasePollSync,1000)})}
+    // Check for new version after a short delay so UI is ready first
+    setTimeout(checkForUpdate, 2000);
 }
 function showGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.add('open')}
 function closeGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.remove('open')}
@@ -1277,6 +1392,109 @@ function startSilentAuthRefresh(){}
 function checkSession(){
     initSupabaseAuth();
 }
+
+/* ===== FORCE UPDATE SYSTEM ===== */
+var GITHUB_REPO = 'Evasi0m/okane-wallet';
+var GITHUB_BRANCH = 'main';
+var _updateChecked = false;
+
+function checkForUpdate() {
+    if (_updateChecked) return;
+    _updateChecked = true;
+    var apiUrl = 'https://api.github.com/repos/' + GITHUB_REPO + '/commits/' + GITHUB_BRANCH;
+    fetch(apiUrl, {
+        headers: { 'Accept': 'application/vnd.github.v3+json' },
+        cache: 'no-store'
+    }).then(function(res) {
+        if (!res.ok) return null;
+        return res.json();
+    }).then(function(data) {
+        if (!data || !data.sha) return;
+        var latestSha = data.sha;
+        var storedSha = localStorage.getItem('okane_last_commit');
+        if (!storedSha) {
+            // First visit — just store SHA silently, don't show popup
+            localStorage.setItem('okane_last_commit', latestSha);
+            return;
+        }
+        if (storedSha !== latestSha) {
+            // New commit detected — fetch release notes and show popup
+            fetch('./updates.json?nocache=' + Date.now(), { cache: 'no-store' })
+                .then(function(r) { return r.ok ? r.json() : null; })
+                .then(function(info) { showUpdateOverlay(latestSha, info); })
+                .catch(function() { showUpdateOverlay(latestSha, null); });
+        }
+    }).catch(function() {
+        // Silently fail — no network or rate-limited
+    });
+}
+
+function showUpdateOverlay(newSha, info) {
+    var overlay = document.getElementById('updateOverlay');
+    if (!overlay) return;
+
+    // Populate version
+    var ver = (info && info.version) ? 'v' + info.version : '';
+    var verEl = document.getElementById('updateVer');
+    if (verEl) verEl.textContent = ver;
+
+    // Populate release notes
+    var list = document.getElementById('updateNotesList');
+    if (list) {
+        list.innerHTML = '';
+        var notes = [];
+        if (info && info.releaseNotes && info.releaseNotes.length > 0) {
+            notes = info.releaseNotes[0].changes || [];
+        }
+        if (notes.length === 0) {
+            notes = ['มีการปรับปรุงและแก้ไขข้อผิดพลาดต่างๆ'];
+        }
+        notes.forEach(function(n) {
+            var li = document.createElement('li');
+            li.textContent = n;
+            list.appendChild(li);
+        });
+    }
+
+    // Store new SHA so after reload it won't show again
+    overlay._newSha = newSha;
+
+    // Block keyboard close
+    overlay.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); }
+    });
+
+    // Show with animation
+    overlay.style.display = 'flex';
+    requestAnimationFrame(function() {
+        requestAnimationFrame(function() {
+            overlay.classList.add('show');
+        });
+    });
+}
+
+function doForceUpdate() {
+    var btn = document.getElementById('updateNowBtn');
+    if (btn) { btn.classList.add('loading'); btn.disabled = true; }
+
+    var overlay = document.getElementById('updateOverlay');
+    var newSha = overlay ? overlay._newSha : null;
+    if (newSha) localStorage.setItem('okane_last_commit', newSha);
+
+    // Unregister all service workers then hard reload
+    var reloadNow = function() {
+        window.location.href = window.location.href.split('?')[0] + '?_cache_bust=' + Date.now();
+    };
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+            var promises = regs.map(function(r) { return r.unregister(); });
+            return Promise.all(promises);
+        }).then(reloadNow).catch(reloadNow);
+    } else {
+        reloadNow();
+    }
+}
+
 
 /* ===== THEME ===== */
 function applyTheme(id){var valid=THEMES.some(function(t){return t.id===id});if(!valid)id='light';document.documentElement.setAttribute('data-theme',id);var s=gs();s.theme=id;persistStore(s,false)}

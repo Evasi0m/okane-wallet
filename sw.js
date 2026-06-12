@@ -1,9 +1,10 @@
-const CACHE_NAME = 'glass-v50';
+const CACHE_NAME = 'okane-v1';
 const CACHE_URLS = [
   './',
   './index.html',
-  './app.js?v=20260420s',
+  './app.js',
   './styles.css',
+  './updates.json',
   'https://fonts.googleapis.com/css2?family=Taviraj:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js'
 ];
@@ -14,6 +15,7 @@ self.addEventListener('install', function(e) {
       return cache.addAll(CACHE_URLS.filter(u => u.startsWith('./')));
     })
   );
+  // Always skip waiting so new SW takes over immediately
   self.skipWaiting();
 });
 
@@ -28,6 +30,16 @@ self.addEventListener('activate', function(e) {
 
 self.addEventListener('fetch', function(e) {
   if (e.request.method !== 'GET') return;
+  // Network-first for updates.json and GitHub API so we always get fresh data
+  var url = e.request.url;
+  if (url.includes('updates.json') || url.includes('api.github.com')) {
+    e.respondWith(
+      fetch(e.request).catch(function() {
+        return caches.match(e.request);
+      })
+    );
+    return;
+  }
   e.respondWith(
     fetch(e.request).then(function(response) {
       if (response && response.status === 200 && response.type !== 'opaque') {
@@ -39,4 +51,11 @@ self.addEventListener('fetch', function(e) {
       return caches.match(e.request);
     })
   );
+});
+
+// Listen for SKIP_WAITING message from the app
+self.addEventListener('message', function(e) {
+  if (e.data && e.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
