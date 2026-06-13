@@ -1,4 +1,4 @@
-const CACHE_NAME = 'okane-v0.3.1-deploy-update-v1';
+const CACHE_NAME = 'okane-v0.3.2-update-fix-v1';
 const CACHE_URLS = [
   './',
   './index.html',
@@ -44,9 +44,15 @@ self.addEventListener('activate', function(e) {
 
 self.addEventListener('fetch', function(e) {
   if (e.request.method !== 'GET') return;
-  // Network-first for deployed update metadata and GitHub diagnostics.
   var url = e.request.url;
-  if (url.includes('updates.json') || url.includes('api.github.com') || url.includes('supabase.co/rest/v1/')) {
+  var networkFirst = url.includes('updates.json') || url.includes('app.js') || url.includes('index.html') || url.includes('sw.js') || url.includes('api.github.com') || url.includes('supabase.co/rest/v1/');
+  if (!networkFirst) {
+    try {
+      var p = new URL(url).pathname;
+      if (p.endsWith('/okane-wallet') || p.endsWith('/okane-wallet/')) networkFirst = true;
+    } catch (err) {}
+  }
+  if (networkFirst) {
     e.respondWith(
       fetch(e.request).catch(function() {
         return caches.match(e.request);

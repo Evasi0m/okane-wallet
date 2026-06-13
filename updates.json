@@ -1,8 +1,17 @@
 {
-  "version": "0.3.1",
+  "version": "0.3.2",
   "buildSha": "pending-deploy",
   "releasedAt": "2026-06-13T00:00:00Z",
   "releaseNotes": [
+    {
+      "version": "0.3.2",
+      "date": "2026-06-13",
+      "changes": [
+        "แก้ปุ่มอัปเดตค้างหมุน — reload ภายใน 2 วินาที ไม่ต้องล้าง cache เอง",
+        "ล้าง Service Worker cache อัตโนมัติและโหลด index.html/app.js ใหม่จาก network",
+        "กัน popup อัปเดตขึ้นซ้ำหลังกดอัปเดตแล้ว"
+      ]
+    },
     {
       "version": "0.3.1",
       "date": "2026-06-13",

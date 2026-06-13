@@ -89,7 +89,7 @@ var CHART_COLORS=['#CC6F54','#DFA271','#B7835F','#E7C7A7','#B98A79','#8FB7AA','#
 var THEMES=[
     {id:'light',name:'Champagne Luxe',dots:['#F8F4EC','#CC6F54','#EEE5D8'],free:true}
 ];
-var APP_VER='0.3.1';
+var APP_VER='0.3.2';
 var APP_BUILD_SHA='6e94e32069ddf25edcb9b3555cbe7e279d0b196b';
 var SUPABASE_URL = 'https://xdbsyiigkyafoohqqffx.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_SKWRc9CCCsQxOhpq6NlNaQ_zsx9hBx4';
@@ -1665,6 +1665,7 @@ function scheduleUpdateChecks(){
 }
 
 function showUpdateOverlay(newBuild, info) {
+    if(isUpdateInProgress())return;
     var overlay = document.getElementById('updateOverlay');
     if (!overlay || overlay.classList.contains('show')) return;
 
@@ -1707,26 +1708,67 @@ function showUpdateOverlay(newBuild, info) {
     });
 }
 
+function isUpdateInProgress(){
+    try{return sessionStorage.getItem('okane_update_in_progress')==='1'}catch(e){return false}
+}
+function clearUpdateInProgress(){
+    try{sessionStorage.removeItem('okane_update_in_progress')}catch(e){}
+}
+function buildDeployReloadUrl(deployKey){
+    try{
+        var u=new URL(window.location.href);
+        u.searchParams.set('_deploy',deployKey||String(Date.now()));
+        return u.toString();
+    }catch(e){
+        return window.location.pathname+'?_deploy='+(deployKey||Date.now());
+    }
+}
+function clearAllCaches(){
+    if(!('caches' in window))return Promise.resolve();
+    return caches.keys().then(function(keys){
+        return Promise.all(keys.map(function(k){return caches.delete(k)}));
+    }).catch(function(){});
+}
+function cleanupServiceWorkers(){
+    if(!('serviceWorker' in navigator))return Promise.resolve();
+    return navigator.serviceWorker.getRegistrations().then(function(regs){
+        regs.forEach(function(reg){
+            try{
+                if(reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
+                if(reg.active)reg.active.postMessage({type:'SKIP_WAITING'});
+            }catch(e){}
+        });
+        return Promise.all(regs.map(function(r){return r.unregister()}));
+    }).catch(function(){});
+}
 function doForceUpdate() {
     var btn = document.getElementById('updateNowBtn');
     if (btn) { btn.classList.add('loading'); btn.disabled = true; }
 
     var overlay = document.getElementById('updateOverlay');
     var newBuild = overlay ? overlay._newBuild : null;
-    if (newBuild) localStorage.setItem('okane_cd329f3d3e55ddbcdc5485e272826d7653df873c_build', newBuild);
+    var deployKey = newBuild || String(Date.now());
 
-    // Unregister all service workers then hard reload
-    var reloadNow = function() {
-        window.location.href = window.location.href.split('?')[0] + '?_v=' + encodeURIComponent(newBuild || Date.now());
+    try{
+        sessionStorage.setItem('okane_update_in_progress','1');
+        if(newBuild){
+            localStorage.setItem('okane_current_build',newBuild);
+            localStorage.removeItem('okane_cd329f3d3e55ddbcdc5485e272826d7653df873c_build');
+        }
+    }catch(e){}
+
+    var reloaded=false;
+    var reloadNow=function(){
+        if(reloaded)return;
+        reloaded=true;
+        window.location.replace(buildDeployReloadUrl(deployKey));
     };
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(regs) {
-            var promises = regs.map(function(r) { return r.unregister(); });
-            return Promise.all(promises);
-        }).then(reloadNow).catch(reloadNow);
-    } else {
-        reloadNow();
-    }
+
+    setTimeout(reloadNow,2000);
+    clearAllCaches()
+        .then(cleanupServiceWorkers)
+        .then(reloadNow)
+        .catch(reloadNow);
 }
 
 
@@ -3938,6 +3980,7 @@ document.addEventListener('keydown',function(e){
 });
 window.addEventListener('load',function(){
     finalizePendingUpdateState();
+    clearUpdateInProgress();
     scheduleUpdateChecks();
     initGlobalCMS().then(function(){
         var t=window.OkaneCMS&&OkaneCMS.data.meta&&OkaneCMS.data.meta.default_theme;
