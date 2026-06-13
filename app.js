@@ -89,7 +89,7 @@ var CHART_COLORS=['#CC6F54','#DFA271','#B7835F','#E7C7A7','#B98A79','#8FB7AA','#
 var THEMES=[
     {id:'light',name:'Champagne Luxe',dots:['#F8F4EC','#CC6F54','#EEE5D8'],free:true}
 ];
-var APP_VER='0.3.3';
+var APP_VER='0.3.4';
 var APP_BUILD_SHA='6e94e32069ddf25edcb9b3555cbe7e279d0b196b';
 var SUPABASE_URL = 'https://xdbsyiigkyafoohqqffx.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_SKWRc9CCCsQxOhpq6NlNaQ_zsx9hBx4';
@@ -2060,7 +2060,7 @@ var s=gs(),hidden=!!s.savHidden;
 var h='<div class="sav-bar" onclick="openSavings()" role="button" tabindex="0"><div class="sav-bar-l">'+IC.save+'<span>เงินเก็บ</span></div><div class="sav-bar-r"><span class="sav-bar-amt '+(hidden?'hide':'')+'" data-tween-key="sav-bal" data-tween-target="'+Number(savBal||0)+'" data-tween-fmt="plain">'+fmt(savBal)+'</span><span class="sav-bar-amt-mask '+(hidden?'':'hide')+'">'+fmt(savBal).replace(/[0-9]/g,'*')+'</span><button class="sav-bar-eye" onclick="event.stopPropagation();toggleSavHide(!getSavHidden())" title="'+(hidden?'แสดง':'ซ่อน')+'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">'+(hidden?'<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>')+'</svg></button></div></div>';
 return h}
 function tctBarH(){
-return '<div class="sav-bar tct-bar" onclick="openThaiChueayThai()" role="button" tabindex="0" aria-label="ไทยช่วยไทยพลัส"><img src="./assets/thai-chueay-thai-logo.png" alt="ไทยช่วยไทย" class="tct-bar-logo"></div>'}
+return '<div class="tct-bar" onclick="openThaiChueayThai()" role="button" tabindex="0" aria-label="ไทยช่วยไทยพลัส"><span class="tct-bar-logo-wrap" aria-hidden="true"><img src="./assets/thai-chueay-thai-logo.png" alt="ไทยช่วยไทย" class="tct-bar-logo"></span></div>'}
 function getSavHidden(){var s=gs();return!!s.savHidden}
 function toggleSavHide(v){var s=gs();s.savHidden=v;syncNow(s);render()}
 

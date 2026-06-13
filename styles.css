@@ -117,8 +117,108 @@
 }
 .sav-bar-r{display:flex;align-items:center;gap:8px;position:relative}.sav-bar-amt{font-size:16px;font-weight:800;font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:var(--tx);transition:opacity .3s ease,filter .3s ease;opacity:1;filter:blur(0)}.sav-bar-amt.hide{opacity:0;filter:blur(8px);position:absolute;pointer-events:none}.sav-bar-amt-mask{font-size:16px;font-weight:800;font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:var(--tx3);transition:opacity .3s ease,filter .3s ease;opacity:1;filter:blur(0)}.sav-bar-amt-mask.hide{opacity:0;filter:blur(8px);position:absolute;pointer-events:none}
 .sav-bar-eye{width:36px;height:36px;border-radius:10px;border:1px solid var(--cb);background:var(--card2);color:var(--tx3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0;flex-shrink:0}.sav-bar-eye:active{transform:scale(.9)}
-.tct-bar{justify-content:center;padding:12px 16px;margin-bottom:16px}
-.tct-bar-logo{height:32px;width:auto;max-width:180px;object-fit:contain;display:block}
+.tct-bar{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px 16px;
+  margin-bottom:16px;
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  border-radius:20px;
+  cursor:pointer;
+  transition:transform .2s,box-shadow .2s;
+  border:1px solid rgba(54,107,177,.22);
+  box-shadow:0 4px 16px rgba(54,107,177,.08),inset 0 1px 0 rgba(255,255,255,.72);
+  background:#f7fcfd !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+}
+.tct-bar::before,
+.tct-bar::after{
+  content:'';
+  position:absolute;
+  pointer-events:none;
+  border-radius:50%;
+}
+.tct-bar::before{
+  inset:-25% -8%;
+  z-index:0;
+  background:
+    radial-gradient(circle at 0% 50%, rgba(54,107,177,.92) 0%, transparent 58%),
+    radial-gradient(circle at 100% 50%, rgba(172,226,141,.94) 0%, transparent 58%);
+  filter:blur(20px);
+}
+.tct-bar::after{
+  width:46%;
+  height:155%;
+  left:50%;
+  top:50%;
+  z-index:1;
+  transform:translate(-50%,-50%);
+  background:#f7fcfd;
+  filter:blur(18px);
+  opacity:.96;
+}
+.tct-bar-logo-wrap{
+  position:relative;
+  z-index:2;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  border-radius:10px;
+  isolation:isolate;
+}
+.tct-bar-logo-wrap::after{
+  content:'';
+  position:absolute;
+  inset:-35% -90%;
+  background:linear-gradient(108deg,transparent 36%,rgba(255,255,255,.62) 50%,transparent 64%);
+  transform:translateX(-140%) skewX(-14deg);
+  opacity:0;
+  pointer-events:none;
+  z-index:1;
+  animation:tctLogoSheen 8s linear .55s infinite;
+}
+.tct-bar-logo{
+  height:32px;
+  width:auto;
+  max-width:180px;
+  object-fit:contain;
+  display:block;
+  position:relative;
+  z-index:0;
+  transform-origin:center center;
+  will-change:transform;
+  animation:tctLogoWiggle 2.6s cubic-bezier(.45,.05,.25,1) 2.6s infinite;
+}
+@keyframes tctLogoSheen{
+  0%,30%,100%{
+    transform:translateX(-140%) skewX(-14deg);
+    opacity:0;
+  }
+  3%{opacity:.72}
+  25%{
+    transform:translateX(140%) skewX(-14deg);
+    opacity:0;
+  }
+}
+@keyframes tctLogoWiggle{
+  0%,100%{transform:rotate(0deg) translateY(0) scale(1)}
+  14%{transform:rotate(-2.4deg) translateY(-1.6px) scale(1.028)}
+  28%{transform:rotate(2.1deg) translateY(0) scale(1.018)}
+  42%{transform:rotate(-1.5deg) translateY(-.6px) scale(1.022)}
+  56%{transform:rotate(1.1deg) translateY(0) scale(1.012)}
+  70%{transform:rotate(-.7deg) translateY(0) scale(1.008)}
+  84%{transform:rotate(.35deg) translateY(0) scale(1.004)}
+}
+.tct-bar:hover{
+  box-shadow:0 6px 22px rgba(54,107,177,.14),inset 0 1px 0 rgba(255,255,255,.78) !important;
+  transform:translateY(-2px);
+}
+.tct-bar:active{transform:scale(.98)}
 .tct-panel{padding:4px 0}
 .tct-desc{font-size:12px;line-height:1.5;color:var(--tx3);margin:0 0 14px}
 .tct-lbl{display:block;font-size:12px;font-weight:700;color:var(--tx2);margin:0 0 6px}
@@ -2617,6 +2717,7 @@ svg {
   .ri svg,.qa-cat svg,.cat-item svg,.fab-c svg,.ni svg{animation:none !important}
   .hero-mesh,.dh-mesh,.ic-mesh{animation:none !important}
   .hero.pos::after,.hero.neg::before{animation:none !important}
+  .tct-bar-logo-wrap::after,.tct-bar-logo{animation:none !important}
 }
 
 /* =====================================================
@@ -5932,4 +6033,12 @@ body.hdr-menu-open #app > .bnav{filter:none !important;transform:none !important
 }
 .ins-card .ip-title svg{
   color:var(--ac) !important;
+}
+
+/* Thai Chueay Thai — keep brand mesh off global .sav-bar skin */
+.tct-bar{
+  background-color:#f7fcfd !important;
+  background-image:none !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
 }
