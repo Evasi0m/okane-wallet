@@ -87,9 +87,11 @@ var LEGACY_CATS={
 var UI_CAT_COLOR='#CC6F54',UI_INCOME_COLOR='#3FA78E';
 var CHART_COLORS=['#CC6F54','#DFA271','#B7835F','#E7C7A7','#B98A79','#8FB7AA','#C9A45E','#A98C76'];
 var THEMES=[
-    {id:'light',name:'Champagne Luxe',dots:['#F8F4EC','#CC6F54','#EEE5D8'],free:true}
+    {id:'light',name:'Champagne Luxe',dots:['#F8F6F0','#CC785C','#F5F0E4'],metaColor:'#F8F4EC',free:true},
+    {id:'pink-vanilla',name:'Pink Vanilla',dots:['#FBF5A7','#FF62BB','#B331F1'],metaColor:'#FBF5A7',free:true},
+    {id:'pistachio-nature',name:'Pistachio Nature',dots:['#F7F1DE','#B0BA99','#9D6638'],metaColor:'#F7F1DE',free:true}
 ];
-var APP_VER='0.3.4';
+var APP_VER='0.3.5';
 var APP_BUILD_SHA='6e94e32069ddf25edcb9b3555cbe7e279d0b196b';
 var SUPABASE_URL = 'https://xdbsyiigkyafoohqqffx.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_SKWRc9CCCsQxOhpq6NlNaQ_zsx9hBx4';
@@ -1774,7 +1776,7 @@ function doForceUpdate() {
 
 /* ===== THEME ===== */
 function validThemeId(id){return THEMES.some(function(t){return t.id===id})?id:'light'}
-function applyTheme(id){id=validThemeId(id);document.documentElement.setAttribute('data-theme',id);var s=gs();s.theme=id;persistStore(s,false)}
+function applyTheme(id){id=validThemeId(id);document.documentElement.setAttribute('data-theme',id);var t=THEMES.find(function(x){return x.id===id})||THEMES[0];var mc=document.querySelector('meta[name="theme-color"]');if(mc&&t.metaColor)mc.setAttribute('content',t.metaColor);var s=gs();s.theme=id;persistStore(s,false)}
 function openThemePop(){openHeaderMenu('theme')}
 function closeThemePop(){document.getElementById('themePop').classList.remove('open')}
 setTimeout(function(){
@@ -3624,9 +3626,7 @@ var tipTimer;function showTip(e){var t=e.currentTarget.dataset.tip;if(!t)return;
 
 /* ===== CHARTS ===== */
 function cCl(){
-    var theme=document.documentElement.getAttribute('data-theme')||'light';
-    var dk=theme==='dark';
-    return{dk:dk,t:dk?'rgba(255,255,255,.75)':'rgba(0,0,0,.65)',g:dk?'rgba(255,255,255,.07)':'rgba(0,0,0,.07)'}
+    return{dk:false,t:'rgba(0,0,0,.65)',g:'rgba(0,0,0,.07)'}
 }
 function drawMC(d,y,m){
     if(ch){ch.destroy();ch=null}

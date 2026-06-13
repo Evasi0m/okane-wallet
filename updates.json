@@ -1,8 +1,16 @@
 {
-  "version": "0.3.4",
+  "version": "0.3.5",
   "buildSha": "pending-deploy",
   "releasedAt": "2026-06-13T00:00:00Z",
   "releaseNotes": [
+    {
+      "version": "0.3.5",
+      "date": "2026-06-13",
+      "changes": [
+        "เพิ่มธีม Pink Vanilla และ Pistachio Nature — เลือกได้จากเมนู ธีม",
+        "ปรับระบบ theme ให้ Champagne Luxe ไม่ทับธีมอื่น และ sync สี status bar ตามธีมที่เลือก"
+      ]
+    },
     {
       "version": "0.3.4",
       "date": "2026-06-13",

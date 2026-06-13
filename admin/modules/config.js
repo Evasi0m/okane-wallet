@@ -44,9 +44,9 @@
       host.innerHTML =
         '<div class="adm-card"><div class="adm-card-t">App meta</div>' +
         '<label style="font-size:13px;display:block;margin-bottom:6px">Default theme</label>' +
-        '<div class="adm-row"><select class="adm-inp" id="admCfgTheme" style="max-width:200px;margin:0">' +
-        ['light', 'dark', 'rose', 'earth1', 'earth2', 'lego', 'cheese'].map(function (t) {
-          return '<option value="' + t + '"' + (meta.default_theme === t ? ' selected' : '') + '>' + t + '</option>';
+        '<div class="adm-row"><select class="adm-inp" id="admCfgTheme" style="max-width:240px;margin:0">' +
+        [{ id: 'light', label: 'Champagne Luxe' }, { id: 'pink-vanilla', label: 'Pink Vanilla' }, { id: 'pistachio-nature', label: 'Pistachio Nature' }].map(function (t) {
+          return '<option value="' + t.id + '"' + (meta.default_theme === t.id ? ' selected' : '') + '>' + t.label + '</option>';
         }).join('') +
         '</select><button type="button" class="btn btn-ac" onclick="AdminConfig.saveTheme()">บันทึก</button></div>' +
         '<p style="font-size:11px;color:var(--tx3);margin-top:10px">updated_at: ' + (meta.updated_at || '—') + '</p></div>' +

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'okane-v0.3.4-tct-card-polish-v1';
+const CACHE_NAME = 'okane-v0.3.5-themes-pink-pistachio-v1';
 const CACHE_URLS = [
   './',
   './index.html',
