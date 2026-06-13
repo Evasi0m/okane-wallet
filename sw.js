@@ -1,4 +1,4 @@
-const CACHE_NAME = 'okane-v0.3.2-update-fix-v1';
+const CACHE_NAME = 'okane-v0.3.3-thai-chueay-thai-v1';
 const CACHE_URLS = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const CACHE_URLS = [
   './shared/cms-core.js',
   './assets/okane-mascot.svg',
   './assets/income-wallet.svg',
+  './assets/thai-chueay-thai-logo.png',
   './updates.json',
   './admin/',
   './admin/index.html',

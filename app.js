@@ -89,7 +89,7 @@ var CHART_COLORS=['#CC6F54','#DFA271','#B7835F','#E7C7A7','#B98A79','#8FB7AA','#
 var THEMES=[
     {id:'light',name:'Champagne Luxe',dots:['#F8F4EC','#CC6F54','#EEE5D8'],free:true}
 ];
-var APP_VER='0.3.2';
+var APP_VER='0.3.3';
 var APP_BUILD_SHA='6e94e32069ddf25edcb9b3555cbe7e279d0b196b';
 var SUPABASE_URL = 'https://xdbsyiigkyafoohqqffx.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_SKWRc9CCCsQxOhpq6NlNaQ_zsx9hBx4';
@@ -2059,6 +2059,8 @@ function savTabH(savBal){
 var s=gs(),hidden=!!s.savHidden;
 var h='<div class="sav-bar" onclick="openSavings()" role="button" tabindex="0"><div class="sav-bar-l">'+IC.save+'<span>เงินเก็บ</span></div><div class="sav-bar-r"><span class="sav-bar-amt '+(hidden?'hide':'')+'" data-tween-key="sav-bal" data-tween-target="'+Number(savBal||0)+'" data-tween-fmt="plain">'+fmt(savBal)+'</span><span class="sav-bar-amt-mask '+(hidden?'':'hide')+'">'+fmt(savBal).replace(/[0-9]/g,'*')+'</span><button class="sav-bar-eye" onclick="event.stopPropagation();toggleSavHide(!getSavHidden())" title="'+(hidden?'แสดง':'ซ่อน')+'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">'+(hidden?'<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>')+'</svg></button></div></div>';
 return h}
+function tctBarH(){
+return '<div class="sav-bar tct-bar" onclick="openThaiChueayThai()" role="button" tabindex="0" aria-label="ไทยช่วยไทยพลัส"><img src="./assets/thai-chueay-thai-logo.png" alt="ไทยช่วยไทย" class="tct-bar-logo"></div>'}
 function getSavHidden(){var s=gs();return!!s.savHidden}
 function toggleSavHide(v){var s=gs();s.savHidden=v;syncNow(s);render()}
 
@@ -2216,6 +2218,7 @@ var h='';
 
 // Hero
 h+=heroH('\u0E40\u0E07\u0E34\u0E19\u0E04\u0E07\u0E40\u0E2B\u0E25\u0E37\u0E2D '+TMF[vm]+' '+vy,c.r,c.tI,c.tE,{key:'dhero',date:{label:dateNumLabel(vy,vm,viewDate.getDate()),onclick:'openCal()'}});
+h+=tctBarH();
 h+=savTabH(savBal);
 var carryTotal=(c.carryIn?Number(c.carryIn.rem||0)+sumMap(c.carryIn.cat):0);
 if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:var(--font-sans)">-'+fmt(carryTotal)+'</span></div>';
@@ -2878,6 +2881,43 @@ document.getElementById('svB').innerHTML=h}
 function doSavAdd(){var amt=Number(document.getElementById('svAmt').value)||0;if(amt<=0)return;var src=document.querySelector('input[name=svSrc]:checked').value;if(src==='remaining'){var now8c=getBangkokNow();var curC=calc(now8c.getFullYear(),now8c.getMonth());if(curC.r<amt){if(!confirm('เงินคงเหลือเดือนนี้ ('+fmt(curC.r)+') น้อยกว่ายอดที่ต้องการโอน ('+fmt(amt)+')\nต้องการดำเนินการต่อหรือไม่?'))return}}var note=document.getElementById('svNote').value||'';var now8=getBangkokNow();var s=gs();if(!s.savings)s.savings={balance:0,history:[]};s.savings.history.push({id:genId('sv'),date:dKey(now8),type:'add',amount:amt,source:src,note:note,monthKey:mk(now8.getFullYear(),now8.getMonth())});recalcSavingsBalance(s);syncNow(s);savTab='history';renderSavings();render()}
 function doSavWd(){var amt=Number(document.getElementById('svWAmt').value)||0;if(amt<=0)return;var curBal=getSavings().balance;if(amt>curBal){if(!confirm('ยอดถอน ('+fmt(amt)+') มากกว่ายอดคงเหลือ ('+fmt(curBal)+')\nต้องการดำเนินการต่อหรือไม่?'))return;amt=curBal}var note=document.getElementById('svWNote').value||'';var now9=getBangkokNow();var s=gs();if(!s.savings)s.savings={balance:0,history:[]};s.savings.history.push({id:genId('sv'),date:dKey(now9),type:'withdraw',amount:amt,note:note,monthKey:mk(now9.getFullYear(),now9.getMonth())});recalcSavingsBalance(s);syncNow(s);savTab='history';renderSavings();render()}
 /* savAutoTransfer removed */
+
+/* ===== THAI CHUEAY THAI CALC ===== */
+function calcThaiChueayThai(mealCost, remainingDaily){
+    var meal=Math.max(0,Number(mealCost)||0);
+    var remain=Number(remainingDaily);
+    if(!Number.isFinite(remain)||remain<=0)remain=200;
+    var govTheoretical=meal*0.6;
+    var govPay=Math.min(govTheoretical,remain);
+    var userPay=Math.max(0,meal-govPay);
+    return{meal:meal,remain:remain,govPay:govPay,userPay:userPay};
+}
+function openThaiChueayThai(){renderThaiChueayThai();document.getElementById('tctM').classList.add('open')}
+function closeThaiChueayThai(){document.getElementById('tctM').classList.remove('open')}
+function tctRecalc(){
+    var mealEl=document.getElementById('tctMeal');
+    var remainEl=document.getElementById('tctRemain');
+    if(!mealEl)return;
+    var r=calcThaiChueayThai(mealEl.value,remainEl?remainEl.value:'');
+    var govEl=document.getElementById('tctGovPay');
+    var userEl=document.getElementById('tctUserPay');
+    if(govEl)govEl.textContent=fmt(r.govPay);
+    if(userEl)userEl.textContent=fmt(r.userPay);
+}
+function renderThaiChueayThai(){
+    var h='<div class="tct-panel"><p class="tct-desc">โครงการไทยช่วยไทยพลัส (60/40) — รัฐช่วย 60% คุณจ่าย 40% จำกัดสิทธิไม่เกิน 200 บาท/วัน และ 1,000 บาท/เดือน</p>';
+    h+='<label class="tct-lbl" for="tctMeal">ค่าอาหารมื้อนี้</label>';
+    h+='<input class="inp" type="number" id="tctMeal" placeholder="0" min="0" inputmode="decimal" oninput="tctRecalc()">';
+    h+='<label class="tct-lbl" for="tctRemain">สิทธิคงเหลือวันนี้ (ไม่กรอก = 200)</label>';
+    h+='<input class="inp" type="number" id="tctRemain" placeholder="200" min="0" inputmode="decimal" oninput="tctRecalc()">';
+    h+='<div class="tct-result"><div class="tct-result-lb">คุณจ่าย</div><div class="tct-result-v" id="tctUserPay">0.00</div></div>';
+    h+='<div class="tct-split"><span>รัฐช่วยจ่าย</span><span id="tctGovPay">0.00</span></div>';
+    h+='</div>';
+    h+='<div style="margin-top:12px"><button class="btn btn-gh btn-full" onclick="closeThaiChueayThai()">ปิด</button></div>';
+    document.getElementById('tctB').innerHTML=h;
+    tctRecalc();
+}
+document.getElementById('tctM').addEventListener('click',function(e){if(e.target===this)closeThaiChueayThai()});
 
 /* ===== QUICK ADD ===== */
 var qaCat=null,qaWallet='cash';
