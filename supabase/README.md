@@ -18,6 +18,15 @@ If re-running `001` fails with `policy "... " already exists`, migration already
 
 Open the admin panel at `/okane-wallet/admin/` and sign in with that account.
 
+## Auth redirect URLs (Supabase Dashboard)
+
+In **Authentication → URL Configuration**, set **Site URL** to your app root (e.g. `https://evasi0m.github.io/okane-wallet/`) and add these **Redirect URLs**:
+
+- `https://evasi0m.github.io/okane-wallet/`
+- `https://evasi0m.github.io/okane-wallet/index.html`
+
+Admin Google login uses the main app URL for OAuth (Supabase allowlist), then returns to `/admin/` automatically. Optionally add `/admin/` URLs too if you want OAuth to land there directly.
+
 ## Tables
 
 | Table | Purpose |

@@ -1,0 +1,63 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stamp deploy build in updates.json
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'updates.json';
+          const data = JSON.parse(fs.readFileSync(path, 'utf8'));
+          data.buildSha = process.env.GITHUB_SHA;
+          data.releasedAt = new Date().toISOString();
+          fs.writeFileSync(path, JSON.stringify(data, null, 2) + '\n');
+          console.log('Deployed buildSha:', data.buildSha);
+          NODE
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+
+      - name: Prepare site bundle
+        run: |
+          mkdir site
+          rsync -a \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'site/' \
+            --exclude 'node_modules/' \
+            --exclude '.kiro/' \
+            --exclude '.claude/' \
+            --exclude '*.test.js' \
+            --exclude '*.test.py' \
+            --exclude 'app.js.bak' \
+            --exclude '__head_app.js' \
+            ./ site/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

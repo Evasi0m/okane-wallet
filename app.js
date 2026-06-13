@@ -89,7 +89,7 @@ var CHART_COLORS=['#CC6F54','#DFA271','#B7835F','#E7C7A7','#B98A79','#8FB7AA','#
 var THEMES=[
     {id:'light',name:'Champagne Luxe',dots:['#F8F4EC','#CC6F54','#EEE5D8'],free:true}
 ];
-var APP_VER='0.3.0';
+var APP_VER='0.3.1';
 var APP_BUILD_SHA='6e94e32069ddf25edcb9b3555cbe7e279d0b196b';
 var SUPABASE_URL = 'https://xdbsyiigkyafoohqqffx.supabase.co';
 var SUPABASE_KEY = 'sb_publishable_SKWRc9CCCsQxOhpq6NlNaQ_zsx9hBx4';
@@ -600,6 +600,15 @@ function authFriendlyError(msg){
     if(/password/i.test(m)&&/short|weak/i.test(m))return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร มีตัวพิมพ์ใหญ่ 1 ตัว และมีตัวเลขอย่างน้อย 4 ตัว';
     return m||'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
 }
+function consumeAdminOAuthReturn(){
+    try{
+        var url=sessionStorage.getItem('okane_admin_oauth');
+        if(!url)return false;
+        sessionStorage.removeItem('okane_admin_oauth');
+        window.location.replace(url);
+        return true;
+    }catch(e){return false}
+}
 function initSupabaseAuth() {
     supabase.auth.onAuthStateChange(function(event, session) {
         if (session) {
@@ -616,6 +625,7 @@ function initSupabaseAuth() {
                 provider: provider
             };
             if(event==='PASSWORD_RECOVERY'){showPasswordRecovery();return}
+            if(consumeAdminOAuthReturn())return;
             checkAndHandleMigration(supabaseUserId).then(function() {
                 finishAuth(false);
             });
@@ -1547,8 +1557,6 @@ function enterApp(){
     if(!wasShown&&pinEnabled()){showPinLock('unlock',{title:'ใส่ PIN เพื่อปลดล็อก',sub:'เพื่อความปลอดภัยของข้อมูล',len:4,autoSubmit:true,canCancel:false})}
     if(!_pollTimer)_pollTimer=setInterval(function(){supabasePollSync()},5*60*1000);
     if(!_visListenerAdded){_visListenerAdded=true;document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')setTimeout(supabasePollSync,1000)})}
-    // Check for new version after a short delay so UI is ready first
-    setTimeout(checkForUpdate, 2000);
 }
 function showGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.add('open')}
 function closeGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.remove('open')}
@@ -1556,33 +1564,26 @@ function checkSession(){
     initSupabaseAuth();
 }
 
-/* ===== FORCE UPDATE SYSTEM ===== */
-var GITHUB_REPO = 'Evasi0m/okane-wallet';
-var GITHUB_BRANCH = 'main';
+/* ===== FORCE UPDATE SYSTEM (deploy-based) ===== */
 var _updateChecked = false;
+var UPDATE_POLL_MS = 3 * 60 * 1000;
 
-function currentBuildKey(){
-    return APP_BUILD_SHA || APP_VER || 'dev';
+function getAcknowledgedBuild(){
+    try{return localStorage.getItem('okane_current_build')||''}catch(e){return''}
 }
-function updateBuildKey(info){
-    if(!info)return'';
-    return String(info.buildSha || info.version || '').trim();
+function getDeployedBuildKey(info){
+    return String(info&&info.buildSha||'').trim();
 }
-function isVersionNewer(latest,current){
-    var l=String(latest||'').split('.').map(function(x){return Number(x)||0});
-    var c=String(current||'').split('.').map(function(x){return Number(x)||0});
-    for(var i=0;i<Math.max(l.length,c.length,3);i++){
-        var lv=l[i]||0,cv=c[i]||0;
-        if(lv>cv)return true;
-        if(lv<cv)return false;
-    }
-    return false;
+function hasNewDeploy(info){
+    var deployed=getDeployedBuildKey(info);
+    if(!deployed)return false;
+    var ack=getAcknowledgedBuild();
+    if(!ack)return false;
+    return deployed!==ack;
 }
-function isUpdateNewer(info){
-    var latestKey=updateBuildKey(info);
-    if(!latestKey)return false;
-    if(info.version&&APP_VER&&isVersionNewer(info.version,APP_VER))return true;
-    return !!(info.buildSha&&APP_BUILD_SHA&&info.buildSha!==APP_BUILD_SHA);
+function seedAcknowledgedBuild(deployed){
+    if(!deployed)return;
+    try{localStorage.setItem('okane_current_build',deployed)}catch(e){}
 }
 function fetchUpdateInfo(){
     return fetch('./updates.json?nocache=' + Date.now(), { cache: 'no-store' })
@@ -1592,73 +1593,80 @@ function recordUpdateCheck(info){
     try{
         var meta={
             checkedAt:new Date().toISOString(),
-            currentVersion:APP_VER,
-            currentBuild:currentBuildKey(),
+            acknowledgedBuild:getAcknowledgedBuild(),
             latestVersion:info&&info.version||'',
-            latestBuild:updateBuildKey(info)
+            latestDeploy:getDeployedBuildKey(info)
         };
         localStorage.setItem('okane_update_check',JSON.stringify(meta));
     }catch(e){}
 }
 function finalizePendingUpdateState(){
     try{
-        var cd329f3d3e55ddbcdc5485e272826d7653df873c=localStorage.getItem('okane_cd329f3d3e55ddbcdc5485e272826d7653df873c_build');
-        if(cd329f3d3e55ddbcdc5485e272826d7653df873c&&cd329f3d3e55ddbcdc5485e272826d7653df873c===currentBuildKey()){
-            localStorage.setItem('okane_current_build',currentBuildKey());
+        var pending=localStorage.getItem('okane_cd329f3d3e55ddbcdc5485e272826d7653df873c_build');
+        if(pending){
+            localStorage.setItem('okane_current_build',pending);
             localStorage.removeItem('okane_cd329f3d3e55ddbcdc5485e272826d7653df873c_build');
         }
     }catch(e){}
 }
 function updateStatusText(){
     try{
+        var ack=getAcknowledgedBuild();
+        var buildLabel=ack?ack.slice(0,7):'—';
         var raw=localStorage.getItem('okane_update_check');
-        if(!raw)return'Build '+currentBuildKey().slice(0,7);
+        if(!raw)return'Deploy '+buildLabel;
         var meta=JSON.parse(raw)||{};
         var checked=meta.checkedAt?new Date(meta.checkedAt).toLocaleString('th-TH',{hour12:false,month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'-';
         var latest=meta.latestVersion?(' • ล่าสุด v'+meta.latestVersion):'';
-        return 'Build '+currentBuildKey().slice(0,7)+' • เช็คล่าสุด '+checked+latest;
+        return 'Deploy '+buildLabel+' • เช็คล่าสุด '+checked+latest;
     }catch(e){
-        return 'Build '+currentBuildKey().slice(0,7);
+        return 'Deploy '+(getAcknowledgedBuild().slice(0,7)||'—');
     }
-}
-function checkGitHubCommitForDiagnostics(){
-    var apiUrl = 'https://api.github.com/repos/' + GITHUB_REPO + '/commits/' + GITHUB_BRANCH;
-    return fetch(apiUrl, {
-        headers: { 'Accept': 'application/vnd.github.v3+json' },
-        cache: 'no-store'
-    }).then(function(res){return res.ok?res.json():null}).then(function(data){
-        if(data&&data.sha){
-            try{localStorage.setItem('okane_latest_github_sha',data.sha)}catch(e){}
-        }
-        return data;
-    }).catch(function(){return null});
 }
 function checkForUpdate() {
     if (_updateChecked) return;
     _updateChecked = true;
     fetchUpdateInfo().then(function(info) {
-        if(!info)return checkGitHubCommitForDiagnostics();
+        if(!info){
+            _updateChecked=false;
+            return;
+        }
         recordUpdateCheck(info);
-        var latestKey=updateBuildKey(info);
-        if(!latestKey)return null;
-        var storedBuild=localStorage.getItem('okane_current_build');
-        if(!storedBuild){
-            localStorage.setItem('okane_current_build',currentBuildKey());
+        var deployed=getDeployedBuildKey(info);
+        if(!deployed){
+            _updateChecked=false;
+            return;
         }
-        if(isUpdateNewer(info)){
-            showUpdateOverlay(latestKey, info);
-            return null;
+        if(!getAcknowledgedBuild()){
+            seedAcknowledgedBuild(deployed);
+            return;
         }
-        localStorage.setItem('okane_current_build',currentBuildKey());
-        return checkGitHubCommitForDiagnostics();
+        if(hasNewDeploy(info)){
+            showUpdateOverlay(deployed, info);
+        }
     }).catch(function() {
-        checkGitHubCommitForDiagnostics();
+        _updateChecked=false;
+    });
+}
+function scheduleUpdateChecks(){
+    if(window._okaneUpdateChecksScheduled)return;
+    window._okaneUpdateChecksScheduled=true;
+    setTimeout(checkForUpdate,2000);
+    setInterval(function(){
+        _updateChecked=false;
+        checkForUpdate();
+    },UPDATE_POLL_MS);
+    document.addEventListener('visibilitychange',function(){
+        if(document.visibilityState==='visible'){
+            _updateChecked=false;
+            setTimeout(checkForUpdate,800);
+        }
     });
 }
 
 function showUpdateOverlay(newBuild, info) {
     var overlay = document.getElementById('updateOverlay');
-    if (!overlay) return;
+    if (!overlay || overlay.classList.contains('show')) return;
 
     // Populate version
     var ver = (info && info.version) ? 'v' + info.version : '';
@@ -1683,7 +1691,7 @@ function showUpdateOverlay(newBuild, info) {
         });
     }
 
-    overlay._newBuild = newBuild || updateBuildKey(info);
+    overlay._newBuild = newBuild || getDeployedBuildKey(info);
 
     // Block keyboard close
     overlay.addEventListener('keydown', function(e) {
@@ -3930,6 +3938,7 @@ document.addEventListener('keydown',function(e){
 });
 window.addEventListener('load',function(){
     finalizePendingUpdateState();
+    scheduleUpdateChecks();
     initGlobalCMS().then(function(){
         var t=window.OkaneCMS&&OkaneCMS.data.meta&&OkaneCMS.data.meta.default_theme;
         if(t&&typeof applyTheme==='function')applyTheme(t)

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'okane-v0.3.0-global-cms-v1';
+const CACHE_NAME = 'okane-v0.3.1-deploy-update-v1';
 const CACHE_URLS = [
   './',
   './index.html',

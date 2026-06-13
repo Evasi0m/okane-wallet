@@ -61,6 +61,7 @@
       showGate();
       return;
     }
+    try { sessionStorage.removeItem('okane_admin_oauth'); } catch (e) {}
     state.user = session.user;
     try {
       state.isAdmin = await checkAdmin(session.user.id);
@@ -124,10 +125,29 @@
     await afterAuth(res.data.session);
   }
 
+  function getAppBasePath() {
+    var path = window.location.pathname;
+    path = path.replace(/\/admin(\/index\.html)?\/?$/i, '');
+    path = path.replace(/\/index\.html$/i, '');
+    if (path.slice(-1) !== '/') path += '/';
+    return path;
+  }
+
+  function getMainAppOAuthRedirect() {
+    return window.location.origin + getAppBasePath();
+  }
+
+  function getAdminUrl() {
+    return window.location.origin + getAppBasePath() + 'admin/';
+  }
+
   function googleLogin() {
+    try {
+      sessionStorage.setItem('okane_admin_oauth', getAdminUrl());
+    } catch (e) {}
     supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.href.split('#')[0] }
+      options: { redirectTo: getMainAppOAuthRedirect() }
     });
   }
 

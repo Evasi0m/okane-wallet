@@ -1,8 +1,17 @@
 {
-  "version": "0.3.0",
-  "buildSha": "6e94e32069ddf25edcb9b3555cbe7e279d0b196b",
+  "version": "0.3.1",
+  "buildSha": "pending-deploy",
   "releasedAt": "2026-06-13T00:00:00Z",
   "releaseNotes": [
+    {
+      "version": "0.3.1",
+      "date": "2026-06-13",
+      "changes": [
+        "แก้ Admin Google login ให้กลับมาหน้า /admin/ อัตโนมัติหลัง OAuth",
+        "เปลี่ยนระบบแจ้งเตือนอัปเดตให้ trigger จาก deploy (buildSha) แทนการเช็ค app version",
+        "เพิ่ม GitHub Actions deploy ขึ้น Pages พร้อม stamp buildSha อัตโนมัติ"
+      ]
+    },
     {
       "version": "0.3.0",
       "date": "2026-06-13",
