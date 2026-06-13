@@ -21,7 +21,7 @@ Core features:
 - **Insights** — month-over-month delta, top categories, peak spending day
 - **Pie chart** — category breakdown
 - **Views**: Monthly (default), Daily, Yearly, Simulator (forward projection)
-- **Google Drive sync** — appDataFolder, single JSON file
+- **Supabase sync** — Google OAuth via Supabase Auth, normalized Supabase tables
 - **PIN lock** — SHA-256 + salt, optional
 - **9 themes** — Light, Dark, Basics, Rose, Forest, Emerald, Ocean, Cyber, Slate
 - **Privacy toggle** — blur all amount values
@@ -69,9 +69,7 @@ Single localStorage key: **`okane_v3`** → JSON store.
     theme: string
   },
 
-  cats: {                                          // categories
-    [id]: { id, name, icon, color, budget }
-  },
+  customCats: [{ id, name, icon, color, budget }], // categories
 
   savings: {
     balance: number,
@@ -93,7 +91,8 @@ Single localStorage key: **`okane_v3`** → JSON store.
   customIcons: { "ICON_LIST.<key>": "<svg>", ... },
 
   lastSync: ISO,
-  driveFileId: string,
+  isLoggedIn: boolean,
+  meta: { migratedToSupabase: boolean },
   _tombstones: { [collection]: { [id]: ts } },
   userInfo: { name, email, picture }
 }
@@ -192,10 +191,14 @@ mirrored to monthly view (read-only there, source = `shM`).
 ### Carry-forward
 `calc()` reads previous month surplus → injects as `carryIn` for current month → optional sweep to savings.
 
-### Google Drive sync
-On boot: load token → fetch `okane_data_v3.json` from `appDataFolder` → merge by `meta.updatedAt` (newer wins).
-Mutations → debounced `syncNow()` (1500 ms) → PATCH (`uploadType=media`) or multipart create.
-401 → `startSilentAuthRefresh()` → retry. Pending badge in header.
+### Supabase sync
+On boot: Supabase Auth checks the current Google OAuth session. If signed in, the app fetches data from normalized Supabase tables and either pulls, uploads, or smart-merges by `meta.updatedAt`.
+
+Mutations → `syncNow()` → `persistStore()` updates `localStorage` and queues `supabaseSync()`.
+`syncLocalToSupabase()` deletes remote rows that no longer exist locally, then upserts current local rows into Supabase.
+Failures keep `_syncPending=true`, show a Thai error badge, and retry with exponential backoff.
+
+Remote freshness is checked from `profiles.updated_at` during manual sync, visibility return, and a 5-minute polling loop.
 
 ### PIN lock
 SHA-256(salt + pin) compared on unlock. Modal blocks app on launch when `pin.enabled`.
@@ -236,24 +239,34 @@ Forest, Emerald, Ocean, Cyber (purple neon), Slate — premium.
 
 ## 6. External Integrations
 
-### Google OAuth 2.0 (token client, no server)
-- **Client ID**: `933620688457-nqv6qs8381m46t8dn8sqv0qecbcuav82.apps.googleusercontent.com`
-- **Scopes**:
-  - `https://www.googleapis.com/auth/drive.appdata`
-  - `https://www.googleapis.com/auth/userinfo.email`
-  - `https://www.googleapis.com/auth/userinfo.profile`
-- **Endpoints**:
-  - `GET https://www.googleapis.com/oauth2/v2/userinfo`
-  - `GET https://www.googleapis.com/drive/v3/files?spaces=appDataFolder`
-  - `POST https://www.googleapis.com/upload/drive/v3/files` (multipart create)
-  - `PATCH https://www.googleapis.com/upload/drive/v3/files/<id>?uploadType=media`
-- **File**: `okane_data_v3.json` in `appDataFolder`
+### Supabase
+- **URL**: `https://xdbsyiigkyafoohqqffx.supabase.co`
+- **Auth**: Supabase Auth with Google provider (`signInWithOAuth({ provider: 'google' })`)
+- **Client**: `@supabase/supabase-js@2`
+- **Tables**:
+  - `profiles`
+  - `wallets`
+  - `categories`
+  - `monthly_budgets`
+  - `category_budgets`
+  - `additional_income`
+  - `transactions`
+  - `savings_history`
+  - `shopee_installments`
+  - `recurring_expenses`
+  - `savings_goals`
+  - `budget_templates`
+  - `custom_icons` (per-user category overrides only; global icons use `global_icons`)
+  - `global_icons` (app-wide SVG overrides, public read)
+  - `app_strings` (editable UI copy, public read)
+  - `app_meta` (singleton config + asset map)
+  - `app_assets` (asset URL registry)
+  - `profiles.is_admin` (admin gate for `/admin/` CMS)
 
-For iOS: use `GoogleSignIn-iOS` SDK or `ASWebAuthenticationSession` + manual Drive REST.
-**Generate a new iOS OAuth client** in the same GCP project (different bundle id).
+For iOS: use the Supabase Swift SDK or direct Supabase REST/Auth APIs. Keep the local `okane_v3` JSON shape for offline parity and migration.
 
-### No other backend
-All compute client-side; no analytics, no ads.
+### No Other Backend
+All app data sync goes through Supabase. There is no Google Drive backup path, analytics backend, or ads backend.
 
 ---
 
@@ -264,15 +277,15 @@ All compute client-side; no analytics, no ads.
 3. **Lazy month creation** — `gm(y,m)` materializes `mo["YYYY-MM"]` on access only when writing.
 4. **Shopee** — source of truth is `shM`, monthly view value is virtual.
 5. **Carry-forward** — `calc()` produces `carryIn` map.
-6. **Custom icons** — `customIcons` overrides `ICON_LIST` / `IC` at boot.
+6. **Custom icons** — global overrides in Supabase `global_icons` (via `/admin/#icons`); legacy `customIcons` in `okane_v3` still merges for per-user `ICON_LIST.*` when no global row exists.
 7. **Bangkok timezone** for all date keys — do not use device local time.
 8. **Canvas pie chart** (`drawMC()`); in SwiftUI use Swift Charts `SectorMark`.
 9. **Undo toast** — `_lastDelete` snapshot, 5 s window.
-10. **Sync pending badge** + exponential backoff on 401.
+10. **Sync pending badge** + Supabase/network error mapping + exponential backoff.
 11. **rMonth split** — recent change: separate expense value-edit from category manage (commit `8afefcd`).
 12. **FAB on mobile** — opens numeric keyboard immediately on tap (commit `6c027a3`); replicate via `@FocusState` + `.keyboardType(.decimalPad)` first-responder hack on appear.
-13. **Inline SVG editor** — admin/icons editor (`icons.html`, `icons.js`) — out of scope for v1 iOS.
-14. **Admin login** — `ADMIN_PASS_HASH` (commit `9f3f797`) gates the SVG editor; not needed in iOS unless porting that surface.
+13. **Admin CMS** — `/admin/` panel (Supabase auth + `profiles.is_admin`): global SVG import, strings, assets, config. Legacy `icons.html` redirects to admin.
+14. **Admin login** — replaced client-side hash gate; use Supabase admin flag instead.
 
 ---
 
@@ -300,8 +313,8 @@ Architecture suggestion: **MVVM** with a single `Store: ObservableObject` mirror
 - [ ] Theme: `enum Theme: String, CaseIterable` → `Palette` struct injected via `Environment`
 - [ ] Privacy: view modifier `.redacted(reason: .privacy)` or custom blur
 - [ ] PIN: `CryptoKit.SHA256`; consider Keychain for hash + salt; LocalAuthentication for Face ID upgrade later
-- [ ] Google Sign-In: `GoogleSignIn-iOS` SPM package, then raw URLSession against Drive REST
-- [ ] Sync: actor-based debounce (1500 ms), background `URLSession`, retry on 401 → silent refresh
+- [ ] Supabase Auth: Google provider sign-in via Supabase Swift SDK or `ASWebAuthenticationSession`
+- [ ] Sync: actor-based debounce, normalized Supabase table pull/upsert/delete, retry/backoff on network or auth failures
 - [ ] Tombstones — replicate `_tombstones` dictionary on delete operations
 - [ ] Localization — all strings to `Localizable.strings` (th as default)
 - [ ] Custom SVG icons — render via `WKWebView` snapshot or convert presets to SF Symbols / asset catalog
@@ -312,7 +325,7 @@ Architecture suggestion: **MVVM** with a single `Store: ObservableObject` mirror
 Okane/
   Models/         Store, Transaction, Category, Wallet, Recurring, Goal, SavingsEntry
   Persistence/    LocalStore (JSON), Tombstones, Migrations
-  Sync/           DriveClient, OAuthManager, SyncQueue
+  Sync/           SupabaseClient, AuthManager, SyncQueue
   Theme/          Palette, ThemeEnvironment
   Features/
     Monthly/      MonthlyView, MonthlyVM, HeroCard, ExpenseList, PieChart
@@ -331,11 +344,11 @@ Okane/
 
 ## 10. App metadata (current web build)
 
-- Version: **0.2.2**
-- `app.js` ~ 2 176 LOC, `index.html` ~ 1.8 MB (assets inline), `styles.css` ~ 80 KB
+- Version: **0.3.0**
+- `app.js` ~ 3 900 LOC, `index.html` has inline image assets, `styles.css` ~ 3 100 LOC
 - Browser baseline: ES6+, `localStorage`, `fetch`, `crypto.subtle`
 - All UI text in Thai, Thai month names
 
 ---
 
-This document is the source of truth for the SwiftUI port. Open `app.js`, `styles.css`, `index.html` for exact field names / class names where parity matters (especially the sync JSON shape — keep keys identical so existing users' Drive backups load on iOS).
+This document is the source of truth for the SwiftUI port. Open `app.js`, `styles.css`, `index.html` for exact field names / class names where parity matters, especially the local `okane_v3` shape and Supabase table mapping.

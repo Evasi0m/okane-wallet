@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Okane Admin</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Thai:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="admin.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../shared/supabase-config.js"></script>
+<script src="../shared/svg-utils.js"></script>
+<script src="../shared/cms-core.js"></script>
+<script src="../shared/icon-defaults.js"></script>
+</head>
+<body>
+<div id="adminGate" class="adm-gate">
+  <div class="adm-gate-card">
+    <div class="adm-gate-title">Okane Admin</div>
+    <div class="adm-gate-sub" id="gateMsg">เข้าสู่ระบบด้วยบัญชีผู้ดูแล</div>
+    <button class="btn btn-ac btn-full" id="gateGoogleBtn" type="button">Continue with Google</button>
+    <div class="adm-divider"><span>หรือ</span></div>
+    <input class="adm-inp" id="gateEmail" type="email" placeholder="อีเมล" autocomplete="email">
+    <input class="adm-inp" id="gatePass" type="password" placeholder="รหัสผ่าน" autocomplete="current-password">
+    <button class="btn btn-gh btn-full" id="gateLoginBtn" type="button">เข้าสู่ระบบ</button>
+    <div class="adm-err" id="gateErr"></div>
+  </div>
+</div>
+
+<div id="adminApp" class="adm-app" hidden>
+  <aside class="adm-side">
+    <div class="adm-brand">Okane <span>Admin</span></div>
+    <nav class="adm-nav">
+      <button type="button" data-route="dashboard" class="adm-nav-item active">แดชบอร์ด</button>
+      <button type="button" data-route="icons" class="adm-nav-item">ไอคอน SVG</button>
+      <button type="button" data-route="assets" class="adm-nav-item">Assets</button>
+      <button type="button" data-route="strings" class="adm-nav-item">ข้อความ</button>
+      <button type="button" data-route="config" class="adm-nav-item">Config</button>
+    </nav>
+    <div class="adm-side-foot">
+      <div class="adm-user" id="adminUserLabel">—</div>
+      <button type="button" class="adm-link" id="adminLogoutBtn">ออกจากระบบ</button>
+      <a class="adm-link" href="../index.html" target="_blank" rel="noopener">เปิดแอปหลัก ↗</a>
+    </div>
+  </aside>
+  <main class="adm-main">
+    <header class="adm-top">
+      <h1 id="admPageTitle">แดชบอร์ด</h1>
+      <div class="adm-top-meta" id="admMetaLine">—</div>
+    </header>
+    <div id="admContent" class="adm-content"></div>
+  </main>
+</div>
+
+<div class="adm-toast" id="admToast"></div>
+
+<script src="admin.js"></script>
+<script src="modules/icons.js"></script>
+<script src="modules/assets.js"></script>
+<script src="modules/strings.js"></script>
+<script src="modules/config.js"></script>
+</body>
+</html>

@@ -1,6 +1,17 @@
 {
-  "version": "0.2.9",
+  "version": "0.3.0",
+  "buildSha": "6e94e32069ddf25edcb9b3555cbe7e279d0b196b",
+  "releasedAt": "2026-06-13T00:00:00Z",
   "releaseNotes": [
+    {
+      "version": "0.3.0",
+      "date": "2026-06-13",
+      "changes": [
+        "เพิ่ม Admin Panel (/admin/) จัดการไอคอน SVG, ข้อความ, assets และ config แบบ global",
+        "Publish ไอคอนผ่าน Supabase — ผู้ใช้ทุกคนเห็นการเปลี่ยนแปลงโดยไม่ต้อง deploy ใหม่",
+        "ปรับปรุง UI หลัก, header drawer และ sync ไอคอนราย user"
+      ]
+    },
     {
       "version": "0.2.9",
       "date": "2026-06-12",

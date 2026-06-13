@@ -1,4 +1,4 @@
-/* ===== icons.js — Admin-Only Icon Editor ===== */
+/* ===== icons.js — DEPRECATED: use /admin/#icons ===== */
 'use strict';
 
 /* ════════════════════════════════════════════
