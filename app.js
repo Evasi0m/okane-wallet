@@ -2117,14 +2117,14 @@ if(peak.v>0)h+='<div class="ip-item"><div class="ip-meta"><div class="ri rd">'+I
 h+='</div></div></div>';
 
 // INCOME
-h+='<div class="sec income-sec" style="animation-delay:.04s"><div class="sec-t income-sec-t">'+secTitle(incomeIconImg('income-sec-title-img'),'รายรับ')+'<button class="edit-btn'+(editInc?' editing':'')+'" onclick="editInc=!editInc;render()" aria-label="'+(editInc?'บันทึก':'แก้ไข')+'">'+(editInc?SVG_CHECK:SVG_PENCIL)+'</button></div><div class="sc income-sc">';
+h+='<div class="sec income-sec" style="animation-delay:.04s"><div class="sec-t income-sec-t">'+secTitle(incomeIconImg('income-sec-title-img'),'รายรับ')+'<div style="display:inline-flex;gap:6px;align-items:center"><button class="edit-btn sec-add-btn" onclick="openIncomePopup()" aria-label="เพิ่มรายรับ"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><button class="edit-btn'+(editInc?' editing':'')+'" onclick="editInc=!editInc;render()" aria-label="'+(editInc?'บันทึก':'แก้ไข')+'">'+(editInc?SVG_CHECK:SVG_PENCIL)+'</button></div></div><div class="sc income-sc">';
 h+='<div class="income-panel">';
 h+='<div class="income-main"><div class="income-main-ic">'+incomeIconImg('income-wallet-img')+'</div><div class="income-main-copy"><div class="income-main-title">\u0E40\u0E07\u0E34\u0E19\u0E40\u0E14\u0E37\u0E2D\u0E19</div><div class="income-main-sub">รายรับประจำของเดือนนี้</div></div><div class="income-main-value">';
 if(editInc)h+='<input class="edit-val income-edit-val" type="number" id="ed_sal" value="'+d.sal+'" onchange="saveField(&#39;sal&#39;,&#39;ed_sal&#39;)">';
 else h+='<span class="rv pos">'+fmt(d.sal)+'</span>';
 h+='</div></div>';
-if(d.oI.length>0){h+='<div class="income-extra"><div class="income-extra-label">รายรับเพิ่มเติม</div>';d.oI.forEach(function(x,i){h+=incomeItem(x,i)});h+='</div>'}
 h+='<button class="income-add-btn" onclick="openIncomePopup()"><span class="income-add-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span><span>เพิ่มรายรับเพิ่มเติม</span></button>';
+if(d.oI.length>0){var oiTot=d.oI.reduce(function(a,x){return a+Number(x.a||0)},0);h+='<div class="income-extra"><div class="income-extra-label"><span>รายรับเพิ่มเติม · '+d.oI.length+' รายการ</span><b class="pos">+'+fmt(oiTot)+'</b></div>';for(var oi=d.oI.length-1;oi>=0;oi--)h+=incomeItem(d.oI[oi],oi);h+='</div>'}
 h+='</div>';
 h+='</div></div>';
 
@@ -2999,6 +2999,7 @@ function renderQA(){
         h += '</div>';
     }
 
+    h += '<label class="add-another" style="margin-top:14px"><input type="checkbox"'+(window._qaAgain?' checked':'')+' onchange="window._qaAgain=this.checked"><span>บันทึกแล้วเพิ่มต่อ</span></label>';
     document.getElementById('qaB').innerHTML = h;
     requestAnimationFrame(function(){try{qaNoteChange()}catch(e){}});
 }
@@ -3041,7 +3042,9 @@ moData[cat]=budget;sm_(yr,mo,moData);
 var now2b=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));
 var log=getDayLog(dateKey);
 log.push({id:genId('dl'),a:amt,cat:cat,n:note,w:qaWallet,t:String(now2b.getHours()).padStart(2,'0')+':'+String(now2b.getMinutes()).padStart(2,'0')});
-saveDayLog(dateKey,log);updateStreakForDate(dateKey);try{learnCatHint(note,cat)}catch(e){}closeQA();showUndo('บันทึกสำเร็จ!',true);if(vw==='d')render();else setV('d')}
+saveDayLog(dateKey,log);updateStreakForDate(dateKey);try{learnCatHint(note,cat)}catch(e){}
+if(window._qaAgain){window._qaA='';window._qaN='';renderQA();try{showSaveBadge()}catch(e){}toastMsg('บันทึก -'+fmt(amt)+' แล้ว');if(vw==='d')render();var ai=document.getElementById('qaAmt');if(ai){try{ai.focus({preventScroll:true})}catch(e){ai.focus()}}return}
+closeQA();showUndo('บันทึกสำเร็จ!',true);if(vw==='d')render();else setV('d')}
 function getCatName(id){return getCatMeta(id).name||id}
 document.getElementById('qaM').addEventListener('click',function(e){if(e.target===this)closeQA()});
 function showUndo(msg,isSuccess){var t=document.getElementById('undoToast');if(!t)return;document.getElementById('undoMsg').textContent=msg||'ลบแล้ว';t.classList.toggle('success',!!isSuccess);t.classList.add('show');clearTimeout(_undoTimer);_undoTimer=setTimeout(function(){t.classList.remove('show');if(!isSuccess)_lastDelete=null},isSuccess?3000:5000)}
@@ -3588,6 +3591,10 @@ function openIncomePopup(id){
     h+='<section class="sheet-section"><div class="sheet-section-title">ข้อมูลรายรับ</div>';
     h+='<label class="sheet-field"><span>ที่มาของรายรับ</span><div class="sheet-input-wrap"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16"/><path d="M4 12h10"/><path d="M4 17h16"/></svg><input class="inp" id="incName" placeholder="เช่น โบนัส งานเสริม" value="'+curName+'" oninput="updateIncomePreview()"></div></label>';
     h+='<label class="sheet-field"><span>จำนวนเงิน</span><div class="sheet-input-wrap amount"><span class="sheet-currency">฿</span><input class="inp" type="number" id="incAmount" placeholder="0" inputmode="decimal" min="0" value="'+curAmount+'" oninput="updateIncomePreview()" onfocus="if(this.value==\'0\'||this.value===\'0\')this.value=\'\'" onblur="if(this.value===\'\')this.value=\'0\'"></div></label>';
+    if(!_incomeEditId){
+        h+='<div class="quick-chips">'+['โบนัส','งานเสริม','ดอกเบี้ย','เงินคืน','ขายของ','ของขวัญ'].map(function(n){return '<button type="button" class="qchip" onclick="pickIncomeChip(this.textContent)">'+n+'</button>'}).join('')+'</div>';
+        h+='<label class="add-another"><input type="checkbox" id="incAgain"'+(window._incAgain?' checked':'')+' onchange="window._incAgain=this.checked"><span>บันทึกแล้วเพิ่มต่อ</span></label>';
+    }
     h+='</section></div><div class="mft sheet-actions"><button class="btn btn-gh btn-full" onclick="closeIncomePopup()">ยกเลิก</button><button class="btn btn-ac btn-full" onclick="saveIncomePopup()">'+(_incomeEditId?'บันทึก':'เพิ่มรายรับ')+'</button></div>';
     document.getElementById('incBody').innerHTML=h;
     document.getElementById('incPopup').classList.add('open')
@@ -3611,9 +3618,20 @@ function saveIncomePopup(){
     if(item){item.n=name||'รายรับเพิ่มเติม';item.a=amount;delete item.color;item.ck=true}
     else d.oI.push({id:genId('inc'),n:name||'รายรับเพิ่มเติม',a:amount,ck:true});
     sm_(cY,sM_,d);
+    if(!item&&window._incAgain){
+        render();
+        var n=document.getElementById('incName'),a=document.getElementById('incAmount');
+        if(n)n.value='';if(a){a.value='';try{a.focus({preventScroll:true})}catch(e){a.focus()}}
+        updateIncomePreview();
+        if(typeof showSaveBadge==='function')try{showSaveBadge()}catch(e){}
+        toastMsg('เพิ่ม '+(name||'รายรับ')+' +'+fmt(amount)+' แล้ว');
+        return;
+    }
     closeIncomePopup();
     render()
 }
+function pickIncomeChip(n){var el=document.getElementById('incName');if(el){el.value=n;updateIncomePreview()}var a=document.getElementById('incAmount');if(a){if(a.value==='0')a.value='';try{a.focus({preventScroll:true})}catch(e){a.focus()}}}
+function toastMsg(t){var el=document.getElementById('okToast');if(!el){el=document.createElement('div');el.id='okToast';el.className='ok-toast';document.body.appendChild(el)}el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show')},1800)}
 function deleteIncome(id){var d=gm(cY,sM_);var removed=d.oI.find(function(x){return x.id===id});d.oI=d.oI.filter(function(x){return x.id!==id});sm_(cY,sM_,d);if(removed){_lastDelete={type:'income',y:cY,m:sM_,item:JSON.parse(JSON.stringify(removed))};showUndo('ลบรายรับ '+fmt(removed.a))}render()}
 function recalcSavingsBalance(s){if(!s.savings)return;s.savings.balance=computeSavingsBalance(s.savings.history||[])}
 function clearMonthDataInStore(s,y,m){var key=mk(y,m);if(s.mo)delete s.mo[key];if(s.shM)delete s.shM[key];if(s.dLog)Object.keys(s.dLog).forEach(function(dk){if(dk.indexOf(key)===0)delete s.dLog[dk]});if(s.savings&&s.savings.history){s.savings.history=s.savings.history.filter(function(h){var monthKey=String(h.monthKey||''),dateKey=String(h.date||'');return monthKey!==key&&dateKey.indexOf(key)!==0});recalcSavingsBalance(s)}return s}

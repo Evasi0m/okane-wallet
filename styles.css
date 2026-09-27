@@ -3592,3 +3592,14 @@ button:focus-visible,.btn:focus-visible,.qa-cat:focus-visible,.theme-item:focus-
   backdrop-filter:none !important;
   -webkit-backdrop-filter:none !important;
 }
+
+/* ===== Redesign phase 1: quick chips, add-another, toast ===== */
+.quick-chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.qchip{border:1px solid var(--rim);background:var(--card2);color:var(--tx2);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+.qchip:active{transform:scale(.94);background:var(--ac);color:#fff;border-color:var(--ac)}
+.add-another{display:flex;align-items:center;gap:10px;margin:14px 4px 2px;font-size:14px;color:var(--tx2);cursor:pointer;user-select:none}
+.add-another input{width:20px;height:20px;accent-color:var(--ac);cursor:pointer}
+.sec-add-btn{color:var(--ac)!important}
+.income-extra-label{display:flex;align-items:center;justify-content:space-between}
+.ok-toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--tx);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:13.5px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:.28s cubic-bezier(.2,.8,.2,1);z-index:9999;white-space:nowrap}
+.ok-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
