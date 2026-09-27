@@ -2103,12 +2103,42 @@ return ids.map(function(id){
 })}
 
 /* ===== RENDER MONTHLY ===== */
+function monthPulseH(c,y,m){
+    var tI=Number(c.tI||0),tE=Number(c.tE||0),r=Number(c.r||0);
+    var pct=tI>0?Math.min(100,Math.round(tE/tI*100)):0;
+    var now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Bangkok'}));
+    var dim=new Date(y,m+1,0).getDate();
+    var isCur=now.getFullYear()===y&&now.getMonth()===m;
+    var isPast=y<now.getFullYear()||(y===now.getFullYear()&&m<now.getMonth());
+    var left=isCur?(dim-now.getDate()+1):(isPast?0:dim);
+    var perDay=left>0?Math.max(0,r)/left:0;
+    var tone=pct>=90?'bad':pct>=70?'warn':'ok';
+    var h='<div class="pulse-card pulse-'+tone+'"><div class="pulse-ring" style="--p:'+pct+'"><div class="pulse-ring-in"><b>'+pct+'%</b><small>ใช้ไป</small></div></div><div class="pulse-stats">';
+    if(left>0){h+='<div class="pulse-row"><span>ใช้ได้ต่อวัน</span><b class="'+(r>=0?'pos':'neg')+'">'+fmt(perDay)+'</b></div><div class="pulse-row"><span>เหลืออีก</span><b>'+left+' วัน</b></div>'}
+    else h+='<div class="pulse-row"><span>เดือนนี้ปิดแล้ว</span><b class="'+(r>=0?'pos':'neg')+'">'+(r>=0?'+':'')+fmt(r)+'</b></div>';
+    h+='<div class="pulse-row"><span>ใช้ไป / รายรับ</span><b>'+fmt(tE)+' / '+fmt(tI)+'</b></div></div></div>';
+    return h;
+}
+function buildJumpBar(root){
+    var bar=document.getElementById('jumpBar');if(!bar)return;
+    var secs=root.querySelectorAll('.sec > .sec-t');var h='';
+    secs.forEach(function(t,i){
+        var sec=t.parentElement;if(!sec.id)sec.id='msec'+i;
+        var lbEl=t.querySelector('.sec-label > span:last-child');var lb=(lbEl?lbEl.textContent:'').trim().slice(0,18);
+        if(!lb)return;
+        h+='<button type="button" class="jump-chip" onclick="jumpTo(\''+sec.id+'\')">'+esc(lb)+'</button>';
+    });
+    bar.innerHTML=h;bar.style.display=h?'':'none';
+}
+function jumpTo(id){var el=document.getElementById(id);if(!el)return;var y=el.getBoundingClientRect().top+window.scrollY-70;window.scrollTo({top:y,behavior:'smooth'})}
 function rMonth(el){
 var y=cY,m=sM_,p=isP(y,m),d=gm(y,m),c=calc(y,m);
 var savBal=getSavings().balance;
 var h='';
 var prevC=(m===0)?calc(cY-1,11):calc(cY,m-1);
 h+=heroH('\u0E40\u0E07\u0E34\u0E19\u0E04\u0E07\u0E40\u0E2B\u0E25\u0E37\u0E2D '+TMF[m]+' '+cY,c.r,c.tI,c.tE,{key:'mhero',prevExp:prevC.tE,prevLabel:'จากเดือนก่อน',date:{label:dateNumLabel(cY,m,1),onclick:'openMP()'}});
+h+=monthPulseH(c,y,m);
+h+='<div class="jump-bar" id="jumpBar"></div>';
 h+=savTabH(savBal);
 var streak=getStreak();
 if(streak.current>0)h+='<div class="streak-bar"><span>บันทึกต่อเนื่อง '+streak.current+' วัน</span><span class="streak-best">สถิติดีสุด '+streak.best+' วัน</span></div>';
@@ -2222,7 +2252,7 @@ h+='<div class="sec" style="animation-delay:.11s"><div class="sec-t">'+secTitle(
 
 h+='<div class="reset-area"><button class="reset-btn" onclick="resetMonth()">ล้างเดือน '+TM[m]+'</button></div>';
 
-el.innerHTML=h;drawMC(d,y,m)
+el.innerHTML=h;drawMC(d,y,m);buildJumpBar(el)
 }
 
 /* ===== RENDER DAILY ===== */
