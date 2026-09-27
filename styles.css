@@ -3603,3 +3603,15 @@ button:focus-visible,.btn:focus-visible,.qa-cat:focus-visible,.theme-item:focus-
 .income-extra-label{display:flex;align-items:center;justify-content:space-between}
 .ok-toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:var(--tx);color:var(--bg);padding:11px 20px;border-radius:999px;font-size:13.5px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:.28s cubic-bezier(.2,.8,.2,1);z-index:9999;white-space:nowrap}
 .ok-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== Redesign phase 2: context FAB action sheet ===== */
+.fab-sheet-ov{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.34);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:.2s;display:flex;align-items:flex-end;justify-content:center}
+.fab-sheet-ov.open{opacity:1;pointer-events:auto}
+.fab-sheet{width:100%;max-width:440px;margin:0 12px calc(96px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;transform:translateY(16px);transition:.24s cubic-bezier(.2,.8,.2,1)}
+.fab-sheet-ov.open .fab-sheet{transform:translateY(0)}
+.fab-opt{display:flex;align-items:center;gap:14px;width:100%;padding:16px 20px;border:none;border-radius:18px;background:var(--card);color:var(--tx);font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.16)}
+.fab-opt:active{transform:scale(.97)}
+.fo-ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0}
+.fo-exp .fo-ic{background:var(--rd)}
+.fo-inc .fo-ic{background:var(--gn)}
+.fo-sav .fo-ic{background:var(--ac)}

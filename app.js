@@ -2926,6 +2926,21 @@ var qaCat=null,qaWallet='cash';
 function getAllDailyCats(){var cats=gCats().map(function(c){return{id:c.id,name:c.name,c:'custom',ic:c.icon}});cats.push({id:'other',name:'\u0E2D\u0E37\u0E48\u0E19\u0E46',c:'other'});return cats}
 function getLastCat(){var s=gs();if(s.dLog){var ks=Object.keys(s.dLog).sort();for(var i=ks.length-1;i>=0;i--){var l=s.dLog[ks[i]];if(l&&l.length){return l[l.length-1].cat||'other'}}}var cats=getAllDailyCats().filter(function(x){return x.id!=='other'});return cats.length?cats[0].id:'other'}
 function getThaiToday(){var now=new Date(new Date().toLocaleString("en-US",{timeZone:"Asia/Bangkok"}));return dKey(now)}
+function fabSheet(){
+    var el=document.getElementById('fabSheet');
+    if(!el){
+        el=document.createElement('div');el.id='fabSheet';el.className='fab-sheet-ov';
+        el.innerHTML='<div class="fab-sheet"><button class="fab-opt fo-exp" onclick="fabPick(\'exp\')"><span class="fo-ic">−</span><span>เพิ่มรายจ่าย</span></button><button class="fab-opt fo-inc" onclick="fabPick(\'inc\')"><span class="fo-ic">+</span><span>เพิ่มรายรับ</span></button><button class="fab-opt fo-sav" onclick="fabPick(\'sav\')"><span class="fo-ic">◆</span><span>โอนเข้าเงินออม</span></button></div>';
+        el.addEventListener('click',function(e){if(e.target===el)el.classList.remove('open')});
+        document.body.appendChild(el);
+    }
+    el.classList.add('open');
+}
+function fabPick(k){var el=document.getElementById('fabSheet');if(el)el.classList.remove('open');if(k==='exp')openQuickAdd();else if(k==='inc')openIncomePopup();else if(k==='sav'){if(typeof openSavings==='function')openSavings()}}
+var _fabHeld=false,_fabTimer=null;
+function fabDown(){_fabHeld=false;clearTimeout(_fabTimer);_fabTimer=setTimeout(function(){_fabHeld=true;if(navigator.vibrate)try{navigator.vibrate(8)}catch(e){}fabSheet()},420)}
+function fabUp(){clearTimeout(_fabTimer)}
+function fabTap(){clearTimeout(_fabTimer);if(_fabHeld){_fabHeld=false;return}if(vw==='m')fabSheet();else openQuickAdd()}
 function openQuickAdd(){qaCat=null;qaWallet=getLastWallet();window._qaA='';window._qaN='';window._qaShowAll=false;var today=getThaiToday();var di=document.getElementById('qaDate');if(di){di.value=today;di.max=today}renderQA();document.getElementById('qaM').classList.add('open');var i=document.getElementById('qaAmt');if(i){try{i.focus({preventScroll:true})}catch(e){i.focus()}requestAnimationFrame(function(){var j=document.getElementById('qaAmt');if(j&&document.activeElement!==j){try{j.focus({preventScroll:true})}catch(e){j.focus()}}})}}
 function closeQA(){document.getElementById('qaM').classList.remove('open');window._qaA='';window._qaN=''}
 function getFrequentCats(limit){
@@ -4047,6 +4062,17 @@ window.addEventListener('load',function(){
         refreshGlobalVisuals()
     });
     try{initSupabaseAuth()}catch(e){}
+    try{
+        var _qp=new URLSearchParams(location.search);
+        if(_qp.get('quickadd')==='1'){
+            setTimeout(function(){
+                var pin=document.getElementById('pinLock');
+                if(pin&&pin.classList.contains('show'))return;
+                if(typeof openQuickAdd==='function')openQuickAdd();
+            },600);
+            if(history.replaceState)history.replaceState(null,'',location.pathname+location.hash);
+        }
+    }catch(e){}
     enhanceNumericInputs(document);
     try{new MutationObserver(function(){enhanceNumericInputs(document)}).observe(document.body,{childList:true,subtree:true})}catch(e){}
     if(!window._cmsPollTimer&&supabase){
