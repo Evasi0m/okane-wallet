@@ -1892,7 +1892,7 @@ function positionNavPop(){
         var wr=wrap.getBoundingClientRect(),r=on.getBoundingClientRect();
         if(!r.width){pop.style.opacity='0';return}
         var center=(r.left-wr.left)+r.width/2;
-        pop.style.transform='translateX('+(center-27)+'px)';
+        pop.style.transform='translateX('+(center-(pop.offsetWidth||54)/2)+'px)';
         pop.style.opacity='1';
     });
 }
@@ -1912,7 +1912,7 @@ document.getElementById('yD').textContent=cY;
 var showYbar=false;
 document.querySelector('.ybar').classList.toggle('hide',!showYbar);
 document.getElementById('mS').classList.add('hide');
-if(prev!==v)renderWithNavFade();else render()}
+if(prev!==v){var NO={d:0,m:1,y:2,sim:3};window._navDir=(NO[v]||0)>(NO[prev]||0)?1:-1;renderWithNavFade()}else render()}
 function rTabs(){}
 function selM(m){sM_=m;render()}
 function chgY(d){cY+=d;document.getElementById('yD').textContent=cY;render()}
@@ -2044,7 +2044,7 @@ return{tI:c.tI,tE:c.tE,r:c.r,d:c.d,otherTotal:c.otherTotal,savTransfer:c.savTran
 
 function applyPrivacy(){var st=ensureSettings();document.body.classList.toggle('hide-amt',!!st.hideAmount)}
 function render(){refreshCurrentContext();updateHeaderTitle();var el=document.getElementById('M');applyPrivacy();renderThemeDD();if(vw==='d')rDaily(el);else if(vw==='y')rYear(el);else if(vw==='sim')rSim(el);else rMonth(el);enhanceNumericInputs(document)}
-function renderWithNavFade(){var el=document.getElementById('M');if(!el||window.matchMedia('(prefers-reduced-motion: reduce)').matches){render();return}clearTimeout(_navFadeTimer);clearTimeout(_navFadeCleanupTimer);el.classList.remove('nav-fade-in','nav-fade-out');void el.offsetWidth;el.classList.add('nav-fade-out');_navFadeTimer=setTimeout(function(){render();el.classList.remove('nav-fade-out');void el.offsetWidth;el.classList.add('nav-fade-in');_navFadeCleanupTimer=setTimeout(function(){el.classList.remove('nav-fade-in','nav-fade-out')},260)},135)}
+function renderWithNavFade(){var el=document.getElementById('M');if(!el||window.matchMedia('(prefers-reduced-motion: reduce)').matches){render();return}clearTimeout(_navFadeTimer);clearTimeout(_navFadeCleanupTimer);var dir=window._navDir||1;el.classList.remove('nav-fade-in','nav-fade-out','nav-slide-in-r','nav-slide-in-l','nav-slide-out-r','nav-slide-out-l');void el.offsetWidth;el.classList.add(dir>0?'nav-slide-out-l':'nav-slide-out-r');_navFadeTimer=setTimeout(function(){try{render()}catch(err){console.error(err)}window.scrollTo(0,0);el.classList.remove('nav-slide-out-l','nav-slide-out-r');void el.offsetWidth;el.classList.add(dir>0?'nav-slide-in-r':'nav-slide-in-l');_navFadeCleanupTimer=setTimeout(function(){el.classList.remove('nav-slide-in-r','nav-slide-in-l')},340)},110)}
 
 function dateNumLabel(y,m,d){return Number(d||1)+'/'+Number(m+1)+'/'+Number(y)}
 function heroDateTools(opt){
@@ -2128,7 +2128,7 @@ function buildJumpBar(root){
         if(!lb)return;
         h+='<button type="button" class="jump-chip" onclick="jumpTo(\''+sec.id+'\')">'+esc(lb)+'</button>';
     });
-    bar.innerHTML=h;bar.style.display=h?'':'none';
+    bar.innerHTML=h;bar.style.display=(bar.children.length>=2)?'':'none';
 }
 function jumpTo(id){var el=document.getElementById(id);if(!el)return;var y=el.getBoundingClientRect().top+window.scrollY-70;window.scrollTo({top:y,behavior:'smooth'})}
 function rMonth(el){
@@ -2256,6 +2256,24 @@ el.innerHTML=h;drawMC(d,y,m);buildJumpBar(el)
 }
 
 /* ===== RENDER DAILY ===== */
+function dayPulseH(c,y,m,todaySpent){
+    var now=getBangkokNow();
+    if(!(now.getFullYear()===y&&now.getMonth()===m))return '';
+    var dim=new Date(y,m+1,0).getDate(),left=dim-now.getDate()+1;
+    var allow=left>0?Math.max(0,Number(c.r||0)+Number(todaySpent||0))/left:0;
+    var pct=allow>0?Math.min(100,Math.round(todaySpent/allow*100)):(todaySpent>0?100:0);
+    var tone=pct>=100?'bad':pct>=75?'warn':'ok';
+    var rem=allow-todaySpent;
+    return '<div class="day-pulse pulse-'+tone+'"><div class="dp-top"><span>งบวันนี้</span><b class="'+(rem>=0?'pos':'neg')+'">'+(rem>=0?'เหลือ '+fmt(rem):'เกิน '+fmt(-rem))+'</b></div><div class="dp-bar"><div class="dp-fill" style="width:'+pct+'%"></div></div><div class="dp-sub"><span>ใช้ไป '+fmt(todaySpent)+'</span><span>ใช้ได้ '+fmt(allow)+'/วัน</span></div></div>';
+}
+function yearInsightH(rows){
+    var act=rows.map(function(c,i){return{i:i,r:Number(c.r||0),e:Number(c.tE||0),inc:Number(c.tI||0)}}).filter(function(x){return x.e>0||x.inc>0});
+    if(act.length<2)return '';
+    var best=act.reduce(function(a,b){return b.r>a.r?b:a});
+    var worst=act.reduce(function(a,b){return b.e>a.e?b:a});
+    var avg=act.reduce(function(a,b){return a+b.e},0)/act.length;
+    return '<div class="yr-ins"><div class="yr-ins-i" onclick="openYearMonth('+cY+','+best.i+')"><small>เหลือมากสุด</small><b>'+TMF[best.i]+'</b><span class="pos">+'+fmtSh(best.r)+'</span></div><div class="yr-ins-i" onclick="openYearMonth('+cY+','+worst.i+')"><small>ใช้หนักสุด</small><b>'+TMF[worst.i]+'</b><span class="neg">−'+fmtSh(worst.e)+'</span></div><div class="yr-ins-i"><small>ใช้เฉลี่ย/เดือน</small><b>'+act.length+' เดือน</b><span>'+fmtSh(avg)+'</span></div></div>';
+}
 function rDaily(el){
 var dk=dKey(viewDate),log=getDayLog(dk),total=log.reduce(function(s,x){return s+Number(x.a||0)},0);
 var vy=viewDate.getFullYear(),vm=viewDate.getMonth();
@@ -2266,6 +2284,8 @@ var h='';
 // Hero
 h+=heroH('\u0E40\u0E07\u0E34\u0E19\u0E04\u0E07\u0E40\u0E2B\u0E25\u0E37\u0E2D '+TMF[vm]+' '+vy,c.r,c.tI,c.tE,{key:'dhero',date:{label:dateNumLabel(vy,vm,viewDate.getDate()),onclick:'openCal()'}});
 h+=tctBarH();
+h+=dayPulseH(c,vy,vm,total);
+h+='<div class="jump-bar" id="jumpBar"></div>';
 h+=savTabH(savBal);
 var carryTotal=(c.carryIn?Number(c.carryIn.rem||0)+sumMap(c.carryIn.cat):0);
 if(carryTotal>0&&c.carryIn&&c.carryIn.from)h+='<div class="abar" style="background:var(--rdBg);border-color:var(--rd);color:var(--rd)"><span>\u0E22\u0E2D\u0E14\u0E04\u0E49\u0E32\u0E07\u0E08\u0E32\u0E01 '+TMF[c.carryIn.from.m]+' '+c.carryIn.from.y+'</span><span style="font-family:var(--font-sans)">-'+fmt(carryTotal)+'</span></div>';
@@ -2353,7 +2373,7 @@ h+='<div class="sum-hd" onclick="toggleSumExp(\'month\')" style="margin-top:8px;
 h+='<div style="font-size:11px;color:var(--tx3)">รายละเอียด <span class="sum-arr" id="sum-arr-month">▾</span></div></div>';
 h+='<div id="sum-exp-month" class="sum-exp"><div class="sum-vbar"><span class="sum-vbar-lb">เรียงโดย</span><div class="sum-vtog" id="sum-vtog-month" onclick="event.stopPropagation();toggleSumView(\'month\')"><span id="sum-vopt-month-time" class="sum-vopt'+(window._sumView.month==='time'?' on':'')+'">เวลา</span><span id="sum-vopt-month-cat" class="sum-vopt'+(window._sumView.month==='cat'?' on':'')+'">หมวดหมู่</span></div></div><div id="sum-exp-content-month">'+buildSumRows('month')+'</div></div>';
 h+='</div></div>';
-el.innerHTML=h}
+el.innerHTML=h;buildJumpBar(el)}
 
 function buildSumRows(type){
     var items=window._sumData&&window._sumData[type]||[];
@@ -2493,6 +2513,7 @@ function getYearSavedTotal(y){var sav=getSavings();return (sav.history||[]).filt
 function rYear(el){var h='',ti=0,te=0,ts=getYearSavedTotal(cY),rows=[];for(var m=0;m<12;m++){var c=calc(cY,m);ti+=c.tI;te+=c.tE;rows.push(c)}var tr=ti-te,goal=gSet().savGoal||0,prog=goal>0?Math.min((ts/goal)*100,100):0;
 var prevTE=0;for(var pm=0;pm<12;pm++){prevTE+=calc(cY-1,pm).tE}
 h+=heroH('\u0E2A\u0E23\u0E38\u0E1B\u0E23\u0E32\u0E22\u0E1B\u0E35 '+cY,tr,ti,te,{key:'yhero',prevExp:prevTE,prevLabel:'จากปีก่อน',date:{label:String(cY),onclick:'openYP()',compact:true,yearOnly:true}});
+h+=yearInsightH(rows);
 h+=savTabH(getSavings().balance);
 if(goal>0){h+='<div class="sav-goal-inline"><div class="sav-goal-info"><span class="sav-goal-lb">เป้าหมายออม '+cY+'</span><span class="sav-goal-val">'+fmt(ts)+' / '+fmt(goal)+' ('+prog.toFixed(0)+'%)</span></div><div class="bmc-bar" style="margin-top:4px"><div class="prog-fill pf-gn" style="width:'+Math.min(prog,100)+'%"></div></div></div>'}
 var yearMode=getYearSummaryMode(),now=getBangkokNow(),activeMonth=(now.getFullYear()===cY)?now.getMonth():sM_;
@@ -3976,6 +3997,18 @@ function drawYC(rows){
 function openSettings(){stPage='main';renderSettings();document.getElementById('stM').classList.add('open')}
 function closeSettings(){document.getElementById('stM').classList.remove('open')}
 document.getElementById('stM').addEventListener('click',function(e){if(e.target===this)closeSettings()});
+function filterSettings(q){
+    q=(q||'').trim().toLowerCase();
+    var root=document.getElementById('stB');if(!root)return;
+    root.querySelectorAll('.st-tile').forEach(function(t){t.style.display=(!q||t.textContent.toLowerCase().indexOf(q)>=0)?'':'none'});
+    root.querySelectorAll('.st-sec').forEach(function(sec){
+        var head=sec.querySelector('.st-h');var headHit=!!q&&!!head&&head.textContent.toLowerCase().indexOf(q)>=0;
+        var any=false;
+        sec.querySelectorAll('.sr').forEach(function(r){var hit=!q||headHit||r.textContent.toLowerCase().indexOf(q)>=0;r.style.display=hit?'':'none';if(hit)any=true});
+        var tileHit=false;sec.querySelectorAll('.st-tile').forEach(function(t){if(t.style.display!=='none')tileHit=true});
+        sec.style.display=(!q||headHit||any||tileHit)?'':'none';
+    });
+}
 function renderSettings(){
 var s=gs();var st=ensureSettings();
 var showDec=st.showDecimal!==undefined?st.showDecimal:true;
@@ -3992,6 +4025,7 @@ var weeklyOn=!!st.weeklyOn;
 var card=st.card||{cycleDay:25,dueDay:10};
 
 h+='<div style="padding:12px 0">';
+h+='<div class="st-search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="stSearch" type="search" placeholder="ค้นหาการตั้งค่า..." oninput="filterSettings(this.value)"></div>';
 
 // Function tiles — moved to top as navigation
 h+='<div class="sec st-sec tone-bl" style="margin-bottom:14px"><div class="st-tiles">';
