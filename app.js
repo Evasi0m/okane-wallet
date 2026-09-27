@@ -177,6 +177,21 @@ function ss(d){return syncNow(d)}
 function syncNow(d){persistStore(d,true);queueSync(true)}
 function gSet(){var s=gs();return s.settings||Object.assign({},DF)}
 function ensureSettings(){var s=gs();if(!s.settings)s.settings=Object.assign({},DF);return s.settings}
+function getQaTpls(){var st=gSet();return Array.isArray(st.templates)?st.templates:[]}
+function saveQaTpl(){
+    var amt=Number((document.getElementById('qaAmt')||{}).value)||0;
+    if(!qaCat){alert('เลือกหมวดก่อนบันทึกเป็นรายการด่วน');return}
+    var note=(document.getElementById('qaNote')||{}).value||'';
+    var s=gs();if(!s.settings)s.settings=Object.assign({},DF);
+    if(!Array.isArray(s.settings.templates))s.settings.templates=[];
+    var dup=s.settings.templates.some(function(t){return t.cat===qaCat&&(t.note||'')===note&&Number(t.a||0)===amt});
+    if(dup){toastMsg('มีรายการด่วนนี้อยู่แล้ว');return}
+    s.settings.templates.unshift({id:genId('tpl'),cat:qaCat,note:note,a:amt});
+    if(s.settings.templates.length>8)s.settings.templates=s.settings.templates.slice(0,8);
+    syncNow(s);renderQA();toastMsg('บันทึกรายการด่วนแล้ว');
+}
+function deleteQaTpl(id){var s=gs();if(!s.settings||!Array.isArray(s.settings.templates))return;s.settings.templates=s.settings.templates.filter(function(t){return t.id!==id});syncNow(s);if(typeof renderQA==='function'&&document.getElementById('qaM').classList.contains('open'))renderQA();if(typeof renderSettings==='function')try{renderSettings()}catch(e){}}
+function applyQaTpl(id){var t=getQaTpls().find(function(x){return x.id===id});if(!t)return;qaCat=t.cat;window._qaN=t.note||'';window._qaA=t.a?String(t.a):'';renderQA();var a=document.getElementById('qaAmt');if(a){try{a.focus({preventScroll:true})}catch(e){a.focus()}}}
 function mk(y,m){return y+'-'+String(m+1).padStart(2,'0')}
 function gSh(y,m){var s=gs();return(s.shM&&s.shM[mk(y,m)]!==undefined)?Number(s.shM[mk(y,m)]):0}
 function getLegacyCat(id){return LEGACY_CATS[id]||null}
@@ -2956,8 +2971,19 @@ function renderQA(){
     var restCats = cats.filter(function(c){return freqIds.indexOf(c.id)<0});
     if(!window._qaShowAll) window._qaShowAll=false;
 
+    // Quick templates (one-tap fill)
+    var tpls=getQaTpls();
+    var h='';
+    if(tpls.length>0){
+        h+='<div class="qa-tpl-row">';
+        tpls.forEach(function(t){
+            var lb=(t.note&&t.note.trim())?t.note:getCatName(t.cat);
+            h+='<button type="button" class="qa-tpl" onclick="applyQaTpl(\''+t.id+'\')"><span class="qa-tpl-ic">'+getCatIcon(t.cat)+'</span><span class="qa-tpl-lb">'+esc(lb)+'</span>'+(t.a?'<span class="qa-tpl-a">'+fmt(t.a)+'</span>':'')+'<span class="qa-tpl-x" onclick="event.stopPropagation();deleteQaTpl(\''+t.id+'\')">×</span></button>';
+        });
+        h+='</div>';
+    }
     // Amount + compact presets
-    var h = '<div class="qa-amt-wrap">';
+    h += '<div class="qa-amt-wrap">';
     h += '<div class="qa-amt-container">';
     h += '<span class="qa-amt-symbol">฿</span>';
     h += '<input class="qa-amt" type="number" inputmode="decimal" autofocus id="qaAmt" placeholder="0" min="0" oninput="qaAmtChange()"'+(window._qaA?' value="'+window._qaA+'"':'')+'>';
@@ -3014,7 +3040,7 @@ function renderQA(){
         h += '</div>';
     }
 
-    h += '<label class="add-another" style="margin-top:14px"><input type="checkbox"'+(window._qaAgain?' checked':'')+' onchange="window._qaAgain=this.checked"><span>บันทึกแล้วเพิ่มต่อ</span></label>';
+    h += '<div class="qa-foot-row"><label class="add-another"><input type="checkbox"'+(window._qaAgain?' checked':'')+' onchange="window._qaAgain=this.checked"><span>บันทึกแล้วเพิ่มต่อ</span></label><button type="button" class="qa-save-tpl" onclick="saveQaTpl()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 16.5 5.5 21 7.5 13.5 2 9 9 9"/></svg>บันทึกเป็นรายการด่วน</button></div>';
     document.getElementById('qaB').innerHTML = h;
     requestAnimationFrame(function(){try{qaNoteChange()}catch(e){}});
 }

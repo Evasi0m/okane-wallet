@@ -3615,3 +3615,18 @@ button:focus-visible,.btn:focus-visible,.qa-cat:focus-visible,.theme-item:focus-
 .fo-exp .fo-ic{background:var(--rd)}
 .fo-inc .fo-ic{background:var(--gn)}
 .fo-sav .fo-ic{background:var(--ac)}
+
+/* ===== Redesign phase 3: quick templates ===== */
+.qa-tpl-row{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin:-2px -2px 6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.qa-tpl-row::-webkit-scrollbar{display:none}
+.qa-tpl{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:8px 12px 8px 9px;border:1px solid var(--rim);border-radius:14px;background:var(--card2);color:var(--tx);cursor:pointer;font-size:13px;font-weight:600;position:relative}
+.qa-tpl:active{transform:scale(.96);border-color:var(--ac)}
+.qa-tpl-ic{width:22px;height:22px;display:grid;place-items:center}
+.qa-tpl-ic svg{width:18px;height:18px}
+.qa-tpl-a{color:var(--rd);font-weight:700}
+.qa-tpl-x{width:18px;height:18px;border-radius:50%;background:var(--rim);color:var(--tx2);display:grid;place-items:center;font-size:14px;line-height:1;margin-left:2px}
+.qa-tpl-x:active{background:var(--rd);color:#fff}
+.qa-foot-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap}
+.qa-foot-row .add-another{margin:0}
+.qa-save-tpl{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rim);background:transparent;color:var(--ac);border-radius:12px;padding:8px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+.qa-save-tpl:active{transform:scale(.96);background:var(--card2)}
