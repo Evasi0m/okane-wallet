@@ -2341,12 +2341,14 @@ button:focus-visible,.btn:focus-visible,.qa-cat:focus-visible,.theme-item:focus-
   --heroB: #cc6f54;
   --heroC: #a44c37;
   --heroDrop: 164 76 55;
-  --heroGlass1: 255 241 227;
-  --heroGlass2: 204 111 84;
+  --heroGlass1: 214 124 94;
+  --heroOp1: .96;
+  --heroOp2: 1;
+  --heroGlass2: 170 78 56;
   --heroGlassBr: 255 255 255;
   --heroPosFg: #fffaf4;
-  --heroPosDim: rgba(255,250,244,.74);
-  --heroPosVSh: 0 2px 16px rgba(91,35,21,.22);
+  --heroPosDim: rgba(255,250,244,.9);
+  --heroPosVSh: 0 2px 10px rgba(70,24,12,.35);
   --hdrBg: 248,244,236;
   --txLogo: rgb(var(--c-ink));
   --hairline-grad: linear-gradient(90deg, transparent 0%, rgb(var(--c-hairline) / .56) 15%, rgb(var(--c-hairline) / .56) 85%, transparent 100%);
@@ -3730,3 +3732,19 @@ html body .ni .ni-lb{max-width:none !important;width:auto !important;margin:0 !i
 html body .fab-c svg[data-icon-id="fab-add"]{animation:none !important;transform:none !important}
 html body .ni.on{flex:1 1 0 !important;padding:12px 0 0 !important;background:none !important;border:none !important;box-shadow:none !important}
 html body .ni.on::after{display:none !important}
+
+/* ===== Taller, easier-to-tap docked nav ===== */
+html body .bnav{padding-bottom:max(env(safe-area-inset-bottom),10px) !important}
+html body .bnav-in{height:72px !important}
+html body .ni,html body .ni.on{height:72px !important;padding-top:11px !important;gap:5px !important}
+html body .ni svg{width:25px !important;height:25px !important}
+html body .ni .ni-lb{font-size:12px !important}
+html body .bnav-pop{top:7px !important;width:64px !important;height:34px !important}
+html body .fab-wrap{height:72px !important}
+html body .fab-c{width:60px !important;height:46px !important;border-radius:16px !important}
+html body .fab-c svg{width:25px !important;height:25px !important}
+@media (display-mode:standalone){html body .bnav{padding-bottom:max(env(safe-area-inset-bottom),14px) !important}}
+/* keep content and floating UI clear of the taller bar */
+html body .main{padding-bottom:calc(96px + env(safe-area-inset-bottom)) !important}
+.ok-toast{bottom:calc(100px + env(safe-area-inset-bottom)) !important}
+.fab-sheet{margin-bottom:calc(104px + env(safe-area-inset-bottom)) !important}
