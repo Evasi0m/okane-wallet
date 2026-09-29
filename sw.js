@@ -1,9 +1,11 @@
-const CACHE_NAME = 'okane-v0.3.5-themes-pink-pistachio-v1';
+const CACHE_NAME = 'okane-v0.4.0-tabs-v1';
 const CACHE_URLS = [
   './',
   './index.html',
   './app.js',
+  './views.js',
   './styles.css',
+  './views.css',
   './shared/supabase-config.js',
   './shared/svg-utils.js',
   './shared/cms-core.js',
@@ -46,7 +48,7 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('fetch', function(e) {
   if (e.request.method !== 'GET') return;
   var url = e.request.url;
-  var networkFirst = url.includes('updates.json') || url.includes('app.js') || url.includes('index.html') || url.includes('sw.js') || url.includes('api.github.com') || url.includes('supabase.co/rest/v1/');
+  var networkFirst = url.includes('updates.json') || url.includes('app.js') || url.includes('views.js') || url.includes('index.html') || url.includes('sw.js') || url.includes('api.github.com') || url.includes('supabase.co/rest/v1/');
   if (!networkFirst) {
     try {
       var p = new URL(url).pathname;
