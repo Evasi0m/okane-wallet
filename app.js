@@ -87,10 +87,14 @@ var LEGACY_CATS={
 var UI_CAT_COLOR='#CC6F54',UI_INCOME_COLOR='#3FA78E';
 var CHART_COLORS=['#CC6F54','#DFA271','#B7835F','#E7C7A7','#B98A79','#8FB7AA','#C9A45E','#A98C76'];
 var THEMES=[
+    {id:'jade',name:'Okane Jade',dots:['#F4F8F7','#167E62','#0F5744'],metaColor:'#F4F8F7',free:true},
     {id:'light',name:'Champagne Luxe',dots:['#F8F6F0','#CC785C','#F5F0E4'],metaColor:'#F8F4EC',free:true},
     {id:'pink-vanilla',name:'Pink Vanilla',dots:['#FBF5A7','#FF62BB','#B331F1'],metaColor:'#FBF5A7',free:true},
     {id:'pistachio-nature',name:'Pistachio Nature',dots:['#F7F1DE','#B0BA99','#9D6638'],metaColor:'#F7F1DE',free:true}
 ];
+var DEFAULT_THEME='jade';
+// The CMS default theme only seeds a fresh device; it must never override a theme the user already has.
+var HAD_STORE_AT_BOOT=(function(){try{return !!localStorage.getItem('okane_v3')}catch(e){return true}})();
 var APP_VER='0.3.5';
 var APP_BUILD_SHA='6e94e32069ddf25edcb9b3555cbe7e279d0b196b';
 var SUPABASE_URL = 'https://xdbsyiigkyafoohqqffx.supabase.co';
@@ -116,7 +120,7 @@ var SVG_CHECK='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" strok
 var _catPopupMode='add',_authRefreshStarted=false,_authMode='landing',_authBusy=false,_navFadeTimer=null,_navFadeCleanupTimer=null;
 
 /* ===== STORAGE ===== */
-function normalizeStore(d){if(!d||typeof d!=='object'||Array.isArray(d))d={};if(!d.meta||typeof d.meta!=='object'||Array.isArray(d.meta))d.meta={};if(typeof d.meta.updatedAt!=='number')d.meta.updatedAt=0;if(!THEMES.some(function(t){return t.id===d.theme}))d.theme='light';if(Array.isArray(d.customCats))d.customCats=d.customCats.map(function(c){c=c||{};delete c.color;return c});if(d.mo)Object.keys(d.mo).forEach(function(k){var mo=d.mo[k];if(mo&&Array.isArray(mo.oI))mo.oI=mo.oI.map(function(x){x=x||{};delete x.color;return x})});var st=d.settings&&typeof d.settings==='object'&&!Array.isArray(d.settings)?d.settings:{};d.settings=Object.assign({},DF,st);if(st.hideAmt!==undefined&&st.hideAmount===undefined)d.settings.hideAmount=!!st.hideAmt;if(st.saving!==undefined&&st.savGoal===undefined)d.settings.savGoal=Number(st.saving||0);d.settings.salary=Number(d.settings.salary||0);d.settings.savGoal=Number(d.settings.savGoal||0);d.settings.lowRemaining=Number(d.settings.lowRemaining||1000);d.settings.warnPercent=Number(d.settings.warnPercent||90);d.settings.showDecimal=d.settings.showDecimal!==false;d.settings.hideAmount=!!d.settings.hideAmount;d.settings.weeklyOn=!!d.settings.weeklyOn;return d}
+function normalizeStore(d){if(!d||typeof d!=='object'||Array.isArray(d))d={};if(!d.meta||typeof d.meta!=='object'||Array.isArray(d.meta))d.meta={};if(typeof d.meta.updatedAt!=='number')d.meta.updatedAt=0;if(!THEMES.some(function(t){return t.id===d.theme}))d.theme=DEFAULT_THEME;if(Array.isArray(d.customCats))d.customCats=d.customCats.map(function(c){c=c||{};delete c.color;return c});if(d.mo)Object.keys(d.mo).forEach(function(k){var mo=d.mo[k];if(mo&&Array.isArray(mo.oI))mo.oI=mo.oI.map(function(x){x=x||{};delete x.color;return x})});var st=d.settings&&typeof d.settings==='object'&&!Array.isArray(d.settings)?d.settings:{};d.settings=Object.assign({},DF,st);if(st.hideAmt!==undefined&&st.hideAmount===undefined)d.settings.hideAmount=!!st.hideAmt;if(st.saving!==undefined&&st.savGoal===undefined)d.settings.savGoal=Number(st.saving||0);d.settings.salary=Number(d.settings.salary||0);d.settings.savGoal=Number(d.settings.savGoal||0);d.settings.lowRemaining=Number(d.settings.lowRemaining||1000);d.settings.warnPercent=Number(d.settings.warnPercent||90);d.settings.showDecimal=d.settings.showDecimal!==false;d.settings.hideAmount=!!d.settings.hideAmount;d.settings.weeklyOn=!!d.settings.weeklyOn;return d}
 function gs(){
     if(_cachedStore) return _cachedStore;
     try{
@@ -196,7 +200,9 @@ function mk(y,m){return y+'-'+String(m+1).padStart(2,'0')}
 function gSh(y,m){var s=gs();return(s.shM&&s.shM[mk(y,m)]!==undefined)?Number(s.shM[mk(y,m)]):0}
 function getLegacyCat(id){return LEGACY_CATS[id]||null}
 function getPresetCat(id){return PRESET_CATS.find(function(x){return x.id===id})||null}
-function fixedChartColor(index){return CHART_COLORS[Math.abs(Number(index)||0)%CHART_COLORS.length]}
+// Okane Jade: one hue, alternating dark/light steps so neighbouring slices stay distinguishable.
+var CHART_COLORS_JADE=['#167E62','#7DCAB5','#0F5744','#3BBA98','#B8E0D6','#2F6B5C','#5FAE97','#9DBFB6'];
+function fixedChartColor(index){var pal=document.documentElement.getAttribute('data-theme')==='jade'?CHART_COLORS_JADE:CHART_COLORS;return pal[Math.abs(Number(index)||0)%pal.length]}
 function buildCatConfig(meta){return{id:meta.id,name:meta.name,icon:meta.icon||'wallet',budget:Number(meta.budget||0)}}
 function cloudSavingsSource(src){return 'manual'}
 function encodeSavingsNote(note,src){note=String(note||'');if(!src||src==='manual'||note.indexOf('[[okane_source:')>=0)return note;return '[[okane_source:'+src+']]'+note}
@@ -690,7 +696,7 @@ async function syncLocalToSupabase(userId) {
         low_remaining: safeNumber(s.settings ? s.settings.lowRemaining : 1000, 1000),
         warn_percent: safeNumber(s.settings ? s.settings.warnPercent : 90, 90),
         weekly_on: s.settings ? !!s.settings.weeklyOn : false,
-        theme: s.theme || 'light',
+        theme: s.theme || DEFAULT_THEME,
         pin_enabled: s.pin ? !!s.pin.enabled : false,
         pin_hash: s.pin ? s.pin.hash || null : null,
         pin_salt: s.pin ? s.pin.salt || null : null,
@@ -960,7 +966,7 @@ async function fetchRemoteData(userId) {
     var newStore = {
         meta: { updatedAt: Date.now(), migratedToSupabase: true },
         settings: s.settings || {},
-        theme: s.theme || 'light',
+        theme: s.theme || DEFAULT_THEME,
         pin: s.pin || { enabled: false, hash: '', salt: '' },
         lastWallet: s.lastWallet || 'cash',
         wallets: [],
@@ -991,7 +997,7 @@ async function fetchRemoteData(userId) {
             lowRemaining: Number(prof.low_remaining || 1000),
             warnPercent: Number(prof.warn_percent || 90)
         };
-        newStore.theme = prof.theme || 'light';
+        newStore.theme = prof.theme || DEFAULT_THEME;
         newStore.pin = {
             enabled: !!prof.pin_enabled,
             hash: prof.pin_hash || '',
@@ -1568,13 +1574,16 @@ function enterApp(){
     var app=document.getElementById('app'),wasShown=app.classList.contains('show');
     document.getElementById('welcome').classList.add('hide');
     app.classList.add('show');
-    applyTheme(gs().theme||'light');
+    migrateBrandTheme();
+    applyTheme(gs().theme||DEFAULT_THEME);
     setV(vw||'m');
     updateUserBtn();
     if(!wasShown&&pinEnabled()){showPinLock('unlock',{title:'ใส่ PIN เพื่อปลดล็อก',sub:'เพื่อความปลอดภัยของข้อมูล',len:4,autoSubmit:true,canCancel:false})}
     if(!_pollTimer)_pollTimer=setInterval(function(){supabasePollSync()},5*60*1000);
     if(!_visListenerAdded){_visListenerAdded=true;document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')setTimeout(supabasePollSync,1000)})}
 }
+// One-time rebrand move: users still on the old default (Champagne) switch to Okane Jade once per device; picking Champagne again afterwards sticks.
+function migrateBrandTheme(){try{if(localStorage.getItem('okane_brand')==='jade')return;localStorage.setItem('okane_brand','jade')}catch(e){return}if(gs().theme==='light')applyTheme('jade')}
 function showGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.add('open')}
 function closeGuestWarn(){var p=document.getElementById('guestWarnPopup');if(p)p.classList.remove('open')}
 function checkSession(){
@@ -1790,7 +1799,7 @@ function doForceUpdate() {
 
 
 /* ===== THEME ===== */
-function validThemeId(id){return THEMES.some(function(t){return t.id===id})?id:'light'}
+function validThemeId(id){return THEMES.some(function(t){return t.id===id})?id:DEFAULT_THEME}
 function applyTheme(id){id=validThemeId(id);document.documentElement.setAttribute('data-theme',id);var t=THEMES.find(function(x){return x.id===id})||THEMES[0];var mc=document.querySelector('meta[name="theme-color"]');if(mc&&t.metaColor)mc.setAttribute('content',t.metaColor);var s=gs();s.theme=id;persistStore(s,false)}
 function openThemePop(){openHeaderMenu('theme')}
 function closeThemePop(){document.getElementById('themePop').classList.remove('open')}
@@ -1798,7 +1807,7 @@ setTimeout(function(){
     var tp = document.getElementById('themePop');
     if(tp) tp.addEventListener('click',function(e){if(e.target===this)closeThemePop()});
 }, 500);
-function renderThemeDD(){var cur=validThemeId(gs().theme||'light');var h='';THEMES.forEach(function(t){h+='<div class="theme-item'+(cur===t.id?' active':'')+'" onclick="pickTheme(\''+t.id+'\',0)"><div class="theme-dots">';t.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});h+='</div><span>'+t.name+'</span><div class="theme-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>'});var dd=document.getElementById('themeDD');if(dd)dd.innerHTML=h}
+function renderThemeDD(){var cur=validThemeId(gs().theme||DEFAULT_THEME);var h='';THEMES.forEach(function(t){h+='<div class="theme-item'+(cur===t.id?' active':'')+'" onclick="pickTheme(\''+t.id+'\',0)"><div class="theme-dots">';t.dots.forEach(function(c){h+='<div class="theme-dot" style="background:'+c+'"></div>'});h+='</div><span>'+t.name+'</span><div class="theme-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>'});var dd=document.getElementById('themeDD');if(dd)dd.innerHTML=h}
 function pickTheme(id,lk){applyTheme(id);syncNow(gs());renderThemeDD();renderHeaderMenu();render();closeThemePop()}
 function showPrem(){}
 function closePrem(){}
@@ -1824,7 +1833,7 @@ function hdrMenuRow(view,icon,title,sub,primary){
 function renderHeaderMenu(){
     var card=document.querySelector('#hdrMenu .hdr-menu-card');
     if(!card)return;
-    var u=userDisplaySummary(),curTheme=THEMES.find(function(t){return t.id===validThemeId(gs().theme||'light')})||THEMES[0];
+    var u=userDisplaySummary(),curTheme=THEMES.find(function(t){return t.id===validThemeId(gs().theme||DEFAULT_THEME)})||THEMES[0];
     var titles={home:'เมนู',profile:'โปรไฟล์',settings:'ตั้งค่า',theme:'ธีม'};
     var h='<div class="hdr-drawer">';
     h+='<div class="hdr-drawer-head">';
@@ -1853,7 +1862,7 @@ function renderHeaderMenu(){
         h+='</div>';
     }else if(hdrMenuView==='theme'){
         h+='<div class="hdr-theme-list">';
-        THEMES.forEach(function(t){var on=validThemeId(gs().theme||'light')===t.id;h+='<button class="hdr-theme-item'+(on?' active':'')+'" onclick="pickTheme(\''+t.id+'\',0)" type="button"><span class="theme-dots">';t.dots.forEach(function(c){h+='<i style="background:'+c+'"></i>'});h+='</span><span><strong>'+esc(t.name)+'</strong><small>'+(on?'กำลังใช้งาน':'แตะเพื่อเปลี่ยนธีม')+'</small></span><em>'+SVG_CHECK+'</em></button>'});
+        THEMES.forEach(function(t){var on=validThemeId(gs().theme||DEFAULT_THEME)===t.id;h+='<button class="hdr-theme-item'+(on?' active':'')+'" onclick="pickTheme(\''+t.id+'\',0)" type="button"><span class="theme-dots">';t.dots.forEach(function(c){h+='<i style="background:'+c+'"></i>'});h+='</span><span><strong>'+esc(t.name)+'</strong><small>'+(on?'กำลังใช้งาน':'แตะเพื่อเปลี่ยนธีม')+'</small></span><em>'+SVG_CHECK+'</em></button>'});
         h+='</div>';
     }
     h+='</div><div class="hdr-drawer-footer">';
@@ -2256,16 +2265,6 @@ el.innerHTML=h
 }
 
 /* ===== RENDER DAILY ===== */
-function dayPulseH(c,y,m,todaySpent){
-    var now=getBangkokNow();
-    if(!(now.getFullYear()===y&&now.getMonth()===m))return '';
-    var dim=new Date(y,m+1,0).getDate(),left=dim-now.getDate()+1;
-    var allow=left>0?Math.max(0,Number(c.r||0)+Number(todaySpent||0))/left:0;
-    var pct=allow>0?Math.min(100,Math.round(todaySpent/allow*100)):(todaySpent>0?100:0);
-    var tone=pct>=100?'bad':pct>=75?'warn':'ok';
-    var rem=allow-todaySpent;
-    return '<div class="day-pulse pulse-'+tone+'"><div class="dp-top"><span>งบวันนี้</span><b class="'+(rem>=0?'pos':'neg')+'">'+(rem>=0?'เหลือ '+fmt(rem):'เกิน '+fmt(-rem))+'</b></div><div class="dp-bar"><div class="dp-fill" style="width:'+pct+'%"></div></div><div class="dp-sub"><span>ใช้ไป '+fmt(todaySpent)+'</span><span>ใช้ได้ '+fmt(allow)+'/วัน</span></div></div>';
-}
 function yearInsightH(rows){
     var act=rows.map(function(c,i){return{i:i,r:Number(c.r||0),e:Number(c.tE||0),inc:Number(c.tI||0)}}).filter(function(x){return x.e>0||x.inc>0});
     if(act.length<2)return '';
@@ -2283,7 +2282,7 @@ var h='';
 
 // Hero
 h+=todayHeadH(c,vy,vm);
-h+=dayPulseH(c,vy,vm,total);
+h+=todaySafeH(c,vy,vm,total);
 h+=tctBarH();
 var streak=getStreak();
 if(streak.current>0)h+='<div class="streak-bar"><span>บันทึกต่อเนื่อง '+streak.current+' วัน</span><span class="streak-best">สถิติดีสุด '+streak.best+' วัน</span></div>';
@@ -2307,23 +2306,7 @@ exps.forEach(function(e){
   budgetCards.push({k:e.k,n:e.n,budget:budget,spent:effSpent,left:budget-effSpent,pct:pct});
 });
 budgetCards.sort(function(a,b){return b.pct-a.pct});
-if(budgetCards.length>0){
-h+='<div class="sec" style="animation-delay:.02s"><div class="sec-t">'+secTitle(IC.cal,'งบรายเดือน')+'</div><div class="sc" style="padding:8px 12px">';
-h+='<div class="budget-mini-grid">';
-budgetCards.slice(0,3).forEach(function(bc){
-  var cls=bc.pct>=90?'pf-rd':bc.pct>=70?'pf-or':'pf-gn';
-  h+='<div class="budget-mini-card" onclick="openCatDetail(\''+bc.k+'\')">';
-  h+='<div class="bmc-top">'+catBadge(bc.k)+'<span class="bmc-name">'+esc(bc.n)+'</span></div>';
-  h+='<div class="bmc-bar"><div class="prog-fill '+cls+'" style="width:'+bc.pct.toFixed(0)+'%"></div></div>';
-  h+='<div class="bmc-nums"><span>เหลือ '+fmt(bc.left)+'</span><span>'+bc.pct.toFixed(0)+'%</span></div>';
-  h+='</div>';
-});
-h+='</div>';
-if(budgetCards.length>3){
-h+='<div style="text-align:center;padding:6px 0"><button class="btn btn-gh" style="font-size:11px;padding:6px 16px" onclick="window._budgetOpen=true;setV(\'m\')">ดูงบทั้งหมด →</button></div>';
-}
-h+='</div></div>';
-}
+h+=todayBudgetH(budgetCards);
 
 // Weekly summary — moved up (more relevant in daily view)
 var weekT=0,weekD=0,weekItems=[];
@@ -2984,7 +2967,7 @@ function fabDown(){_fabHeld=false;clearTimeout(_fabTimer);_fabTimer=setTimeout(f
 function fabUp(){clearTimeout(_fabTimer)}
 function fabTap(){clearTimeout(_fabTimer);if(_fabHeld){_fabHeld=false;return}if(vw==='m')fabSheet();else openQuickAdd()}
 function openQuickAdd(){qaCat=null;qaWallet=getLastWallet();window._qaA='';window._qaN='';window._qaShowAll=false;var today=getThaiToday();var di=document.getElementById('qaDate');if(di){di.value=today;di.max=today}renderQA();document.getElementById('qaM').classList.add('open');var i=document.getElementById('qaAmt');if(i){try{i.focus({preventScroll:true})}catch(e){i.focus()}requestAnimationFrame(function(){var j=document.getElementById('qaAmt');if(j&&document.activeElement!==j){try{j.focus({preventScroll:true})}catch(e){j.focus()}}})}}
-function closeQA(){document.getElementById('qaM').classList.remove('open');window._qaA='';window._qaN=''}
+function closeQA(){document.getElementById('qaM').classList.remove('open','qa-typing');window._qaA='';window._qaN=''}
 function getFrequentCats(limit){
     var s=gs(),counts={};limit=limit||4;
     if(s.dLog){Object.keys(s.dLog).sort().reverse().slice(0,60).forEach(function(dk){(s.dLog[dk]||[]).forEach(function(x){var c=x.cat||'other';counts[c]=(counts[c]||0)+1})})}
@@ -3013,7 +2996,7 @@ function renderQA(){
     h += '<div class="qa-amt-wrap">';
     h += '<div class="qa-amt-container">';
     h += '<span class="qa-amt-symbol">฿</span>';
-    h += '<input class="qa-amt" type="number" inputmode="decimal" autofocus id="qaAmt" placeholder="0" min="0" oninput="qaAmtChange()"'+(window._qaA?' value="'+window._qaA+'"':'')+'>';
+    h += '<input class="qa-amt" type="text" inputmode="none" readonly autofocus id="qaAmt" placeholder="0" aria-label="จำนวนเงิน" oninput="qaAmtChange()"'+(window._qaA?' value="'+esc(String(window._qaA))+'"':'')+'>';
     h += '</div>';
     h += '<div class="qa-presets"><button onclick="quickAmt(10)">+10</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(500)">+500</button></div>';
     h += '</div>';
@@ -3055,19 +3038,26 @@ function renderQA(){
     h += '</div>';
 
     // Note
-    h += '<div class="qa-meta-lb" style="margin:12px 0 6px">บันทึกช่วยจำ</div>';
-    h += '<input class="qa-note" id="qaNote" placeholder="บันทึกช่วยจำ (ไม่บังคับ)" oninput="qaNoteChange()"'+(window._qaN?' value="'+esc(window._qaN)+'"':'')+' style="margin-top:0">';
+    h += '<input class="qa-note" id="qaNote" placeholder="บันทึกช่วยจำ (ไม่บังคับ)" aria-label="บันทึกช่วยจำ" oninput="qaNoteChange()" onfocus="qaTyping(true)" onblur="qaTyping(false)"'+(window._qaN?' value="'+esc(window._qaN)+'"':'')+' style="margin-top:0">';
 
-    // Wallet — collapsible
+    // One options row: wallet chips on the left, save-as-template and add-another on the right
     var w=getWallets();
+    h += '<div class="qa-opts">';
     if(w.length>1){
-        h += '<div class="qa-meta-lb" style="margin:14px 0 6px">จ่ายจากกระเป๋า</div>';
-        h += '<div class="qa-wallet-row" style="border-top:none;margin-top:0;padding-top:0">';
-        w.forEach(function(x){h+='<button class="qa-wal-btn'+(qaWallet===x.id?' on':'')+'" onclick="qaPickWallet(\''+x.id+'\')">'+esc(x.name)+'</button>'});
+        h += '<div class="qa-wallet-row" role="group" aria-label="จ่ายจากกระเป๋า">';
+        w.forEach(function(x){h+='<button type="button" class="qa-wal-btn'+(qaWallet===x.id?' on':'')+'" onclick="qaPickWallet(\''+x.id+'\')" aria-pressed="'+(qaWallet===x.id)+'">'+esc(x.name)+'</button>'});
         h += '</div>';
     }
+    h += '<button type="button" class="qa-save-tpl" onclick="saveQaTpl()" aria-label="บันทึกเป็นรายการด่วน" title="บันทึกเป็นรายการด่วน"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 16.5 5.5 21 7.5 13.5 2 9 9 9"/></svg></button>';
+    h += '<label class="add-another"><input type="checkbox"'+(window._qaAgain?' checked':'')+' onchange="window._qaAgain=this.checked"><span>เพิ่มต่อ</span></label>';
+    h += '</div>';
 
-    h += '<div class="qa-foot-row"><label class="add-another"><input type="checkbox"'+(window._qaAgain?' checked':'')+' onchange="window._qaAgain=this.checked"><span>บันทึกแล้วเพิ่มต่อ</span></label><button type="button" class="qa-save-tpl" onclick="saveQaTpl()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 16.5 5.5 21 7.5 13.5 2 9 9 9"/></svg>บันทึกเป็นรายการด่วน</button></div>';
+    // Built-in numpad: no system keyboard, thumb-reach keys
+    h += '<div class="qa-pad" id="qaPad" role="group" aria-label="แป้นตัวเลข">';
+    ['1','2','3','4','5','6','7','8','9','.','0','del'].forEach(function(k){
+        h += '<button type="button" class="qa-key'+(k==='del'?' qa-key-del':'')+'" onclick="qaKey(\''+k+'\')"'+(k==='del'?' aria-label="ลบตัวเลข"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Z"/><path d="m16 10-4 4m0-4 4 4"/></svg>':'>'+k)+'</button>';
+    });
+    h += '</div>';
     document.getElementById('qaB').innerHTML = h;
     requestAnimationFrame(function(){try{qaNoteChange()}catch(e){}});
 }
@@ -3079,6 +3069,29 @@ function qaAmtChange(){
     var grid=document.querySelector('.qa-cats');
     if(grid){grid.style.opacity=hasAmt?'1':'0.4';grid.style.pointerEvents=hasAmt?'':'none'}
 }
+// Numpad key: digits append, '.' once, at most 2 decimals and 9 digits; 'del' removes the last character
+function qaKey(k){
+    var i=document.getElementById('qaAmt');if(!i)return;
+    var v=String(i.value||'');
+    if(k==='del')v=v.slice(0,-1);
+    else if(k==='.'){if(v.indexOf('.')>=0)return;v=(v||'0')+'.'}
+    else{var dot=v.indexOf('.');if(dot>=0&&v.length-dot>2)return;if(v.replace('.','').length>=9)return;v=(v==='0'?'':v)+k}
+    i.value=v;var aw=document.querySelector('#qaM .qa-amt-wrap');if(aw)aw.classList.remove('qa-err');window._qaA=v;qaAmtChange();
+    i.classList.remove('bump');void i.offsetWidth;i.classList.add('bump');
+    try{if(navigator.vibrate)navigator.vibrate(6)}catch(e){}
+}
+function qaTyping(on){var m=document.getElementById('qaM');if(m)m.classList.toggle('qa-typing',!!on)}
+// Hardware keyboard still works while the amount is read-only
+document.addEventListener('keydown',function(e){
+    var m=document.getElementById('qaM');if(!m||!m.classList.contains('open'))return;
+    var t=e.target;if(t&&(t.id==='qaNote'||t.id==='qaDate'))return;
+    if(e.metaKey||e.ctrlKey||e.altKey)return;
+    if(/^[0-9]$/.test(e.key)){qaKey(e.key);e.preventDefault()}
+    else if(e.key==='.'||e.key===','){qaKey('.');e.preventDefault()}
+    else if(e.key==='Backspace'){qaKey('del');e.preventDefault()}
+    else if(e.key==='Enter'){saveQA();e.preventDefault()}
+    else if(e.key==='Escape'){closeQA()}
+});
 function quickAmt(v){
     var i=document.getElementById('qaAmt');
     if(!i)return;
@@ -3090,7 +3103,7 @@ function qaPickWallet(id){window._qaA=(document.getElementById('qaAmt')||{}).val
 function pickQA(id){window._qaA=(document.getElementById('qaAmt')||{}).value||'';window._qaN=(document.getElementById('qaNote')||{}).value||'';qaCat=id;renderQA()}
 function saveQA(){
 var amt=Number((document.getElementById('qaAmt')||{}).value)||0;
-if(amt<=0){var ai=document.getElementById('qaAmt');if(ai)ai.style.borderColor='var(--rd)';return}
+if(amt<=0){var aw=document.querySelector('#qaM .qa-amt-wrap');if(aw){aw.classList.remove('qa-err');void aw.offsetWidth;aw.classList.add('qa-err')}return}
 if(!qaCat){alert('กรุณาเลือกหมวดหมู่ก่อนบันทึก');return}
 var note=(document.getElementById('qaNote')||{}).value||'';
 var cat=qaCat;
@@ -3411,7 +3424,7 @@ document.getElementById('shM').addEventListener('click',function(e){if(e.target=
 function openUser(){
     var s=gs(),un=s.userName||userInfo.name||'User';
     var pic=getSafeImageSrc(s.customPicture||(userInfo.picture?userInfo.picture:null));
-    var curTheme=THEMES.find(function(t){return t.id===(s.theme||'light')})||THEMES[0];
+    var curTheme=THEMES.find(function(t){return t.id===(s.theme||DEFAULT_THEME)})||THEMES[0];
     // Stats
     var d=gm(cY,sM_);
     var monthExp=getBudgetKeys(d).reduce(function(sum,key){return sum+Number(d[key]||0)},0);
@@ -4123,7 +4136,7 @@ window.addEventListener('load',function(){
     scheduleUpdateChecks();
     initGlobalCMS().then(function(){
         var t=window.OkaneCMS&&OkaneCMS.data.meta&&OkaneCMS.data.meta.default_theme;
-        if(t&&typeof applyTheme==='function')applyTheme(t)
+        if(t&&!HAD_STORE_AT_BOOT&&typeof applyTheme==='function')applyTheme(t)
     }).finally(function(){
         refreshGlobalVisuals()
     });

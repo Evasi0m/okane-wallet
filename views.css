@@ -13,14 +13,75 @@
 .stat-cell b{font-size:17px;font-variant-numeric:tabular-nums;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat-cell b.pos{color:var(--gn)}.stat-cell b.neg{color:var(--rd)}
 
-/* today header */
-.today-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 12px;padding:14px 16px;border-radius:20px;background:var(--card);border:1px solid var(--rim)}
-.today-date{border:none;background:var(--card2);color:var(--tx);font-size:14px;font-weight:700;padding:10px 12px;border-radius:12px;cursor:pointer;white-space:nowrap}
-.today-date span{color:var(--tx3);font-size:11px}
-.today-bal{text-align:right;min-width:0}
-.today-bal small{display:block;font-size:11.5px;color:var(--tx3)}
-.today-bal b{font-size:22px;font-variant-numeric:tabular-nums;color:var(--tx)}
-.today-bal b.neg{color:var(--rd)}
+/* ===== Today tab ===== */
+/* layered hero: gradient body, drifting orbs, a sheen pass, glass tiles on top */
+.today-hero{position:relative;overflow:hidden;isolation:isolate;margin:4px 0 12px;padding:14px 16px 16px;border-radius:24px;
+  background:linear-gradient(155deg,var(--heroA) 0%,var(--heroB) 46%,var(--heroC) 100%);color:var(--heroPosFg);
+  box-shadow:0 1px 0 rgba(255,255,255,.28) inset,0 -1px 0 rgba(0,0,0,.12) inset,0 18px 34px -18px rgb(var(--heroDrop) / .7),0 6px 14px -8px rgb(var(--heroDrop) / .45);
+  animation:tdIn .5s var(--ease-out) both}
+.today-hero>*{position:relative;z-index:1}
+.today-hero .th-orb{position:absolute;z-index:0;width:190px;height:190px;right:-70px;top:-90px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.34),rgba(255,255,255,.04) 70%);animation:thDrift 9s ease-in-out infinite alternate}
+.today-hero .th-orb2{width:120px;height:120px;right:auto;left:-40px;top:auto;bottom:-70px;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);animation-duration:12s}
+.today-hero .th-sheen{position:absolute;z-index:0;inset:0;background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.16) 50%,transparent 62%);transform:translateX(-110%);animation:thSheen 7s ease-in-out 1s infinite}
+.th-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.th-date,.th-eye{border:1px solid rgba(255,255,255,.26);background:rgba(255,255,255,.16);color:inherit;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.th-date{height:36px;padding:0 12px;border-radius:12px;font-size:13.5px;font-weight:700;white-space:nowrap}
+.th-date span{opacity:.75;font-size:10px}
+.th-eye{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;flex:none}
+.th-eye svg{width:17px;height:17px}
+.th-date:active,.th-eye:active{transform:scale(.95)}
+.th-lb{display:block;font-size:12.5px;color:var(--heroPosDim);font-weight:600}
+.th-bal{font-family:var(--font-mono);font-size:clamp(30px,9vw,36px);font-weight:700;letter-spacing:-.02em;line-height:1.15;font-variant-numeric:tabular-nums;text-shadow:var(--heroPosVSh);white-space:nowrap}
+.th-split{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.th-tile{min-width:0;padding:8px 11px;border-radius:14px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);box-shadow:0 1px 0 rgba(255,255,255,.18) inset}
+.th-tile small{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--heroPosDim);font-weight:600}
+.th-tile small i{font-style:normal;width:16px;height:16px;border-radius:6px;display:grid;place-items:center;background:rgba(255,255,255,.2);font-size:10px}
+.th-tile b{display:block;margin-top:2px;font-family:var(--font-mono);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* "ใช้ได้อีกวันนี้" */
+.safe-card{display:flex;align-items:center;gap:14px;margin:0 0 12px;padding:14px 16px;border-radius:20px;background:var(--card);border:1px solid var(--cb);box-shadow:var(--s2);animation:tdIn .5s var(--ease-out) .06s both}
+.safe-ring{--tone:var(--ac);flex:none;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--tone) calc(var(--p)*1%),var(--bg2) 0);box-shadow:0 8px 16px -10px var(--tone)}
+.safe-ring span{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--card);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--tx);box-shadow:inset 0 2px 4px rgba(0,0,0,.06)}
+.safe-warn .safe-ring{--tone:var(--ac2)}
+.safe-bad .safe-ring{--tone:var(--rd)}
+.safe-copy{min-width:0;display:flex;flex-direction:column}
+.safe-copy small{font-size:12.5px;color:var(--tx3);font-weight:600}
+.safe-copy b{font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--ac);font-variant-numeric:tabular-nums;line-height:1.25}
+.safe-bad .safe-copy b{color:var(--rd)}
+.safe-copy span{font-size:12px;color:var(--tx3)}
+.safe-copy em{font-style:normal;font-family:inherit;font-size:inherit;font-weight:600;color:var(--tx2);font-variant-numeric:tabular-nums}
+
+/* today's list card lifts a little more than other groups */
+.today-list{border-color:var(--cb);box-shadow:var(--s2);animation:tdIn .5s var(--ease-out) .12s both}
+
+/* budget rows */
+.tb-card{margin:0 0 12px;padding:6px 14px 8px;border-radius:20px;background:var(--card);border:1px solid var(--cb);box-shadow:var(--s2);animation:tdIn .5s var(--ease-out) .18s both}
+.tb-hd{display:flex;align-items:center;justify-content:space-between;padding:6px 0 4px}
+.tb-hd b{font-size:14px;color:var(--tx)}
+.tb-all{border:none;background:none;color:var(--ac);font-size:13px;font-weight:700;cursor:pointer;padding:8px 0 8px 12px}
+.tb-row{width:100%;display:flex;align-items:center;gap:11px;padding:9px 0;border:none;border-top:1px solid var(--cb);background:none;color:inherit;text-align:left;cursor:pointer}
+.tb-hd+.tb-row{border-top:none}
+.tb-row:active{opacity:.7}
+.tb-ic{flex:none;display:grid;place-items:center}
+.tb-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.tb-line{display:flex;justify-content:space-between;gap:8px;font-size:13.5px}
+.tb-line b{font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-line span{font-family:inherit;font-size:12px;font-weight:500;color:var(--tx3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tb-bar{height:7px;border-radius:9px;background:var(--bg2);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.06)}
+.tb-bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--ac),var(--ac2));transform-origin:left;animation:tbGrow .9s var(--ease-out) .25s both}
+.tb-bar.hi i{background:repeating-linear-gradient(45deg,transparent 0 5px,rgba(255,255,255,.3) 5px 10px),var(--rd)}
+.tb-pct{flex:none;width:38px;text-align:right;font-size:12px;font-weight:700;color:var(--tx2);font-variant-numeric:tabular-nums}
+
+@keyframes tdIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes tbGrow{from{transform:scaleX(.1)}to{transform:scaleX(1)}}
+@keyframes thSheen{0%,60%{transform:translateX(-110%)}100%{transform:translateX(110%)}}
+@keyframes thDrift{from{transform:translate(0,0)}to{transform:translate(-18px,14px)}}
+@media (prefers-reduced-motion:reduce){
+  .today-hero,.today-hero .th-orb,.today-hero .th-sheen,.safe-card,.today-list,.tb-card,.tb-bar i{animation:none}
+  .today-hero .th-sheen{display:none}
+}
 
 /* link card (Today -> transactions) */
 .link-card{width:100%;display:flex;justify-content:space-between;align-items:center;margin:4px 0 14px;padding:15px 16px;border-radius:16px;border:1px solid var(--rim);background:var(--card);color:var(--ac);font-size:14.5px;font-weight:700;cursor:pointer}
@@ -71,3 +132,62 @@
 html body .income-ci{grid-template-columns:auto minmax(0,1fr) auto auto !important;align-items:center !important}
 html body .income-ci .row-actions{grid-column:auto !important;display:flex !important;gap:6px;margin:0 !important}
 html body .income-ci .row-actions .cd,html body .income-ci .row-actions .mini-btn{width:32px !important;height:32px !important}
+
+/* ===== Quick add sheet ===== */
+/* scoped under #qaM so it wins over the older !important glass rules without touching them */
+#qaM .qa-amt-wrap{gap:10px !important;padding:12px 12px 12px !important;margin-bottom:10px !important;border-radius:22px !important;background:var(--card) !important;border:1px solid var(--cb) !important;box-shadow:var(--s2) !important}
+#qaM .qa-amt-symbol{font-size:28px !important;color:var(--ac) !important}
+#qaM .qa-amt{font-size:clamp(36px,11vw,44px) !important;letter-spacing:-.02em !important;caret-color:transparent;cursor:default;font-variant-numeric:tabular-nums}
+#qaM .qa-amt.bump{animation:qaBump .18s var(--ease-out)}
+#qaM .qa-presets button{background:var(--bg2) !important;border:1px solid var(--cb) !important;box-shadow:none !important;font-family:var(--font-mono) !important;font-variant-numeric:tabular-nums}
+#qaM .qa-presets button:active{background:var(--ac) !important;color:#fff !important;border-color:var(--ac) !important}
+
+/* categories: picked one fills with the tone and lifts */
+#qaM .qa-cat{background:var(--card) !important;border:1px solid var(--cb) !important;box-shadow:0 1px 0 rgba(255,255,255,.5) inset !important}
+#qaM .qa-cat.on{background:var(--ac) !important;border-color:var(--ac) !important;color:#fff !important;transform:translateY(-2px);box-shadow:0 10px 18px -10px var(--ac),0 1px 0 rgba(255,255,255,.3) inset !important}
+#qaM .qa-cat.on svg{color:#fff;stroke:currentColor}
+#qaM .qa-cat-manage,#qaM .qa-cat-more{border-style:dashed !important}
+
+#qaM .qa-note{margin-top:2px !important}
+#qaM .qa-opts{display:flex;align-items:center;gap:8px;margin:8px 0 0}
+#qaM .qa-wallet-row{flex:1;min-width:0;justify-content:flex-start !important;gap:6px !important;margin:0 !important;padding:0 !important;border-top:none !important;overflow-x:auto;scrollbar-width:none}
+#qaM .qa-wallet-row::-webkit-scrollbar{display:none}
+#qaM .qa-wal-btn{flex:none}
+#qaM .qa-opts .qa-save-tpl{margin-left:auto;flex:none;width:40px;height:40px;border-radius:12px;border:1px solid var(--cb);background:var(--card);color:var(--ac);display:grid;place-items:center;padding:0;cursor:pointer}
+#qaM .qa-opts .add-another{flex:none;margin:0;gap:8px;font-size:13px;font-weight:600}
+#qaM .qa-amt,#qaM .qa-amt:focus{box-shadow:none !important;outline:none !important;border-color:transparent !important}
+#qaM .qa-amt-wrap.qa-err{border-color:var(--rd) !important;animation:qaShake .32s var(--ease-out)}
+@keyframes qaShake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+#qaM .qa-wal-btn{height:34px;padding:0 14px !important;font-size:12.5px !important}
+#qaM .qa-wal-btn.on{background:var(--ac) !important;color:#fff !important;border-color:var(--ac) !important}
+
+/* numpad */
+.qa-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 2px}
+.qa-key{height:46px;border-radius:15px;border:1px solid var(--cb);background:var(--card);color:var(--tx);font-family:var(--font-mono);font-size:22px;font-weight:600;cursor:pointer;
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 2px 0 var(--cb);touch-action:manipulation;-webkit-user-select:none;user-select:none;display:grid;place-items:center;
+  transition:transform .12s var(--ease-spring),background .12s}
+.qa-key:active{transform:translateY(1px) scale(.96);background:var(--bg2);box-shadow:0 1px 0 rgba(255,255,255,.6) inset}
+.qa-key-del{color:var(--tx2)}
+/* numpad stays pinned at the sheet's bottom edge; anything that doesn't fit scrolls above it */
+#qaM .qa-pad{position:sticky;bottom:-32px;z-index:2;margin:10px -18px -32px;padding:10px 18px 32px;background:linear-gradient(var(--card),var(--card)),var(--bg);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 -12px 18px -16px rgb(var(--shadow-rgb, 20 20 19) / .35)}
+#qaM.qa-typing .qa-pad{display:none}
+@media (max-height:760px){
+  #qaM .qa-key{height:42px;font-size:20px}
+  #qaM .qa-amt{font-size:34px !important}
+  #qaM .qa-amt-wrap{gap:8px !important;padding:10px !important}
+  #qaM .qa-presets button{min-width:0 !important;padding:6px 12px !important}
+  #qaM .qa-cat{min-height:52px !important;padding:7px 4px !important}
+}
+
+/* add-another: checkbox drawn as a switch */
+#qaM .add-another input{appearance:none;-webkit-appearance:none;flex:none;width:40px;height:24px;margin:0;border-radius:999px;background:var(--bg2);border:1px solid var(--cb);position:relative;cursor:pointer;transition:background .2s}
+#qaM .add-another input::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .22s var(--ease-spring)}
+#qaM .add-another input:checked{background:var(--ac);border-color:var(--ac)}
+#qaM .add-another input:checked::after{transform:translateX(16px)}
+#qaM .add-another input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+
+/* sheet springs up */
+#qaM.open .mbox{animation:qaUp .42s var(--ease-spring) both}
+@keyframes qaUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes qaBump{50%{transform:scale(1.04)}}
+@media (prefers-reduced-motion:reduce){#qaM.open .mbox,#qaM .qa-amt.bump,#qaM .qa-amt-wrap.qa-err{animation:none}.qa-key,#qaM .add-another input::after{transition:none}}
