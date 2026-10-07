@@ -2265,16 +2265,6 @@ el.innerHTML=h
 }
 
 /* ===== RENDER DAILY ===== */
-function dayPulseH(c,y,m,todaySpent){
-    var now=getBangkokNow();
-    if(!(now.getFullYear()===y&&now.getMonth()===m))return '';
-    var dim=new Date(y,m+1,0).getDate(),left=dim-now.getDate()+1;
-    var allow=left>0?Math.max(0,Number(c.r||0)+Number(todaySpent||0))/left:0;
-    var pct=allow>0?Math.min(100,Math.round(todaySpent/allow*100)):(todaySpent>0?100:0);
-    var tone=pct>=100?'bad':pct>=75?'warn':'ok';
-    var rem=allow-todaySpent;
-    return '<div class="day-pulse pulse-'+tone+'"><div class="dp-top"><span>งบวันนี้</span><b class="'+(rem>=0?'pos':'neg')+'">'+(rem>=0?'เหลือ '+fmt(rem):'เกิน '+fmt(-rem))+'</b></div><div class="dp-bar"><div class="dp-fill" style="width:'+pct+'%"></div></div><div class="dp-sub"><span>ใช้ไป '+fmt(todaySpent)+'</span><span>ใช้ได้ '+fmt(allow)+'/วัน</span></div></div>';
-}
 function yearInsightH(rows){
     var act=rows.map(function(c,i){return{i:i,r:Number(c.r||0),e:Number(c.tE||0),inc:Number(c.tI||0)}}).filter(function(x){return x.e>0||x.inc>0});
     if(act.length<2)return '';
@@ -2292,7 +2282,7 @@ var h='';
 
 // Hero
 h+=todayHeadH(c,vy,vm);
-h+=dayPulseH(c,vy,vm,total);
+h+=todaySafeH(c,vy,vm,total);
 h+=tctBarH();
 var streak=getStreak();
 if(streak.current>0)h+='<div class="streak-bar"><span>บันทึกต่อเนื่อง '+streak.current+' วัน</span><span class="streak-best">สถิติดีสุด '+streak.best+' วัน</span></div>';
@@ -2316,23 +2306,7 @@ exps.forEach(function(e){
   budgetCards.push({k:e.k,n:e.n,budget:budget,spent:effSpent,left:budget-effSpent,pct:pct});
 });
 budgetCards.sort(function(a,b){return b.pct-a.pct});
-if(budgetCards.length>0){
-h+='<div class="sec" style="animation-delay:.02s"><div class="sec-t">'+secTitle(IC.cal,'งบรายเดือน')+'</div><div class="sc" style="padding:8px 12px">';
-h+='<div class="budget-mini-grid">';
-budgetCards.slice(0,3).forEach(function(bc){
-  var cls=bc.pct>=90?'pf-rd':bc.pct>=70?'pf-or':'pf-gn';
-  h+='<div class="budget-mini-card" onclick="openCatDetail(\''+bc.k+'\')">';
-  h+='<div class="bmc-top">'+catBadge(bc.k)+'<span class="bmc-name">'+esc(bc.n)+'</span></div>';
-  h+='<div class="bmc-bar"><div class="prog-fill '+cls+'" style="width:'+bc.pct.toFixed(0)+'%"></div></div>';
-  h+='<div class="bmc-nums"><span>เหลือ '+fmt(bc.left)+'</span><span>'+bc.pct.toFixed(0)+'%</span></div>';
-  h+='</div>';
-});
-h+='</div>';
-if(budgetCards.length>3){
-h+='<div style="text-align:center;padding:6px 0"><button class="btn btn-gh" style="font-size:11px;padding:6px 16px" onclick="window._budgetOpen=true;setV(\'m\')">ดูงบทั้งหมด →</button></div>';
-}
-h+='</div></div>';
-}
+h+=todayBudgetH(budgetCards);
 
 // Weekly summary — moved up (more relevant in daily view)
 var weekT=0,weekD=0,weekItems=[];

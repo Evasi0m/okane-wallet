@@ -19,10 +19,51 @@ function statTrioH(items){
 }
 
 /* ----- วันนี้ ----- */
+var EYE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+var EYE_OFF_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-2.2 3.2M6.6 6.6C3.6 8.4 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M2 2l20 20"/></svg>';
 function todayHeadH(c,y,m){
     var d=viewDate,isToday=dKey(d)===dKey(getBangkokNow());
     var dayLb=(isToday?'วันนี้ · ':'')+THDAY[d.getDay()]+' '+d.getDate()+' '+TM[d.getMonth()];
-    return '<div class="today-head"><button type="button" class="today-date" onclick="openCal()">'+dayLb+' <span>▾</span></button><div class="today-bal"><small>คงเหลือ '+TMF[m]+'</small><b class="'+(c.r>=0?'':'neg')+'">'+fmt(c.r)+'</b></div></div>';
+    var hidden=!!ensureSettings().hideAmount,r=Number(c.r||0),tI=Number(c.tI||0),tE=Number(c.tE||0);
+    return '<section class="today-hero'+(r<0?' is-neg':'')+'">'+
+        '<div class="th-orb" aria-hidden="true"></div><div class="th-orb th-orb2" aria-hidden="true"></div><div class="th-sheen" aria-hidden="true"></div>'+
+        '<div class="th-top"><button type="button" class="th-date" onclick="openCal()">'+dayLb+' <span aria-hidden="true">▾</span></button>'+
+        '<button type="button" class="th-eye" onclick="toggleHideAmt()" aria-label="'+(hidden?'แสดงจำนวนเงิน':'ซ่อนจำนวนเงิน')+'" aria-pressed="'+hidden+'">'+(hidden?EYE_OFF_SVG:EYE_SVG)+'</button></div>'+
+        '<small class="th-lb">คงเหลือ '+TMF[m]+(y!==getBangkokNow().getFullYear()?' '+y:'')+'</small>'+
+        '<div class="th-bal rv" data-tween-key="today-bal" data-tween-target="'+r+'" data-tween-fmt="signed">'+(r<0?'-':'')+fmt(Math.abs(r))+'</div>'+
+        '<div class="th-split">'+
+            '<div class="th-tile"><small><i aria-hidden="true">↑</i>รายรับ</small><b class="rv" data-tween-key="today-inc" data-tween-target="'+tI+'" data-tween-fmt="plus">+'+fmt(tI)+'</b></div>'+
+            '<div class="th-tile"><small><i aria-hidden="true">↓</i>ใช้/ตั้งงบ</small><b class="rv" data-tween-key="today-exp" data-tween-target="'+tE+'" data-tween-fmt="minus">-'+fmt(tE)+'</b></div>'+
+        '</div></section>';
+}
+
+/* "ใช้ได้อีกวันนี้": what's left of today's even share of the month's remaining balance */
+function todaySafeH(c,y,m,todaySpent){
+    var now=getBangkokNow();
+    if(!(now.getFullYear()===y&&now.getMonth()===m)||dKey(viewDate)!==dKey(now))return '';
+    var dim=new Date(y,m+1,0).getDate(),left=dim-now.getDate()+1;
+    var allow=left>0?Math.max(0,Number(c.r||0)+Number(todaySpent||0))/left:0;
+    var pct=allow>0?Math.min(100,Math.round(todaySpent/allow*100)):(todaySpent>0?100:0);
+    var rem=allow-todaySpent,over=rem<0,tone=over?'bad':pct>=75?'warn':'ok';
+    return '<section class="safe-card safe-'+tone+'"><div class="safe-ring" style="--p:'+pct+'" role="img" aria-label="ใช้ไป '+pct+'% ของงบวันนี้"><span>'+pct+'%</span></div>'+
+        '<div class="safe-copy"><small>'+(over?'เกินงบวันนี้':'ใช้ได้อีกวันนี้')+'</small>'+
+        '<b class="rv" data-tween-key="today-safe" data-tween-target="'+Math.abs(rem)+'" data-tween-fmt="plain">'+fmt(Math.abs(rem))+'</b>'+
+        '<span>ใช้ไป <em class="rv">'+fmt(todaySpent)+'</em> จาก <em class="rv">'+fmt(allow)+'</em>/วัน · เหลือ '+left+' วัน</span></div></section>';
+}
+
+/* top categories by % used, as rows with bars; striped once a category passes 90% */
+function todayBudgetH(cards){
+    if(!cards.length)return '';
+    var hot=cards[0].pct>=70;
+    var h='<section class="tb-card"><div class="tb-hd"><b>'+(hot?'งบใกล้เต็ม':'งบเดือนนี้')+'</b>'+
+        '<button type="button" class="tb-all" onclick="window._budgetOpen=true;setV(\'m\')">ดูทั้งหมด ›</button></div>';
+    cards.slice(0,3).forEach(function(bc){
+        var p=Math.round(bc.pct),over=bc.left<0;
+        h+='<button type="button" class="tb-row" onclick="openCatDetail(\''+bc.k+'\')"><span class="tb-ic">'+catBadge(bc.k)+'</span>'+
+            '<span class="tb-main"><span class="tb-line"><b>'+esc(bc.n)+'</b><span class="rv">'+(over?'เกิน '+fmt(-bc.left):'เหลือ '+fmt(bc.left))+'</span></span>'+
+            '<span class="tb-bar'+(p>=90?' hi':'')+'"><i style="width:'+p+'%"></i></span></span><span class="tb-pct">'+p+'%</span></button>';
+    });
+    return h+'</section>';
 }
 
 function txRowH(dk,x,i,cats){
@@ -32,8 +73,8 @@ function txRowH(dk,x,i,cats){
     return '<button type="button" class="tx-row" onclick="openEditEntry(\''+dk+'\','+i+')"><span class="tx-ic">'+getCatIcon(cat.id)+'</span><span class="tx-main"><b>'+esc(title)+'</b><small>'+esc(meta)+'</small></span><span class="tx-amt">−'+fmt(x.a)+'</span></button>';
 }
 function todayListH(log,dk,total){
-    if(!log.length)return '<div class="tx-group">'+emptyStateH({title:'ยังไม่มีรายการวันนี้',desc:'กดปุ่ม + ด้านล่างเพื่อบันทึกรายจ่าย',cta:{text:'+ บันทึกรายจ่าย',onclick:'openQuickAdd()'}})+'</div>';
-    var cats=getAllDailyCats(),h='<div class="tx-group"><div class="tx-day"><span>รายจ่ายวันนี้ · '+log.length+' รายการ</span><span>−'+fmt(total)+'</span></div>';
+    if(!log.length)return '<div class="tx-group today-list">'+emptyStateH({title:'ยังไม่มีรายการวันนี้',desc:'กดปุ่ม + ด้านล่างเพื่อบันทึกรายจ่าย',cta:{text:'+ บันทึกรายจ่าย',onclick:'openQuickAdd()'}})+'</div>';
+    var cats=getAllDailyCats(),h='<div class="tx-group today-list"><div class="tx-day"><span>รายจ่ายวันนี้ · '+log.length+' รายการ</span><span>−'+fmt(total)+'</span></div>';
     for(var i=log.length-1;i>=0;i--)h+=txRowH(dk,log[i],i,cats);
     return h+'</div>';
 }
