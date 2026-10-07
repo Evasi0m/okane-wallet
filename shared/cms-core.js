@@ -9,7 +9,7 @@
     icons: {},
     strings: {},
     assets: {},
-    meta: { updated_at: null, default_theme: 'light', feature_flags: {} },
+    meta: { updated_at: null, default_theme: 'jade', feature_flags: {} },
     fetchedAt: 0
   };
 
@@ -92,7 +92,7 @@
     });
     var meta = {
       updated_at: metaRow && metaRow.updated_at ? metaRow.updated_at : null,
-      default_theme: metaRow && metaRow.default_theme ? metaRow.default_theme : 'light',
+      default_theme: metaRow && metaRow.default_theme ? metaRow.default_theme : 'jade',
       feature_flags: metaRow && metaRow.feature_flags ? metaRow.feature_flags : {}
     };
     return {
