@@ -2967,7 +2967,7 @@ function fabDown(){_fabHeld=false;clearTimeout(_fabTimer);_fabTimer=setTimeout(f
 function fabUp(){clearTimeout(_fabTimer)}
 function fabTap(){clearTimeout(_fabTimer);if(_fabHeld){_fabHeld=false;return}if(vw==='m')fabSheet();else openQuickAdd()}
 function openQuickAdd(){qaCat=null;qaWallet=getLastWallet();window._qaA='';window._qaN='';window._qaShowAll=false;var today=getThaiToday();var di=document.getElementById('qaDate');if(di){di.value=today;di.max=today}renderQA();document.getElementById('qaM').classList.add('open');var i=document.getElementById('qaAmt');if(i){try{i.focus({preventScroll:true})}catch(e){i.focus()}requestAnimationFrame(function(){var j=document.getElementById('qaAmt');if(j&&document.activeElement!==j){try{j.focus({preventScroll:true})}catch(e){j.focus()}}})}}
-function closeQA(){document.getElementById('qaM').classList.remove('open');window._qaA='';window._qaN=''}
+function closeQA(){document.getElementById('qaM').classList.remove('open','qa-typing');window._qaA='';window._qaN=''}
 function getFrequentCats(limit){
     var s=gs(),counts={};limit=limit||4;
     if(s.dLog){Object.keys(s.dLog).sort().reverse().slice(0,60).forEach(function(dk){(s.dLog[dk]||[]).forEach(function(x){var c=x.cat||'other';counts[c]=(counts[c]||0)+1})})}
@@ -2996,7 +2996,7 @@ function renderQA(){
     h += '<div class="qa-amt-wrap">';
     h += '<div class="qa-amt-container">';
     h += '<span class="qa-amt-symbol">฿</span>';
-    h += '<input class="qa-amt" type="number" inputmode="decimal" autofocus id="qaAmt" placeholder="0" min="0" oninput="qaAmtChange()"'+(window._qaA?' value="'+window._qaA+'"':'')+'>';
+    h += '<input class="qa-amt" type="text" inputmode="none" readonly autofocus id="qaAmt" placeholder="0" aria-label="จำนวนเงิน" oninput="qaAmtChange()"'+(window._qaA?' value="'+esc(String(window._qaA))+'"':'')+'>';
     h += '</div>';
     h += '<div class="qa-presets"><button onclick="quickAmt(10)">+10</button><button onclick="quickAmt(50)">+50</button><button onclick="quickAmt(100)">+100</button><button onclick="quickAmt(500)">+500</button></div>';
     h += '</div>';
@@ -3038,19 +3038,26 @@ function renderQA(){
     h += '</div>';
 
     // Note
-    h += '<div class="qa-meta-lb" style="margin:12px 0 6px">บันทึกช่วยจำ</div>';
-    h += '<input class="qa-note" id="qaNote" placeholder="บันทึกช่วยจำ (ไม่บังคับ)" oninput="qaNoteChange()"'+(window._qaN?' value="'+esc(window._qaN)+'"':'')+' style="margin-top:0">';
+    h += '<input class="qa-note" id="qaNote" placeholder="บันทึกช่วยจำ (ไม่บังคับ)" aria-label="บันทึกช่วยจำ" oninput="qaNoteChange()" onfocus="qaTyping(true)" onblur="qaTyping(false)"'+(window._qaN?' value="'+esc(window._qaN)+'"':'')+' style="margin-top:0">';
 
-    // Wallet — collapsible
+    // One options row: wallet chips on the left, save-as-template and add-another on the right
     var w=getWallets();
+    h += '<div class="qa-opts">';
     if(w.length>1){
-        h += '<div class="qa-meta-lb" style="margin:14px 0 6px">จ่ายจากกระเป๋า</div>';
-        h += '<div class="qa-wallet-row" style="border-top:none;margin-top:0;padding-top:0">';
-        w.forEach(function(x){h+='<button class="qa-wal-btn'+(qaWallet===x.id?' on':'')+'" onclick="qaPickWallet(\''+x.id+'\')">'+esc(x.name)+'</button>'});
+        h += '<div class="qa-wallet-row" role="group" aria-label="จ่ายจากกระเป๋า">';
+        w.forEach(function(x){h+='<button type="button" class="qa-wal-btn'+(qaWallet===x.id?' on':'')+'" onclick="qaPickWallet(\''+x.id+'\')" aria-pressed="'+(qaWallet===x.id)+'">'+esc(x.name)+'</button>'});
         h += '</div>';
     }
+    h += '<button type="button" class="qa-save-tpl" onclick="saveQaTpl()" aria-label="บันทึกเป็นรายการด่วน" title="บันทึกเป็นรายการด่วน"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 16.5 5.5 21 7.5 13.5 2 9 9 9"/></svg></button>';
+    h += '<label class="add-another"><input type="checkbox"'+(window._qaAgain?' checked':'')+' onchange="window._qaAgain=this.checked"><span>เพิ่มต่อ</span></label>';
+    h += '</div>';
 
-    h += '<div class="qa-foot-row"><label class="add-another"><input type="checkbox"'+(window._qaAgain?' checked':'')+' onchange="window._qaAgain=this.checked"><span>บันทึกแล้วเพิ่มต่อ</span></label><button type="button" class="qa-save-tpl" onclick="saveQaTpl()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 16.5 5.5 21 7.5 13.5 2 9 9 9"/></svg>บันทึกเป็นรายการด่วน</button></div>';
+    // Built-in numpad: no system keyboard, thumb-reach keys
+    h += '<div class="qa-pad" id="qaPad" role="group" aria-label="แป้นตัวเลข">';
+    ['1','2','3','4','5','6','7','8','9','.','0','del'].forEach(function(k){
+        h += '<button type="button" class="qa-key'+(k==='del'?' qa-key-del':'')+'" onclick="qaKey(\''+k+'\')"'+(k==='del'?' aria-label="ลบตัวเลข"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Z"/><path d="m16 10-4 4m0-4 4 4"/></svg>':'>'+k)+'</button>';
+    });
+    h += '</div>';
     document.getElementById('qaB').innerHTML = h;
     requestAnimationFrame(function(){try{qaNoteChange()}catch(e){}});
 }
@@ -3062,6 +3069,29 @@ function qaAmtChange(){
     var grid=document.querySelector('.qa-cats');
     if(grid){grid.style.opacity=hasAmt?'1':'0.4';grid.style.pointerEvents=hasAmt?'':'none'}
 }
+// Numpad key: digits append, '.' once, at most 2 decimals and 9 digits; 'del' removes the last character
+function qaKey(k){
+    var i=document.getElementById('qaAmt');if(!i)return;
+    var v=String(i.value||'');
+    if(k==='del')v=v.slice(0,-1);
+    else if(k==='.'){if(v.indexOf('.')>=0)return;v=(v||'0')+'.'}
+    else{var dot=v.indexOf('.');if(dot>=0&&v.length-dot>2)return;if(v.replace('.','').length>=9)return;v=(v==='0'?'':v)+k}
+    i.value=v;var aw=document.querySelector('#qaM .qa-amt-wrap');if(aw)aw.classList.remove('qa-err');window._qaA=v;qaAmtChange();
+    i.classList.remove('bump');void i.offsetWidth;i.classList.add('bump');
+    try{if(navigator.vibrate)navigator.vibrate(6)}catch(e){}
+}
+function qaTyping(on){var m=document.getElementById('qaM');if(m)m.classList.toggle('qa-typing',!!on)}
+// Hardware keyboard still works while the amount is read-only
+document.addEventListener('keydown',function(e){
+    var m=document.getElementById('qaM');if(!m||!m.classList.contains('open'))return;
+    var t=e.target;if(t&&(t.id==='qaNote'||t.id==='qaDate'))return;
+    if(e.metaKey||e.ctrlKey||e.altKey)return;
+    if(/^[0-9]$/.test(e.key)){qaKey(e.key);e.preventDefault()}
+    else if(e.key==='.'||e.key===','){qaKey('.');e.preventDefault()}
+    else if(e.key==='Backspace'){qaKey('del');e.preventDefault()}
+    else if(e.key==='Enter'){saveQA();e.preventDefault()}
+    else if(e.key==='Escape'){closeQA()}
+});
 function quickAmt(v){
     var i=document.getElementById('qaAmt');
     if(!i)return;
@@ -3073,7 +3103,7 @@ function qaPickWallet(id){window._qaA=(document.getElementById('qaAmt')||{}).val
 function pickQA(id){window._qaA=(document.getElementById('qaAmt')||{}).value||'';window._qaN=(document.getElementById('qaNote')||{}).value||'';qaCat=id;renderQA()}
 function saveQA(){
 var amt=Number((document.getElementById('qaAmt')||{}).value)||0;
-if(amt<=0){var ai=document.getElementById('qaAmt');if(ai)ai.style.borderColor='var(--rd)';return}
+if(amt<=0){var aw=document.querySelector('#qaM .qa-amt-wrap');if(aw){aw.classList.remove('qa-err');void aw.offsetWidth;aw.classList.add('qa-err')}return}
 if(!qaCat){alert('กรุณาเลือกหมวดหมู่ก่อนบันทึก');return}
 var note=(document.getElementById('qaNote')||{}).value||'';
 var cat=qaCat;

@@ -132,3 +132,62 @@
 html body .income-ci{grid-template-columns:auto minmax(0,1fr) auto auto !important;align-items:center !important}
 html body .income-ci .row-actions{grid-column:auto !important;display:flex !important;gap:6px;margin:0 !important}
 html body .income-ci .row-actions .cd,html body .income-ci .row-actions .mini-btn{width:32px !important;height:32px !important}
+
+/* ===== Quick add sheet ===== */
+/* scoped under #qaM so it wins over the older !important glass rules without touching them */
+#qaM .qa-amt-wrap{gap:10px !important;padding:12px 12px 12px !important;margin-bottom:10px !important;border-radius:22px !important;background:var(--card) !important;border:1px solid var(--cb) !important;box-shadow:var(--s2) !important}
+#qaM .qa-amt-symbol{font-size:28px !important;color:var(--ac) !important}
+#qaM .qa-amt{font-size:clamp(36px,11vw,44px) !important;letter-spacing:-.02em !important;caret-color:transparent;cursor:default;font-variant-numeric:tabular-nums}
+#qaM .qa-amt.bump{animation:qaBump .18s var(--ease-out)}
+#qaM .qa-presets button{background:var(--bg2) !important;border:1px solid var(--cb) !important;box-shadow:none !important;font-family:var(--font-mono) !important;font-variant-numeric:tabular-nums}
+#qaM .qa-presets button:active{background:var(--ac) !important;color:#fff !important;border-color:var(--ac) !important}
+
+/* categories: picked one fills with the tone and lifts */
+#qaM .qa-cat{background:var(--card) !important;border:1px solid var(--cb) !important;box-shadow:0 1px 0 rgba(255,255,255,.5) inset !important}
+#qaM .qa-cat.on{background:var(--ac) !important;border-color:var(--ac) !important;color:#fff !important;transform:translateY(-2px);box-shadow:0 10px 18px -10px var(--ac),0 1px 0 rgba(255,255,255,.3) inset !important}
+#qaM .qa-cat.on svg{color:#fff;stroke:currentColor}
+#qaM .qa-cat-manage,#qaM .qa-cat-more{border-style:dashed !important}
+
+#qaM .qa-note{margin-top:2px !important}
+#qaM .qa-opts{display:flex;align-items:center;gap:8px;margin:8px 0 0}
+#qaM .qa-wallet-row{flex:1;min-width:0;justify-content:flex-start !important;gap:6px !important;margin:0 !important;padding:0 !important;border-top:none !important;overflow-x:auto;scrollbar-width:none}
+#qaM .qa-wallet-row::-webkit-scrollbar{display:none}
+#qaM .qa-wal-btn{flex:none}
+#qaM .qa-opts .qa-save-tpl{margin-left:auto;flex:none;width:40px;height:40px;border-radius:12px;border:1px solid var(--cb);background:var(--card);color:var(--ac);display:grid;place-items:center;padding:0;cursor:pointer}
+#qaM .qa-opts .add-another{flex:none;margin:0;gap:8px;font-size:13px;font-weight:600}
+#qaM .qa-amt,#qaM .qa-amt:focus{box-shadow:none !important;outline:none !important;border-color:transparent !important}
+#qaM .qa-amt-wrap.qa-err{border-color:var(--rd) !important;animation:qaShake .32s var(--ease-out)}
+@keyframes qaShake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+#qaM .qa-wal-btn{height:34px;padding:0 14px !important;font-size:12.5px !important}
+#qaM .qa-wal-btn.on{background:var(--ac) !important;color:#fff !important;border-color:var(--ac) !important}
+
+/* numpad */
+.qa-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 2px}
+.qa-key{height:46px;border-radius:15px;border:1px solid var(--cb);background:var(--card);color:var(--tx);font-family:var(--font-mono);font-size:22px;font-weight:600;cursor:pointer;
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 2px 0 var(--cb);touch-action:manipulation;-webkit-user-select:none;user-select:none;display:grid;place-items:center;
+  transition:transform .12s var(--ease-spring),background .12s}
+.qa-key:active{transform:translateY(1px) scale(.96);background:var(--bg2);box-shadow:0 1px 0 rgba(255,255,255,.6) inset}
+.qa-key-del{color:var(--tx2)}
+/* numpad stays pinned at the sheet's bottom edge; anything that doesn't fit scrolls above it */
+#qaM .qa-pad{position:sticky;bottom:-32px;z-index:2;margin:10px -18px -32px;padding:10px 18px 32px;background:linear-gradient(var(--card),var(--card)),var(--bg);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);box-shadow:0 -12px 18px -16px rgb(var(--shadow-rgb, 20 20 19) / .35)}
+#qaM.qa-typing .qa-pad{display:none}
+@media (max-height:760px){
+  #qaM .qa-key{height:42px;font-size:20px}
+  #qaM .qa-amt{font-size:34px !important}
+  #qaM .qa-amt-wrap{gap:8px !important;padding:10px !important}
+  #qaM .qa-presets button{min-width:0 !important;padding:6px 12px !important}
+  #qaM .qa-cat{min-height:52px !important;padding:7px 4px !important}
+}
+
+/* add-another: checkbox drawn as a switch */
+#qaM .add-another input{appearance:none;-webkit-appearance:none;flex:none;width:40px;height:24px;margin:0;border-radius:999px;background:var(--bg2);border:1px solid var(--cb);position:relative;cursor:pointer;transition:background .2s}
+#qaM .add-another input::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .22s var(--ease-spring)}
+#qaM .add-another input:checked{background:var(--ac);border-color:var(--ac)}
+#qaM .add-another input:checked::after{transform:translateX(16px)}
+#qaM .add-another input:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+
+/* sheet springs up */
+#qaM.open .mbox{animation:qaUp .42s var(--ease-spring) both}
+@keyframes qaUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes qaBump{50%{transform:scale(1.04)}}
+@media (prefers-reduced-motion:reduce){#qaM.open .mbox,#qaM .qa-amt.bump,#qaM .qa-amt-wrap.qa-err{animation:none}.qa-key,#qaM .add-another input::after{transition:none}}
