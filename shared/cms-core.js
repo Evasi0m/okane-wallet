@@ -15,7 +15,7 @@
 
   var STRING_CATALOG = {
     'welcome.title': 'Okane Wallet',
-    'welcome.sub': 'บันทึกรายรับ-รายจ่ายส่วนตัวแบบละเมียดละไม',
+    'welcome.sub': 'จดรายจ่ายใน 2 แตะ ตั้งงบรายหมวด แล้วดูสรุปเดือนได้ทันที',
     'welcome.foot': 'ข้อมูลทั้งหมดถูกจัดเก็บอย่างปลอดภัยบนระบบคลาวด์ของ Supabase',
     'nav.daily': 'รายวัน',
     'nav.monthly': 'รายเดือน',
