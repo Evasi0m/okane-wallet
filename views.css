@@ -249,3 +249,7 @@ html body .income-ci .row-actions .cd,html body .income-ci .row-actions .mini-bt
   #welcome .auth-card{border-radius:30px;margin-bottom:32px;box-shadow:var(--shadow-high, 0 30px 60px -30px rgba(0,0,0,.4))}
 }
 @media (prefers-reduced-motion:reduce){.wl-card{animation:none}.wl-hero{transition:none}}
+
+/* extra-income list: show all / collapse */
+.income-more{width:100%;margin-top:8px;padding:11px;border-radius:14px;border:1px dashed var(--cb);background:transparent;color:var(--ac);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+.income-more:active{transform:scale(.98)}

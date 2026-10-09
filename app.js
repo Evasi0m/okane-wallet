@@ -2180,7 +2180,7 @@ if(editInc)h+='<input class="edit-val income-edit-val" type="number" id="ed_sal"
 else h+='<span class="rv pos">'+fmt(d.sal)+'</span>';
 h+='</div></div>';
 h+='<button class="income-add-btn" onclick="openIncomePopup()"><span class="income-add-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span><span>เพิ่มรายรับเพิ่มเติม</span></button>';
-if(d.oI.length>0){var oiTot=d.oI.reduce(function(a,x){return a+Number(x.a||0)},0);h+='<div class="income-extra"><div class="income-extra-label"><span>รายรับเพิ่มเติม · '+d.oI.length+' รายการ</span><b class="pos">+'+fmt(oiTot)+'</b></div>';for(var oi=d.oI.length-1;oi>=0;oi--)h+=incomeItem(d.oI[oi],oi);h+='</div>'}
+if(d.oI.length>0){var oiTot=d.oI.reduce(function(a,x){return a+Number(x.a||0)},0);h+='<div class="income-extra"><div class="income-extra-label"><span>รายรับเพิ่มเติม · '+d.oI.length+' รายการ</span><b class="pos">+'+fmt(oiTot)+'</b></div>';var oiRows=d.oI.map(function(x,i){var t=incomeAddedAt(x);return{x:x,i:i,t:t?t.getTime():-1}}).sort(function(a,b){return b.t-a.t||b.i-a.i});var oiShow=window._incShowAll?oiRows:oiRows.slice(0,INCOME_LIST_LIMIT);oiShow.forEach(function(r){h+=incomeItem(r.x,r.i)});if(oiRows.length>INCOME_LIST_LIMIT)h+='<button type="button" class="income-more" onclick="window._incShowAll=!window._incShowAll;render()">'+(window._incShowAll?'ย่อเหลือ '+INCOME_LIST_LIMIT+' รายการล่าสุด':'แสดงทั้งหมด '+oiRows.length+' รายการ')+'</button>';h+='</div>'}
 h+='</div>';
 h+='</div></div>';
 
@@ -3669,6 +3669,8 @@ function incomeAddedLabel(item){
     var day=dKey(d)===dKey(now)?'เพิ่มวันนี้':dKey(d)===dKey(yd)?'เพิ่มเมื่อวาน':'เพิ่มเมื่อ '+THDAY[d.getDay()]+' '+d.getDate()+' '+TM[d.getMonth()]+(d.getFullYear()!==now.getFullYear()?' '+d.getFullYear():'');
     return day+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
 }
+// Extra-income list: newest first, the first 10 shown until the user expands it
+var INCOME_LIST_LIMIT=10;
 function incomeItem(x,i){
     var added=incomeAddedLabel(x);
     return '<div class="income-ci" id="ci_I'+i+'"><div class="income-chip">'+incomeIconImg('income-chip-img')+'</div><div class="income-ci-copy"><div class="income-ci-title">'+esc(x.n||'รายรับเพิ่มเติม')+'</div><div class="income-ci-sub">'+(added||'รายรับเพิ่มเติม')+'</div></div><div class="income-ci-value">+'+fmt(x.a)+'</div><div class="row-actions">'+(editInc?'<button class="mini-btn" onclick="openIncomePopup(\''+esc(x.id)+'\')" aria-label="แก้ไขรายรับ">'+SVG_PENCIL+'</button>':'')+'<button class="cd" onclick="deleteIncome(\''+esc(x.id)+'\')">'+IC.dl+'</button></div></div>'
