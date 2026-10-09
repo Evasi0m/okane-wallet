@@ -3657,13 +3657,26 @@ document.getElementById('uM').addEventListener('click',function(e){if(e.target==
 /* ===== ACTIONS ===== */
 function saveField(k,id){var v=Number(document.getElementById(id).value)||0;var d=gm(cY,sM_);d[k]=v;sm_(cY,sM_,d);render()}
 function saveSavGoal(id){var el=document.getElementById(id||'stSavGoal')||document.getElementById('ed_savGoal');if(!el)return;var v=Number(el.value)||0;var s=gs();if(!s.settings)s.settings=Object.assign({},DF);s.settings.savGoal=v;syncNow(s);renderSettings();render()}
+// When an income item was added, read from its id ("inc_<ms>_<rand>" from genId), shown in Bangkok time
+function incomeAddedAt(item){
+    var m=/^inc_(\d{12,14})_/.exec(String(item&&item.id||''));if(!m)return null;
+    var ms=Number(m[1]);if(!isFinite(ms))return null;
+    return new Date(new Date(ms).toLocaleString('en-US',{timeZone:'Asia/Bangkok'}));
+}
+function incomeAddedLabel(item){
+    var d=incomeAddedAt(item);if(!d)return '';
+    var now=getBangkokNow(),yd=new Date(now);yd.setDate(yd.getDate()-1);
+    var day=dKey(d)===dKey(now)?'เพิ่มวันนี้':dKey(d)===dKey(yd)?'เพิ่มเมื่อวาน':'เพิ่มเมื่อ '+THDAY[d.getDay()]+' '+d.getDate()+' '+TM[d.getMonth()]+(d.getFullYear()!==now.getFullYear()?' '+d.getFullYear():'');
+    return day+' · '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
 function incomeItem(x,i){
-    return '<div class="income-ci" id="ci_I'+i+'"><div class="income-chip">'+incomeIconImg('income-chip-img')+'</div><div class="income-ci-copy"><div class="income-ci-title">'+esc(x.n||'รายรับเพิ่มเติม')+'</div><div class="income-ci-sub">รายรับเพิ่มเติม</div></div><div class="income-ci-value">+'+fmt(x.a)+'</div><div class="row-actions">'+(editInc?'<button class="mini-btn" onclick="openIncomePopup(\''+esc(x.id)+'\')" aria-label="แก้ไขรายรับ">'+SVG_PENCIL+'</button>':'')+'<button class="cd" onclick="deleteIncome(\''+esc(x.id)+'\')">'+IC.dl+'</button></div></div>'
+    var added=incomeAddedLabel(x);
+    return '<div class="income-ci" id="ci_I'+i+'"><div class="income-chip">'+incomeIconImg('income-chip-img')+'</div><div class="income-ci-copy"><div class="income-ci-title">'+esc(x.n||'รายรับเพิ่มเติม')+'</div><div class="income-ci-sub">'+(added||'รายรับเพิ่มเติม')+'</div></div><div class="income-ci-value">+'+fmt(x.a)+'</div><div class="row-actions">'+(editInc?'<button class="mini-btn" onclick="openIncomePopup(\''+esc(x.id)+'\')" aria-label="แก้ไขรายรับ">'+SVG_PENCIL+'</button>':'')+'<button class="cd" onclick="deleteIncome(\''+esc(x.id)+'\')">'+IC.dl+'</button></div></div>'
 }
 function openIncomePopup(id){
     _incomeEditId=id||null;
     var cur=id?gm(cY,sM_).oI.find(function(x){return x.id===id}):null;
-    if(document.getElementById('incTitle'))document.getElementById('incTitle').textContent=_incomeEditId?'แก้ไขรายรับ':'รายรับเพิ่มเติม';
+    var incT=document.getElementById('incTitle');if(incT){var addedLb=cur?incomeAddedLabel(cur):'';incT.innerHTML=(_incomeEditId?'แก้ไขรายรับ':'รายรับเพิ่มเติม')+(addedLb?'<small class="inc-added">'+addedLb+'</small>':'')}
     var curName=esc(cur&&cur.n||''),curAmount=Number(cur&&cur.a||0);
     var h='<div class="mbd income-form-body sheet-structured">';
     h+='<section class="sheet-section sheet-preview-section"><div class="sheet-section-title">ตัวอย่างรายรับ</div>';

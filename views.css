@@ -192,6 +192,9 @@ html body .income-ci .row-actions .cd,html body .income-ci .row-actions .mini-bt
 @keyframes qaBump{50%{transform:scale(1.04)}}
 @media (prefers-reduced-motion:reduce){#qaM.open .mbox,#qaM .qa-amt.bump,#qaM .qa-amt-wrap.qa-err{animation:none}.qa-key,#qaM .add-another input::after{transition:none}}
 
+/* income edit popup: when the item was added */
+#incTitle .inc-added{display:block;margin-top:2px;font-size:12px;font-weight:600;color:var(--tx3);letter-spacing:0}
+
 /* ===== Welcome / sign in (design A: floating cards over a hero, sheet below) ===== */
 #welcome{padding:0 !important;justify-content:flex-start;align-items:stretch;overflow-y:auto;overflow-x:hidden}
 .wl-hero{position:relative;flex:1 0 auto;min-height:min(46dvh,400px);overflow:hidden;
