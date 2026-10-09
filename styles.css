@@ -2455,7 +2455,7 @@ button:focus-visible,.btn:focus-visible,.qa-cat:focus-visible,.theme-item:focus-
 :root[data-theme="jade"] .hdr-menu,:root[data-theme="jade"] .hdr-menu-card,body.hdr-menu-open:root[data-theme="jade"] .hdr-menu{background:linear-gradient(180deg,rgba(253,254,254,.985),rgb(var(--c-surface-soft) / .975)) !important}
 :root[data-theme="jade"] .auth-card{background:linear-gradient(180deg,rgba(253,254,254,.92),rgb(var(--c-surface-soft) / .82))}
 :root[data-theme="jade"] .auth-field input{background:rgba(253,254,254,.94)}
-:root[data-theme="jade"] .auth-card .w-btn{background:rgba(253,254,254,.9) !important}
+:root[data-theme="jade"] .auth-card .w-btn:not(.auth-primary){background:rgba(253,254,254,.9) !important}
 :root[data-theme="jade"] .income-popup{background:radial-gradient(circle at 50% 20%,rgb(var(--shadow-rgb) / .24),rgba(0,0,0,.54)) !important}
 :root[data-theme="jade"] .sheet-input-wrap,:root[data-theme="jade"] .ins-card .ip-title,:root[data-theme="jade"] .hdr-drawer-nav,:root[data-theme="jade"] .hdr-user-card,:root[data-theme="jade"] .hdr-user-av,:root[data-theme="jade"] .hdr-menu-ic{border-color:rgb(var(--c-hairline)) !important}
 :root[data-theme="jade"] .hdr-drawer-head{border-bottom-color:rgb(var(--c-hairline))}
