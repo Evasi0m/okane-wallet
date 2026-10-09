@@ -191,3 +191,6 @@ html body .income-ci .row-actions .cd,html body .income-ci .row-actions .mini-bt
 @keyframes qaUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
 @keyframes qaBump{50%{transform:scale(1.04)}}
 @media (prefers-reduced-motion:reduce){#qaM.open .mbox,#qaM .qa-amt.bump,#qaM .qa-amt-wrap.qa-err{animation:none}.qa-key,#qaM .add-another input::after{transition:none}}
+
+/* income edit popup: when the item was added */
+#incTitle .inc-added{display:block;margin-top:2px;font-size:12px;font-weight:600;color:var(--tx3);letter-spacing:0}
